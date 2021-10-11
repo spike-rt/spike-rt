@@ -1,0 +1,27 @@
+# core_kernel_impl.c
+exc_tbl
+vector_table
+lock_flag
+saved_iipm
+default_exc_handler
+default_int_handler
+config_int
+core_initialize
+core_terminate
+bitpat_cfgint
+set_exc_int_priority
+enable_exc
+disable_exc
+core_int_entry
+
+# core_support.S
+core_exc_entry
+svc_handler
+pendsv_handler
+dispatch
+do_dispatch
+dispatcher_1
+start_r
+start_dispatch
+exit_and_dispatch
+call_exit_kernel

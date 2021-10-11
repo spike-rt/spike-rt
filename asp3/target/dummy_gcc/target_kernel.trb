@@ -1,0 +1,22 @@
+# -*- coding: utf-8 -*-
+# 
+#		パス2の生成スクリプトのターゲット依存部（ダミーターゲット用）
+#
+#   $Id: target_kernel.trb 572 2016-02-01 14:40:09Z ertl-hiro $
+# 
+
+# 
+#  使用できる割込み番号とそれに対応する割込みハンドラ番号
+# 
+$INTNO_VALID = [ *(0..31) ]
+$INHNO_VALID = $INTNO_VALID
+
+# 
+#  使用できるCPU例外ハンドラ番号
+# 
+$EXCNO_VALID = [ *(0..7) ]
+
+#
+#  ターゲット非依存部のインクルード
+#
+IncludeTrb("kernel/kernel.trb")

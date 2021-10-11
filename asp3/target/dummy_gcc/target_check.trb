@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+#		パス3の生成スクリプトのターゲット依存部（ダミーターゲット用）
+#
+#   $Id: target_check.trb 572 2016-02-01 14:40:09Z ertl-hiro $
+# 
+
+#
+#  ターゲット非依存部のインクルード
+#
+IncludeTrb("kernel/kernel_check.trb")

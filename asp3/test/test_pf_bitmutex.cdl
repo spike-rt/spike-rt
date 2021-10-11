@@ -1,0 +1,23 @@
+/*
+ *		テスト用プラットフォーム（ミューテックス機能の整合性検査付き）
+ *		のコンポーネント記述ファイル
+ *
+ *  $Id: test_pf_bitmutex.cdl 882 2018-02-01 09:55:37Z ertl-hiro $
+ */
+
+/*
+ *  テスト用プラットフォームのコンポーネント記述ファイル
+ */
+import("test_pf.cdl");
+
+/*
+ *  ミューテックス機能の整合性検査のセルタイプと組上げ記述
+ */
+[singleton]
+celltype tBitMutex {
+	entry	sBuiltInTest	eBuiltInTest;
+};
+
+cell tBitMutex BitMutex {
+	eBuiltInTest <= TestService.cBuiltInTest;	/* テストサービスに接続 */
+};

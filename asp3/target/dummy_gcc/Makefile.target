@@ -1,0 +1,62 @@
+#
+#		Makefile のターゲット依存部（ダミーターゲット用）
+#
+#  $Id: Makefile.target 1053 2018-11-19 14:15:34Z ertl-hiro $
+# 
+
+#
+#  システム名，開発環境名の定義
+#
+SYS = dummy
+TOOL = gcc
+
+#
+#  ツール依存部ディレクトリ名の定義 
+#
+TOOLDIR = $(SRCDIR)/arch/$(TOOL)
+
+#
+#  GNU開発環境のターゲットアーキテクチャの定義
+#
+#  ダミーターゲット用であるため，定義しない．
+#
+#GCC_TARGET =
+
+#
+#  コンパイルオプション
+#
+INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TOOLDIR)
+
+#
+#  カーネルに関する定義
+#
+KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR)
+KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o target_timer.o
+
+#
+#  システムサービスに関する定義
+#
+SYSSVC_COBJS := $(SYSSVC_COBJS)
+
+#
+#  コンフィギュレータ関係の変数の定義
+#
+CFG_TABS := $(CFG_TABS) --symval-table $(TARGETDIR)/target_sym.def
+
+#
+#  オフセットファイル生成のための定義
+#
+TARGET_OFFSET_TRB = $(TARGETDIR)/target_offset.trb
+
+#
+#  スタートアップモジュールに関する定義
+#
+#  START_OBJSをstart.oに設定し，LDFLAGSに-nostdlibを追加する．
+#
+START_OBJS := start.o
+START_OBJS := $(addprefix $(OBJDIR)/, $(START_OBJS))
+
+$(START_OBJS): $(OBJDIR)/%.o: %.c
+	$(CC) -c -o $@ -MD -MP -MF $(DEPDIR)/$*.d $(CFLAGS) $(KERNEL_CFLAGS) $<
+
+LDFLAGS := -nostdlib $(LDFLAGS)

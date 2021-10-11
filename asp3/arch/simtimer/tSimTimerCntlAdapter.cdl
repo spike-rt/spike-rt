@@ -1,0 +1,10 @@
+/*
+ *		C言語で記述されたアプリケーションから，TECSベースのタイマドラ
+ *		イバシミュレータ制御を呼び出すためのアダプタ用セルタイプの定義
+ *
+ *  $Id: tSimTimerCntlAdapter.cdl 1104 2018-12-02 09:20:00Z ertl-hiro $
+ */
+[singleton, active]
+celltype tSimTimerCntlAdapter {
+	call	sSimTimerCntl	cSimTimerCntl;
+};
