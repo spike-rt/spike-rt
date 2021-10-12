@@ -48,7 +48,7 @@
 /*
  *  ボードに関する定義
  */
-import_C("nucleo_f401re.h");
+import_C("lego_spike.h");
 
 /*
  *  USART用 簡易SIOドライバ

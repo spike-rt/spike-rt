@@ -34,20 +34,20 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: nucleo_f401re.h 648 2016-02-20 00:50:56Z ertl-honda $
+ *  $Id: lego_spike.h 648 2016-02-20 00:50:56Z ertl-honda $
  */
 
 /*
- *		NUCLEO F401RE サポートモジュール
+ *		Lego SPIKE Prime サポートモジュール
  */
 
-#ifndef TOPPERS_NUCLEO_F401RE_H
-#define TOPPERS_NUCLEO_F401RE_H
+#ifndef TOPPERS_LEGO_SPIKE_H
+#define TOPPERS_LEGO_SPIKE_H
 
 /*
  *  コアのクロック周波数
  */
-#define CPU_CLOCK_HZ	84000000
+#define CPU_CLOCK_HZ	100000000
 
 /*
  *  割込み数

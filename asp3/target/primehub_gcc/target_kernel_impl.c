@@ -34,66 +34,147 @@
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
- *  アの利用により直接的または間接的に生じたいかなる損害に関して中山麻聖も，そ
+ *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
  */
-#ifndef TOPPERS_TARGET_KERNEL_IMPL_H
-#define TOPPERS_TARGET_KERNEL_IMPL_H
 
 /*
- * ターゲット依存部モジュール（NUCLEO_F401RE用）
- *
- * カーネルのターゲット依存部のインクルードファイル．kernel_impl.hのター
- * ゲット依存部の位置付けとなす．
+ * ターゲット依存モジュール（NUCLEO_F401RE用）
  */
-#include "nucleo_f401re.h"
-
-/*
- *  TBITW_IPRI の定義のため読み込み
- */
+#include "kernel_impl.h"
 #include <sil.h>
 
 /*
- *  デフォルトの非タスクコンテキスト用のスタック領域の定義
+ *  起動直後の初期化(system_stm32f4xx.c)
  */
-#define DEFAULT_ISTKSZ			(0x1000)		/* 4KByte */
+extern void SystemInit(void);
 
 /*
- * IDLE処理の定義
- *
- * サスペンド時にOpenOCDデバッグツールが使えなくなる問題の対応
- * WFI等でサスペンドしているプログラムに対して，フラッシュROM
- * 書き込みも出来なくなるため，IDEL処理変更．
+ *  クロックの初期化(systemclock_config.c)
  */
-#define TOPPERS_CUSTOM_IDEL
-#define toppers_asm_custom_idle		\
-	msr		basepri, r0;			\
-	msr		basepri, r1;
-
-#ifndef TOPPERS_MACRO_ONLY
+extern void SystemClock_Config(void);
 
 /*
- *  ターゲットシステム依存の初期化
+ *  バーナ出力用のUARTの初期化
  */
-extern void	target_initialize(void);
+static void usart_early_init(void);
 
 /*
- *  ターゲットシステムの終了
- *
- *  システムを終了する時に使う．
- */
-extern void	target_exit(void) NoReturn;
-
-/*
- *  エラー発生時の処理
+ *  エラー時の処理
  */
 extern void Error_Handler(void);
-#endif /* TOPPERS_MACRO_ONLY */
 
 /*
- *  チップ依存モジュール
+ *  起動時のハードウェア初期化処理
  */
-#include <chip_kernel_impl.h>
+void
+hardware_init_hook(void) {
+	SystemInit();
 
-#endif /* TOPPERS_TARGET_KERNEL_IMPL_H */
+	/*
+	 *  -fdata-sectionsを使用するとistkが削除され，
+	 *  cfgのパス3のチェックがエラーとなるため，
+	 *  削除されないようにする 
+	 */
+	SystemCoreClock = (uint32_t)istk;
+}
+
+/*
+ * ターゲット依存部 初期化処理
+ */
+void
+target_initialize(void)
+{
+	/*
+	 *  HALによる初期化
+	 *  HAL_Init() : stm32f4xx_hal.c の内容から必要な初期化のみ呼び出す．
+	 */
+	__HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+	__HAL_FLASH_DATA_CACHE_ENABLE();
+	__HAL_FLASH_PREFETCH_BUFFER_ENABLE();
+
+	/*
+	 *  クロックの初期化
+	 */
+	// SystemClock_Config();
+
+	/*
+	 *  コア依存部の初期化
+	 */
+	core_initialize();
+
+	/*
+	 *  使用するペリフェラルにクロックを供給
+	 */
+
+	/*
+	 *  UserLEDの初期化
+	 */
+	BSP_LED_Init(LED2);
+
+	/*
+	 *  バーナー出力用のシリアル初期化
+	 */
+	usart_early_init();
+}
+
+/*
+ * ターゲット依存部 終了処理
+ */
+void
+target_exit(void)
+{
+	/* チップ依存部の終了処理 */
+	core_terminate();
+	while(1);
+}
+
+static UART_HandleTypeDef UartHandle;
+
+void
+usart_early_init()
+{
+	usart_low_init();
+
+	UartHandle.Instance          = USART_NAME; 
+	UartHandle.Init.BaudRate     = BPS_SETTING;
+	UartHandle.Init.WordLength   = UART_WORDLENGTH_9B;
+	UartHandle.Init.StopBits     = UART_STOPBITS_1;
+	UartHandle.Init.Parity       = UART_PARITY_ODD;
+	UartHandle.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
+	UartHandle.Init.Mode         = UART_MODE_TX_RX;
+	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+    
+	if(HAL_UART_Init(&UartHandle) != HAL_OK) {
+		Error_Handler();
+	}
+};
+
+/*
+ * エラー発生時の処理
+ */
+void
+Error_Handler(void){
+	volatile int loop;
+	BSP_LED_Init(LED2);
+	while(1){
+		for(loop = 0; loop < 0x100000; loop++);
+		BSP_LED_Toggle(LED2);
+	}
+}
+
+#include "time_event.h"
+
+/*
+ *  HAL実行用の関数
+ */
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
+{
+  return HAL_OK;
+}
+
+uint32_t HAL_GetTick(void)
+{
+  return current_hrtcnt/1000;
+}
