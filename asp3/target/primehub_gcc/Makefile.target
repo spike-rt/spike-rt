@@ -25,7 +25,7 @@ KERNEL_TIMER = TIM
 #  コンパイルオプション
 #
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
-CDEFS := $(CDEFS) -DSTM32F401xE # TODO
+CDEFS := $(CDEFS) -DSTM32F413xx
 COPTS := $(COPTS) 
 LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
 
@@ -42,7 +42,7 @@ KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o
 KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
                 system_stm32f4xx.o stm32f4xx_nucleo.o systemclock_config.o \
-                stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \
+                stm32f4xx_hal.o stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \
                 stm32f4xx_hal_rcc.o stm32f4xx_hal_dma.o
 
 KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal_tim.o
