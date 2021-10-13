@@ -1,6 +1,3 @@
-[submodule "asp3/arch/arm_m_gcc/stm32f4xx_stm32cube/cmsis_device_f4"]
-	path = asp3/arch/arm_m_gcc/stm32f4xx_stm32cube/cmsis_device_f4
-	url = https://github.com/STMicroelectronics/cmsis_device_f4.git
-[submodule "asp3/arch/arm_m_gcc/stm32f4xx_stm32cube/stm32f4xx_hal_driver"]
-	path = asp3/arch/arm_m_gcc/stm32f4xx_stm32cube/stm32f4xx_hal_driver
-	url = https://github.com/STMicroelectronics/stm32f4xx_hal_driver.git
+[submodule "asp3-app-pybricks"]
+	path = asp3-app-pybricks
+	url = git@github.com:envzhu/asp3-app-pybricks.git
