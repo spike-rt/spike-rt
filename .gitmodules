@@ -1,3 +1,6 @@
 [submodule "asp3-app-pybricks"]
 	path = asp3-app-pybricks
 	url = git@github.com:envzhu/asp3-app-pybricks.git
+[submodule "qemu-primehub"]
+	path = qemu-primehub
+	url = git@github.com:envzhu/qemu-primehub
