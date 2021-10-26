@@ -47,7 +47,7 @@
 /*
  *  コアのクロック周波数
  */
-#define CPU_CLOCK_HZ	100000000
+#define CPU_CLOCK_HZ	96000000
 
 /*
  *  割込み数
@@ -68,17 +68,17 @@
 #ifndef TECSGEN
 #include "stm32f4xx_nucleo.h"
 #else /* !TECSGEN */
-#define USART2_BASE  0x40004400U
-#define USART2_IRQn  38
+#define USART6_BASE  0x40011400U
+#define USART6_IRQn  71
 #endif /* TECSGEN */
 #endif /* TOPPERS_MACRO_ONLY */
 
 /*
  *  USART関連の定義
  */
-#define USART_INTNO (USART2_IRQn + 16)
-#define USART_NAME  USART2
-#define USART_BASE  USART2_BASE 
+#define USART_INTNO (USART6_IRQn + 16)
+#define USART_NAME  USART6
+#define USART_BASE  USART6_BASE 
 
 /*
  *  ボーレート
@@ -98,20 +98,30 @@ usart_low_init(void) {
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_USART2_CLK_ENABLE();
   
+  // UART for terminal
+	GPIOG->MODER = (GPIOG->MODER & ~GPIO_MODER_MODER9_Msk) | (2 << GPIO_MODER_MODER9_Pos);
+	GPIOG->AFR[1] = (GPIOG->AFR[1] & ~GPIO_AFRH_AFSEL9_Msk) | (8 << GPIO_AFRH_AFSEL9_Pos);
+	GPIOG->MODER = (GPIOG->MODER & ~GPIO_MODER_MODER14_Msk) | (2 << GPIO_MODER_MODER14_Pos);
+	GPIOG->AFR[1] = (GPIOG->AFR[1] & ~GPIO_AFRH_AFSEL14_Msk) | (8 << GPIO_AFRH_AFSEL14_Pos);
+	USART6->BRR = (26 << 4) | 1; // 48MHz/(16*26.0625) = 115107 baud
+	USART6->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
+
+	#if 0
 	/* UART TX GPIO pin configuration  */
 	GPIO_InitStruct.Pin       = GPIO_PIN_2;
 	GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull      = GPIO_PULLUP;
 	GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
-	GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+	GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
 
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
     
 	/* UART RX GPIO pin configuration  */
 	GPIO_InitStruct.Pin = GPIO_PIN_3;
-	GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+	GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+	#endif
 }
 #endif /* TECSGEN */
 #endif /* TOPPERS_MACRO_ONLY */

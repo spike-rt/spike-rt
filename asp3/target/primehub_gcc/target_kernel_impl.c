@@ -97,7 +97,7 @@ target_initialize(void)
 	/*
 	 *  クロックの初期化
 	 */
-	// SystemClock_Config();
+	SystemClock_Config();
 
 	/*
 	 *  コア依存部の初期化
@@ -136,7 +136,8 @@ void
 usart_early_init()
 {
 	usart_low_init();
-
+  
+#if 0
 	UartHandle.Instance          = USART_NAME; 
 	UartHandle.Init.BaudRate     = BPS_SETTING;
 	UartHandle.Init.WordLength   = UART_WORDLENGTH_9B;
@@ -149,6 +150,7 @@ usart_early_init()
 	if(HAL_UART_Init(&UartHandle) != HAL_OK) {
 		Error_Handler();
 	}
+#endif
 };
 
 /*

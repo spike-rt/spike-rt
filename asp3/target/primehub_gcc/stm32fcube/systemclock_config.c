@@ -27,16 +27,16 @@ extern void Error_Handler();
   * @brief  System Clock Configuration
   *         The system Clock is configured as follow : 
   *            System Clock source            = PLL (HSE)
-  *            SYSCLK(Hz)                     = 100000000
-  *            HCLK(Hz)                       = 100000000
+  *            SYSCLK(Hz)                     = 96000000
+  *            HCLK(Hz)                       = 96000000
   *            AHB Prescaler                  = 1
   *            APB1 Prescaler                 = 2
   *            APB2 Prescaler                 = 1
-  *            HSE Frequency(Hz)              = 8000000
+  *            HSE Frequency(Hz)              = 16000000
   *            PLL_M                          = 8
-  *            PLL_N                          = 200
+  *            PLL_N                          = 96
   *            PLL_P                          = 2
-  *            PLL_Q                          = 7
+  *            PLL_Q                          = 4
   *            PLL_R                          = 2
   *            VDD(V)                         = 3.3
   *            Main regulator output voltage  = Scale1 mode
@@ -59,13 +59,13 @@ void SystemClock_Config(void)
 
   /* Enable HSE Oscillator and activate PLL with HSE as source */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 200;
+  RCC_OscInitStruct.PLL.PLLN = 96;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   RCC_OscInitStruct.PLL.PLLR = 2;
   
   if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
