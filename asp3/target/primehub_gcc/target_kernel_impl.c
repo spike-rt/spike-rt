@@ -97,7 +97,10 @@ target_initialize(void)
 	/*
 	 *  クロックの初期化
 	 */
-	SystemClock_Config();
+	// SystemClock_Config();
+
+  // Pybricks側のコードを利用
+  SystemInit();
 
 	/*
 	 *  コア依存部の初期化
@@ -158,11 +161,11 @@ usart_early_init()
  */
 void
 Error_Handler(void){
-	volatile int loop;
-	BSP_LED_Init(LED2);
+	// volatile int loop;
+	// BSP_LED_Init(LED2);
 	while(1){
-		for(loop = 0; loop < 0x100000; loop++);
-		BSP_LED_Toggle(LED2);
+		// for(loop = 0; loop < 0x100000; loop++);
+		// BSP_LED_Toggle(LED2);
 	}
 }
 
@@ -176,7 +179,13 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   return HAL_OK;
 }
 
-uint32_t HAL_GetTick(void)
-{
-  return current_hrtcnt/1000;
-}
+
+/*
+ * とりあえず，HAL_GetTick()はpybricks側のものを使用する．
+ * (asp3-app-pybricks/lib/pbio/drv/clock/clock_stm32.cを参照)
+ * TODO: ContikiのタイマをASP3のタイマに統合する
+ */
+// uint32_t HAL_GetTick(void)
+// {
+//  return current_hrtcnt/1000;
+//}
