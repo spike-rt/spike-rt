@@ -62,7 +62,7 @@
 	ATHUMB(_kernel_start)
 	AGLOBAL(_kernel_start)
 ALABEL(_kernel_start)
-	cpsid f                 /* 割込みロック状態へ */
+	/*cpsid f                 /* 割込みロック状態へ */
 
 #ifdef INIT_MSP
 	/*
@@ -82,7 +82,7 @@ ALABEL(_kernel_start)
 	 * ターゲットハードウェアに依存して必要な初期化処理がある場合
 	 * は，hardware_init_hook という関数を用意する
 	 */
-	ldr  r0, =hardware_init_hook
+  ldr  r0, =hardware_init_hook
 	cbz  r0, start_1
 	blx  r0
 
@@ -133,11 +133,18 @@ ALABEL(start_4)
 	 *  よい．
 	 */
 ALABEL(start_5)
-	ldr  r0, =software_init_hook
+  ldr  r0, =software_init_hook
 	cbz  r0, start_6
 	blx  r0
 
 ALABEL(start_6)
+  bl  SystemInit
+/* Call static constructors */
+    /* bl __libc_init_array */
+/* Call the application's entry point.*/
+  bl  main
+  bx  lr
+
 	bl   sta_ker
 
 ALABEL(l_end)

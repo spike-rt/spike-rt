@@ -1,6 +1,6 @@
 MEMORY
 {
-  FLASH (rx)      : ORIGIN = 0x080C0000, LENGTH = 256K
+  FLASH (rx)      : ORIGIN = 0x08008000, LENGTH = 992K
   SRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 320K
 }
 
@@ -10,12 +10,16 @@ PROVIDE(software_term_hook = 0);
 
 ENTRY(_kernel_start)
 
+_estack = ORIGIN(SRAM) + LENGTH(SRAM);
+
 SECTIONS
 {
 	.text :
 	{
 		__text = .;
-		*(.vector)
+    _fw_isr_vector_src = .;
+    KEEP(*(.isr_vector)) /* isr vector table */
+    *(.vector)
 		*(.text)
 		*(.text.*)
 	} > FLASH

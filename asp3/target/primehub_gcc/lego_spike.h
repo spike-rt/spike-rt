@@ -92,6 +92,7 @@
  */
 Inline void
 usart_low_init(void) {
+	#if 0
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
 	/* Enable Clock */
@@ -106,7 +107,6 @@ usart_low_init(void) {
 	USART6->BRR = (26 << 4) | 1; // 48MHz/(16*26.0625) = 115107 baud
 	USART6->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
 
-	#if 0
 	/* UART TX GPIO pin configuration  */
 	GPIO_InitStruct.Pin       = GPIO_PIN_2;
 	GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;

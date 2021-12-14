@@ -174,11 +174,12 @@ Error_Handler(void){
 /*
  *  HAL実行用の関数
  */
+/*
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
   return HAL_OK;
 }
-
+*/
 
 /*
  * とりあえず，HAL_GetTick()はpybricks側のものを使用する．

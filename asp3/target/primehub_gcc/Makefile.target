@@ -1,11 +1,11 @@
 #
-#		Makefile のターゲット依存部（LEGO_SPIKE用）
+#		Makefile のターゲット依存部（LEGO SPIKE Prime Hub 用）
 #
 
 #
 #  ボード名, チップ名，コア名，開発環境名の定義
 #
-BOARD = leho_spike
+BOARD = lego_spike
 CHIP  = stm32f4xx_stm32cube
 PRC   = arm_m
 TOOL  = gcc
@@ -27,7 +27,8 @@ KERNEL_TIMER = TIM
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
 CDEFS := $(CDEFS) -DSTM32F413xx
 COPTS := $(COPTS) 
-LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
+LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS) -L$(SRCDIR)/../asp3-app-pybricks/bricks/primehub_asp3 
+LIBS := -lpybricks
 
 #
 # ファイルサイズ削減のためのオプション
@@ -39,13 +40,14 @@ OBJ_LDFLAGS := $(OBJ_LDFLAGS) -Wl,--gc-sections
 #  カーネルに関する定義
 #
 KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube
-KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o
+KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o vector.o
 KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
-                system_stm32f4xx.o stm32f4xx_nucleo.o systemclock_config.o \
-                stm32f4xx_hal.o stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \
-                stm32f4xx_hal_rcc.o stm32f4xx_hal_dma.o
+                stm32f4xx_nucleo.o #systemclock_config.o \
+                #stm32f4xx_hal.o stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \
+                #stm32f4xx_hal_rcc.o #stm32f4xx_hal_dma.o
+                #system_stm32f4xx.o 
 
-KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal_tim.o
+KERNEL_COBJS := $(KERNEL_COBJS) #stm32f4xx_hal_tim.o
 
 #
 #  システムサービスに関する定義
@@ -97,45 +99,24 @@ LDSCRIPT = $(TARGETDIR)/stm32f413xx.ld
 #
 include $(SRCDIR)/arch/$(PRC)_$(TOOL)/$(CHIP)/Makefile.chip
 
+
 #
 #  フラッシュへの書き込み
 #
-UNAME_TARGET = Cygwin
-OPENOCD_PATH = /cygdrive/c/arm/OpenOCD/0.10.0-201510281129-dev/bin/openocd.exe
-OPENOCD_SCRIPT_PATH = c:/arm/OpenOCD/0.10.0-201510281129-dev/scripts
-OPENOCD_SCRIPT  = c:/arm/OpenOCD/0.10.0-201510281129-dev/scripts/board/st_nucleo_f4.cfg
+MPTOP = $(SRCDIR)/../asp3-app-pybricks/micropython
+PYTHON3 :=  python3
 
-ifeq ($(UNAME_TARGET), Cygwin)
-	GDB = arm-gdb_m0.exe
-else
-	GDB = $(ARDUINO_BASE_DIR_WIN)\hardware\tools\gcc-arm-none-eabi-4.8.3-2014q1\bin\arm-none-eabi-gdb
-endif
+DFU = $(MPTOP)/tools/dfu.py
+PYDFU = $(MPTOP)/tools/pydfu.py
 
-run: $(OBJNAME).bin
-ifeq ($(UNAME_TARGET), Cygwin)
-	"`cygpath -u "$(OPENOCD_PATH)"`" -s "$(OPENOCD_SCRIPT_PATH)" -f "$(OPENOCD_SCRIPT)" -c "program ./$(OBJNAME).bin verify 0x08000000 reset exit"
-#-c "flash probe 0; flash write_image erase ./$(OBJNAME).axf 0x08000000 reset exit"
-else
-	"$(OPENOCD_PATH)" -s "$(OPENOCD_SCRIPT_PATH)" -f "$(OPENOCD_SCRIPT)" -c "program ./$(OBJNAME).bin verify 0x4000 reset exit"
-endif
+TEXT0_ADDR = 0x8008000
+DFU_VID = 0x0694
+DFU_PID = 0x0008
 
-ocd: $(OBJNAME).bin
-ifeq ($(UNAME_TARGET), Cygwin)
-	cygstart "$(OPENOCD_PATH)" '-s "$(OPENOCD_SCRIPT_PATH)"' '-f "$(OPENOCD_SCRIPT)"'
-else
-	start /MIN "" "$(OPENOCD_PATH)" -s "$(OPENOCD_SCRIPT_PATH)" -f "$(OPENOCD_SCRIPT)"
-endif
+$(OBJNAME).dfu: $(OBJNAME).bin
+	@echo "DFU Create $@"
+	$(PYTHON3) $(DFU) -b $(TEXT0_ADDR):$< $@
 
-db: $(OBJNAME).bin
-ifeq ($(UNAME_TARGET), Cygwin)
-	$(GDB) $(OBJFILE) -x $(TARGETDIR)/gdb.ini
-else
-	$(GDB) $(OBJFILE) -x $(TARGETDIR)/gdb.ini
-endif
-
-d: $(OBJNAME).bin
-ifeq ($(UNAME_TARGET), Cygwin)
-	$(GDB) $(OBJFILE) -x $(TARGETDIR)/gdb_noflash.ini
-else
-
-endif
+deploy-dfu: $(OBJNAME).dfu
+	@echo "Writing $< to the board"
+	$(PYTHON3) $(PYDFU) -u $< $(if $(DFU_VID),--vid $(DFU_VID)) $(if $(DFU_PID),--pid $(DFU_PID))
