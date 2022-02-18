@@ -18,7 +18,6 @@ SECTIONS
 	{
 		__text = .;
     _fw_isr_vector_src = .;
-    KEEP(*(.isr_vector)) /* isr vector table */
     *(.vector)
 		*(.text)
 		*(.text.*)

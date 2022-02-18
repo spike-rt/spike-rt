@@ -52,7 +52,7 @@
 /*
  *  割込み数
  */
-#define TMAX_INTNO (84 + 16)
+#define TMAX_INTNO (101 + 16)
 
 /*
  *  微少時間待ちのための定義（本来はSILのターゲット依存部）
@@ -68,17 +68,17 @@
 #ifndef TECSGEN
 #include "stm32f4xx_nucleo.h"
 #else /* !TECSGEN */
-#define USART6_BASE  0x40011400U
-#define USART6_IRQn  71
+#define UART9_BASE  0x40011800U
+#define UART9_IRQn  88
 #endif /* TECSGEN */
 #endif /* TOPPERS_MACRO_ONLY */
 
 /*
  *  USART関連の定義
  */
-#define USART_INTNO (USART6_IRQn + 16)
-#define USART_NAME  USART6
-#define USART_BASE  USART6_BASE 
+#define USART_INTNO (UART9_IRQn + 16)
+#define USART_NAME  UART9
+#define USART_BASE  UART9_BASE 
 
 /*
  *  ボーレート
@@ -92,38 +92,28 @@
  */
 Inline void
 usart_low_init(void) {
-	#if 0
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
 	/* Enable Clock */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_USART2_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_UART9_CLK_ENABLE();
   
-  // UART for terminal
-	GPIOG->MODER = (GPIOG->MODER & ~GPIO_MODER_MODER9_Msk) | (2 << GPIO_MODER_MODER9_Pos);
-	GPIOG->AFR[1] = (GPIOG->AFR[1] & ~GPIO_AFRH_AFSEL9_Msk) | (8 << GPIO_AFRH_AFSEL9_Pos);
-	GPIOG->MODER = (GPIOG->MODER & ~GPIO_MODER_MODER14_Msk) | (2 << GPIO_MODER_MODER14_Pos);
-	GPIOG->AFR[1] = (GPIOG->AFR[1] & ~GPIO_AFRH_AFSEL14_Msk) | (8 << GPIO_AFRH_AFSEL14_Pos);
-	USART6->BRR = (26 << 4) | 1; // 48MHz/(16*26.0625) = 115107 baud
-	USART6->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
-
 	/* UART TX GPIO pin configuration  */
-	GPIO_InitStruct.Pin       = GPIO_PIN_2;
+	GPIO_InitStruct.Pin       = GPIO_PIN_15;
 	GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull      = GPIO_PULLUP;
 	GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
-	GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+	GPIO_InitStruct.Alternate = GPIO_AF11_UART9;
 
-	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
     
 	/* UART RX GPIO pin configuration  */
-	GPIO_InitStruct.Pin = GPIO_PIN_3;
-	GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+	GPIO_InitStruct.Pin = GPIO_PIN_14;
+	GPIO_InitStruct.Alternate = GPIO_AF11_UART9;
     
-	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-	#endif
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 }
 #endif /* TECSGEN */
 #endif /* TOPPERS_MACRO_ONLY */
 
-#endif /* TOPPERS_NUCLEO_F401RE_H */
+#endif /* TOPPERS_LEGO_SPIKE_H */

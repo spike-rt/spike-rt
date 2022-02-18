@@ -70,6 +70,7 @@ extern void Error_Handler(void);
  */
 void
 hardware_init_hook(void) {
+  // Pybricks側のコードを利用
 	SystemInit();
 
 	/*
@@ -77,7 +78,7 @@ hardware_init_hook(void) {
 	 *  cfgのパス3のチェックがエラーとなるため，
 	 *  削除されないようにする 
 	 */
-	SystemCoreClock = (uint32_t)istk;
+	// SystemCoreClock = (uint32_t)istk;
 }
 
 /*
@@ -100,7 +101,7 @@ target_initialize(void)
 	// SystemClock_Config();
 
   // Pybricks側のコードを利用
-  SystemInit();
+  // SystemInit();
 
 	/*
 	 *  コア依存部の初期化
@@ -114,7 +115,7 @@ target_initialize(void)
 	/*
 	 *  UserLEDの初期化
 	 */
-	BSP_LED_Init(LED2);
+	// BSP_LED_Init(LED2);
 
 	/*
 	 *  バーナー出力用のシリアル初期化

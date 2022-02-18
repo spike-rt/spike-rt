@@ -62,7 +62,7 @@
 	ATHUMB(_kernel_start)
 	AGLOBAL(_kernel_start)
 ALABEL(_kernel_start)
-	/*cpsid f                 /* 割込みロック状態へ */
+	cpsid f                 /* 割込みロック状態へ */
 
 #ifdef INIT_MSP
 	/*
@@ -138,13 +138,9 @@ ALABEL(start_5)
 	blx  r0
 
 ALABEL(start_6)
-  bl  SystemInit
 /* Call static constructors */
     /* bl __libc_init_array */
 /* Call the application's entry point.*/
-  bl  main
-  bx  lr
-
 	bl   sta_ker
 
 ALABEL(l_end)
