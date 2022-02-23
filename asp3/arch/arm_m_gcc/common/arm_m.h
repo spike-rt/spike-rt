@@ -115,6 +115,12 @@
 #define P_EXCINF_OFFSET_EXC_RETURN  0x01
 #define P_EXCINF_OFFSET_XPSR        0x09
 #define P_EXCINF_OFFSET_PC          0x08
+#define P_EXCINF_OFFSET_LR          0x07
+#define P_EXCINF_OFFSET_R12         0x06
+#define P_EXCINF_OFFSET_R3          0x05
+#define P_EXCINF_OFFSET_R2          0x04
+#define P_EXCINF_OFFSET_R1          0x03
+#define P_EXCINF_OFFSET_R0          0x02
 
 /*
  *  NVIC関連

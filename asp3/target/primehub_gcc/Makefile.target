@@ -25,10 +25,12 @@ KERNEL_TIMER = SYSTICK
 #  コンパイルオプション
 #
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
-CDEFS := $(CDEFS) -DSTM32F413xx
+CDEFS := $(CDEFS) -DSTM32F413xx # -DTOPPERS_OMIT_SYSLOG
 COPTS := $(COPTS) 
 LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS) -L$(SRCDIR)/../asp3-app-pybricks/bricks/primehub_asp3 
 LIBS := -lpybricks
+
+OMIT_OPTIMIZATION = true
 
 #
 # ファイルサイズ削減のためのオプション
@@ -40,7 +42,7 @@ OBJ_LDFLAGS := $(OBJ_LDFLAGS) -Wl,--gc-sections
 #  カーネルに関する定義
 #
 KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube
-KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o vector.o
+KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o
 KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
                 stm32f4xx_nucleo.o #systemclock_config.o \
                 #stm32f4xx_hal.o stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \

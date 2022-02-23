@@ -329,15 +329,35 @@ void
 default_exc_handler(void *p_excinf)
 {
 	uint32_t basepri = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_BASEPRI);
+	uint32_t lr      = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_LR);
 	uint32_t pc      = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_PC);
 	uint32_t xpsr    = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_XPSR);
 	uint32_t excno   = get_ipsr() & IPSR_ISR_NUMBER;
 
 	syslog(LOG_EMERG, "\nUnregistered Exception occurs.");
-	syslog(LOG_EMERG, "Excno = %08x PC = %08x XPSR = %08x basepri = %08X, p_excinf = %08X",
-		   excno, pc, xpsr, basepri, p_excinf);
+	syslog(LOG_EMERG, "Excno = %08x LR = %08x PC = %08x XPSR = %08x basepri = %08X, p_excinf = %08X",
+		   excno, lr, pc, xpsr, basepri, p_excinf);
+  syslog(LOG_EMERG, "\nsysclk = %09d", HAL_RCC_GetSysClockFreq());
+  syslog(LOG_EMERG, "\nshift = %09d", AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE)>> POSITION_VAL(RCC_CFGR_HPRE)]);
+  syslog(LOG_EMERG, "\nhclk = %09d", HAL_RCC_GetHCLKFreq());
+  syslog(LOG_EMERG, "\npclk1 = %09d", HAL_RCC_GetPCLK1Freq());
+	syslog(LOG_EMERG, "\npclk2 = %09d", HAL_RCC_GetPCLK2Freq());
+	syslog(LOG_EMERG, "\nCFSR = %08x", SCB->CFSR);
+  
+  if(excno == 5) {
+	  syslog(LOG_EMERG, "\nBus Fault!");
+    if(SCB->CFSR  & SCB_CFSR_BFARVALID_Msk) {
+	    syslog(LOG_EMERG, "\n  BFAR = %08x", SCB->BFAR);
+    }
+  }
 
-	target_exit();
+	uint32_t *stack_p = (((uint32_t*)p_excinf) + P_EXCINF_OFFSET_XPSR + 1);
+  syslog(LOG_EMERG, "\nDump stack from top");
+  for(int i = 0; i < 10 ; i++)
+	  syslog(LOG_EMERG, "\n  %08x %08x %08x %08x",
+           *(stack_p++), *(stack_p++), *(stack_p++), *(stack_p++));
+
+  target_exit();
 }
 #endif /* OMIT_DEFAULT_EXC_HANDLER */
 

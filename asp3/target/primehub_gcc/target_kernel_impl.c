@@ -140,21 +140,19 @@ void
 usart_early_init()
 {
 	usart_low_init();
-  
-#if 0
+
 	UartHandle.Instance          = USART_NAME; 
 	UartHandle.Init.BaudRate     = BPS_SETTING;
-	UartHandle.Init.WordLength   = UART_WORDLENGTH_9B;
+	UartHandle.Init.WordLength   = UART_WORDLENGTH_8B;
 	UartHandle.Init.StopBits     = UART_STOPBITS_1;
-	UartHandle.Init.Parity       = UART_PARITY_ODD;
+	UartHandle.Init.Parity       = UART_PARITY_NONE;
 	UartHandle.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
 	UartHandle.Init.Mode         = UART_MODE_TX_RX;
 	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
-    
+
 	if(HAL_UART_Init(&UartHandle) != HAL_OK) {
 		Error_Handler();
 	}
-#endif
 };
 
 /*
@@ -175,19 +173,12 @@ Error_Handler(void){
 /*
  *  HAL実行用の関数
  */
-/*
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
   return HAL_OK;
 }
-*/
 
-/*
- * とりあえず，HAL_GetTick()はpybricks側のものを使用する．
- * (asp3-app-pybricks/lib/pbio/drv/clock/clock_stm32.cを参照)
- * TODO: ContikiのタイマをASP3のタイマに統合する
- */
-// uint32_t HAL_GetTick(void)
-// {
-//  return current_hrtcnt/1000;
-//}
+uint32_t HAL_GetTick(void)
+{
+  return current_hrtcnt/1000;
+}
