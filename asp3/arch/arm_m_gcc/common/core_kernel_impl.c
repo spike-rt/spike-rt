@@ -187,7 +187,7 @@ core_initialize(void)
 	/*
 	 *  CPUロックフラグ実現のための変数の初期化
 	 */
-	lock_flag = true;
+	lock_flag = false;
 	saved_iipm = IIPM_ENAALL;
 
 	/*
