@@ -70,7 +70,6 @@ extern void Error_Handler(void);
  */
 void
 hardware_init_hook(void) {
-  // Pybricks側のコードを利用
 	SystemInit();
 
 	/*
@@ -98,10 +97,9 @@ target_initialize(void)
 	/*
 	 *  クロックの初期化
 	 */
-	// SystemClock_Config();
-
-  // Pybricks側のコードを利用
-  // SystemInit();
+#if !defined(TOPPERS_USE_QEMU)
+  SystemClock_Config();
+#endif
 
 	/*
 	 *  コア依存部の初期化
@@ -115,7 +113,7 @@ target_initialize(void)
 	/*
 	 *  UserLEDの初期化
 	 */
-	// BSP_LED_Init(LED2);
+	BSP_LED_Init(LED2);
 
 	/*
 	 *  バーナー出力用のシリアル初期化
@@ -126,12 +124,40 @@ target_initialize(void)
 /*
  * ターゲット依存部 終了処理
  */
+void 
+target_abort(void)
+{
+  // syslog(LOG_EMERG, "Target abort.");
+
+	/* チップ依存部の終了処理 */
+	core_terminate();
+  
+#if defined(TOPPERS_USE_QEMU)
+	Asm("mov r0, #0x18");
+	// Asm("mov r1, #0x0");
+	Asm("ldr r1, =#0x20026");
+	Asm("bkpt #0xAB");
+#endif
+
+	while(1);
+}
+
 void
 target_exit(void)
 {
+  // syslog(LOG_EMERG, "Target exit.");
 	/* チップ依存部の終了処理 */
 	core_terminate();
-	syslog(LOG_EMERG, "\nTarget Exit");
+
+#if defined(TOPPERS_USE_QEMU)
+	/*
+	 *  QEMUを終了させる．
+	 */
+	Asm("mov r0, #0x18");
+	Asm("ldr r1, =#0x20026");
+	Asm("bkpt #0xAB");
+#endif
+
 	while(1);
 }
 
@@ -150,7 +176,7 @@ usart_early_init()
 	UartHandle.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
 	UartHandle.Init.Mode         = UART_MODE_TX_RX;
 	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
-
+    
 	if(HAL_UART_Init(&UartHandle) != HAL_OK) {
 		Error_Handler();
 	}
@@ -161,11 +187,11 @@ usart_early_init()
  */
 void
 Error_Handler(void){
-	// volatile int loop;
-	// BSP_LED_Init(LED2);
+	volatile int loop;
+	BSP_LED_Init(LED2);
 	while(1){
-		// for(loop = 0; loop < 0x100000; loop++);
-		// BSP_LED_Toggle(LED2);
+		for(loop = 0; loop < 0x100000; loop++);
+		BSP_LED_Toggle(LED2);
 	}
 }
 

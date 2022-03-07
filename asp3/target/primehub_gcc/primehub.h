@@ -1,14 +1,11 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
- *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
- *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
+ *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
  *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
@@ -34,66 +31,89 @@
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
- *  アの利用により直接的または間接的に生じたいかなる損害に関して中山麻聖も，そ
+ *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
+ *  $Id: nucleo_f401re.h 648 2016-02-20 00:50:56Z ertl-honda $
  */
-#ifndef TOPPERS_TARGET_KERNEL_IMPL_H
-#define TOPPERS_TARGET_KERNEL_IMPL_H
 
 /*
- * ターゲット依存部モジュール（DISCOVERY_F413xx用）
- *
- * カーネルのターゲット依存部のインクルードファイル．kernel_impl.hのター
- * ゲット依存部の位置付けとなす．
+ *		NUCLEO F401RE サポートモジュール
  */
-#include "discovery_f413xx.h"
+
+#ifndef TOPPERS_PRIMEHUB_H
+#define TOPPERS_PRIMEHUB_H
 
 /*
- *  TBITW_IPRI の定義のため読み込み
+ *  コアのクロック周波数
  */
-#include <sil.h>
+#define CPU_CLOCK_HZ	84000000
 
 /*
- *  デフォルトの非タスクコンテキスト用のスタック領域の定義
+ *  割込み数
  */
-#define DEFAULT_ISTKSZ			(0x1000)		/* 4KByte */
+#define TMAX_INTNO (101 + 16)
 
 /*
- * IDLE処理の定義
- *
- * サスペンド時にOpenOCDデバッグツールが使えなくなる問題の対応
- * WFI等でサスペンドしているプログラムに対して，フラッシュROM
- * 書き込みも出来なくなるため，IDEL処理変更．
+ *  微少時間待ちのための定義（本来はSILのターゲット依存部）
  */
-#define TOPPERS_CUSTOM_IDEL
-#define toppers_asm_custom_idle		\
-	msr		basepri, r0;			\
-	msr		basepri, r1;
+#define SIL_DLY_TIM1    162
+#define SIL_DLY_TIM2    100
 
 #ifndef TOPPERS_MACRO_ONLY
-
 /*
- *  ターゲットシステム依存の初期化
+ *  tecsgen実行時にstm32f4xx_nucleo.hを読み込むとtecsgenがエラーとなるため
+ *  tecsgen実行時に必要な定義はこのファイルで行う
  */
-extern void	target_initialize(void);
-
-/*
- *  ターゲットシステムの終了
- *
- *  システムを終了する時に使う．
- */
-extern void	target_exit(void) NoReturn;
-
-/*
- *  エラー発生時の処理
- */
-extern void Error_Handler(void);
+#ifndef TECSGEN
+#include "stm32f4xx_nucleo.h"
+#else /* !TECSGEN */
+#define UART9_BASE  0x40011800U
+#define UART9_IRQn  88
+#endif /* TECSGEN */
 #endif /* TOPPERS_MACRO_ONLY */
 
 /*
- *  チップ依存モジュール
+ *  USART関連の定義
  */
-#include <chip_kernel_impl.h>
+#define USART_INTNO (UART9_IRQn + 16)
+#define USART_NAME  UART9
+#define USART_BASE  UART9_BASE 
 
-#endif /* TOPPERS_TARGET_KERNEL_IMPL_H */
+/*
+ *  ボーレート
+ */
+#define BPS_SETTING  (115200)
+
+#ifndef TOPPERS_MACRO_ONLY
+#ifndef TECSGEN
+/*
+ *  UsartのクロックとIOの初期化
+ */
+Inline void
+usart_low_init(void) {
+	GPIO_InitTypeDef  GPIO_InitStruct;
+
+	/* Enable Clock */
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_UART9_CLK_ENABLE();
+  
+	/* UART TX GPIO pin configuration  */
+	GPIO_InitStruct.Pin       = GPIO_PIN_15;
+	GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull      = GPIO_PULLUP;
+	GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
+	GPIO_InitStruct.Alternate = GPIO_AF11_UART9;
+
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    
+	/* UART RX GPIO pin configuration  */
+	GPIO_InitStruct.Pin = GPIO_PIN_14;
+	GPIO_InitStruct.Alternate = GPIO_AF11_UART9;
+    
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+}
+#endif /* TECSGEN */
+#endif /* TOPPERS_MACRO_ONLY */
+
+#endif /* TOPPERS_PRIMEHUB_H */

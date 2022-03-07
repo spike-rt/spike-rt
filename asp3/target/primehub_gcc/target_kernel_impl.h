@@ -42,12 +42,12 @@
 #define TOPPERS_TARGET_KERNEL_IMPL_H
 
 /*
- * ターゲット依存部モジュール（NUCLEO_F401RE用）
+ * ターゲット依存部モジュール（PRIMEHUB用）
  *
  * カーネルのターゲット依存部のインクルードファイル．kernel_impl.hのター
  * ゲット依存部の位置付けとなす．
  */
-#include "lego_spike.h"
+#include "primehub.h"
 
 /*
  *  TBITW_IPRI の定義のため読み込み

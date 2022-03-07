@@ -1,11 +1,11 @@
-#
-#		Makefile のターゲット依存部（LEGO SPIKE Prime Hub 用）
+#asp3/arch/arm_m_gcc/stm32f4xx_stm32cube/ 
+#		Makefile のターゲット依存部（NUCLEO_F401RE用）
 #
 
 #
 #  ボード名, チップ名，コア名，開発環境名の定義
 #
-BOARD = lego_spike
+BOARD = discovery_stm32f413xx
 CHIP  = stm32f4xx_stm32cube
 PRC   = arm_m
 TOOL  = gcc
@@ -25,17 +25,14 @@ KERNEL_TIMER = SYSTICK
 #  コンパイルオプション
 #
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
-CDEFS := $(CDEFS) -DSTM32F413xx # -DTOPPERS_OMIT_SYSLOG
+CDEFS := $(CDEFS) -DSTM32F413xx
 COPTS := $(COPTS) -mthumb -mtune=cortex-m4 -mcpu=cortex-m4  -msoft-float
-LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS) -L$(SRCDIR)/../asp3-app-pybricks/bricks/primehub_asp3 
-LIBS := -lpybricks
-
-OMIT_OPTIMIZATION = true
+LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
 
 #
 # ファイルサイズ削減のためのオプション
 #
-COPTS   := $(COPTS) # -ffunction-sections -fdata-sections
+COPTS   := $(COPTS) -ffunction-sections -fdata-sections
 OBJ_LDFLAGS := $(OBJ_LDFLAGS) -Wl,--gc-sections
 
 #
@@ -43,13 +40,12 @@ OBJ_LDFLAGS := $(OBJ_LDFLAGS) -Wl,--gc-sections
 #
 KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o
-KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o
-                #stm32f4xx_nucleo.o #systemclock_config.o \
-                #stm32f4xx_hal.o stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \
-                #stm32f4xx_hal_rcc.o #stm32f4xx_hal_dma.o
-                #system_stm32f4xx.o 
+KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
+                system_stm32f4xx.o stm32f4xx_nucleo.o systemclock_config.o \
+                stm32f4xx_hal.o stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \
+                stm32f4xx_hal_rcc.o stm32f4xx_hal_dma.o
 
-KERNEL_COBJS := $(KERNEL_COBJS) #stm32f4xx_hal_tim.o
+KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal_tim.o
 
 #
 #  システムサービスに関する定義
@@ -100,6 +96,49 @@ LDSCRIPT = $(TARGETDIR)/stm32f413xx.ld
 #  チップ依存部のインクルード
 #
 include $(SRCDIR)/arch/$(PRC)_$(TOOL)/$(CHIP)/Makefile.chip
+
+#
+#  フラッシュへの書き込み
+#
+UNAME_TARGET = Cygwin
+OPENOCD_PATH = /cygdrive/c/arm/OpenOCD/0.10.0-201510281129-dev/bin/openocd.exe
+OPENOCD_SCRIPT_PATH = c:/arm/OpenOCD/0.10.0-201510281129-dev/scripts
+OPENOCD_SCRIPT  = c:/arm/OpenOCD/0.10.0-201510281129-dev/scripts/board/st_nucleo_f4.cfg
+
+ifeq ($(UNAME_TARGET), Cygwin)
+	GDB = arm-gdb_m0.exe
+else
+	GDB = $(ARDUINO_BASE_DIR_WIN)\hardware\tools\gcc-arm-none-eabi-4.8.3-2014q1\bin\arm-none-eabi-gdb
+endif
+
+run: $(OBJNAME).bin
+ifeq ($(UNAME_TARGET), Cygwin)
+	"`cygpath -u "$(OPENOCD_PATH)"`" -s "$(OPENOCD_SCRIPT_PATH)" -f "$(OPENOCD_SCRIPT)" -c "program ./$(OBJNAME).bin verify 0x08000000 reset exit"
+#-c "flash probe 0; flash write_image erase ./$(OBJNAME).axf 0x08000000 reset exit"
+else
+	"$(OPENOCD_PATH)" -s "$(OPENOCD_SCRIPT_PATH)" -f "$(OPENOCD_SCRIPT)" -c "program ./$(OBJNAME).bin verify 0x4000 reset exit"
+endif
+
+ocd: $(OBJNAME).bin
+ifeq ($(UNAME_TARGET), Cygwin)
+	cygstart "$(OPENOCD_PATH)" '-s "$(OPENOCD_SCRIPT_PATH)"' '-f "$(OPENOCD_SCRIPT)"'
+else
+	start /MIN "" "$(OPENOCD_PATH)" -s "$(OPENOCD_SCRIPT_PATH)" -f "$(OPENOCD_SCRIPT)"
+endif
+
+db: $(OBJNAME).bin
+ifeq ($(UNAME_TARGET), Cygwin)
+	$(GDB) $(OBJFILE) -x $(TARGETDIR)/gdb.ini
+else
+	$(GDB) $(OBJFILE) -x $(TARGETDIR)/gdb.ini
+endif
+
+d: $(OBJNAME).bin
+ifeq ($(UNAME_TARGET), Cygwin)
+	$(GDB) $(OBJFILE) -x $(TARGETDIR)/gdb_noflash.ini
+else
+
+endif
 
 
 flash: $(OBJNAME).bin

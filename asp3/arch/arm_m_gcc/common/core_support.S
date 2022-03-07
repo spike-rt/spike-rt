@@ -392,7 +392,7 @@ ALABEL(dispatcher_0)
 	/* r1, r2 は例外ハンドラの先頭で未定義となるため退避 */
 	mov   r4, r1
 	mov   r5, r2
-  svc   #0
+	svc   #0
 
 /*
  * Thread モードでのコンテキスト復帰

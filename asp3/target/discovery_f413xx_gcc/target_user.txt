@@ -156,7 +156,7 @@ F401RE を，使用するチップの型番にリプレース．
    ./gdb.ini
    ./Makefile.target
    ./MANIFEST
-   ./lego_spike.h
+   ./nucleo_f401re.h
    ./stm32f401re.ld
    ./target.cdl
    ./target.tf

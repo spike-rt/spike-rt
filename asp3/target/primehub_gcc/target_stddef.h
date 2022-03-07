@@ -51,7 +51,7 @@
 /*
  *  ターゲットを識別するためのマクロの定義
  */
-#define TOPPERS_NUCLEO_F401RE			/* システム略称 */
+#define TOPPERS_PRIMEHUB			/* システム略称 */
 
 /*
  *  開発環境で共通な定義
@@ -78,6 +78,7 @@
 Inline void
 TOPPERS_assert_abort(void)
 {
+  target_abort();
 	while (1) ;
 }
 

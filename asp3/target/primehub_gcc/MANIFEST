@@ -4,8 +4,8 @@ E_PACKAGE
 gdb.ini
 Makefile.target
 MANIFEST
-lego_spike.h
-stm32f401re.ld
+primehub.h
+stm32f413xx.ld
 target.cdl
 target.tf
 target_asm.inc

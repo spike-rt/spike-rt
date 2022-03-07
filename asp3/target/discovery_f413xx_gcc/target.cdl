@@ -53,7 +53,7 @@ const size_t LogTaskStackSize = DefaultTaskStackSize;
 /*
  *  カーネル起動メッセージに関する定義
  */
-const char *const BannerTargetName = "Lego SPIKE Prime Hub(STM32F413VGT6:ARM Cortex-M4)";	/* ターゲット名 */
+const char *const BannerTargetName = "NUCLEO(STM32F401RE:ARM Cortex-M4)";	/* ターゲット名 */
 const char *const BannerCopyrightNotice = "";			/* 著作権表示 */
 
 /*

@@ -10,15 +10,12 @@ PROVIDE(software_term_hook = 0);
 
 ENTRY(_kernel_start)
 
-_estack = ORIGIN(SRAM) + LENGTH(SRAM);
-
 SECTIONS
 {
 	.text :
 	{
 		__text = .;
-    _fw_isr_vector_src = .;
-    *(.vector)
+		*(.vector)
 		*(.text)
 		*(.text.*)
 	} > FLASH

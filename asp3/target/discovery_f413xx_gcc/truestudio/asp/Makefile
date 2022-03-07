@@ -416,12 +416,6 @@ $(OBJNAME).syms: $(OBJFILE)
 	$(NM) -n $(OBJFILE) > $(OBJNAME).syms
 
 #
-#  逆アセンブルファイルの生成
-#
-$(OBJNAME).asm: $(OBJFILE)
-	$(OBJDUMP) -d $(OBJFILE) > $(OBJNAME).asm
-
-#
 #  バイナリファイルの生成
 #
 $(OBJNAME).bin: $(OBJFILE)

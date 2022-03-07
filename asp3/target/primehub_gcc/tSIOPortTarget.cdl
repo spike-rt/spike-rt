@@ -48,7 +48,7 @@
 /*
  *  ボードに関する定義
  */
-import_C("lego_spike.h");
+import_C("primehub.h");
 
 /*
  *  USART用 簡易SIOドライバ
