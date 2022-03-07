@@ -78,7 +78,7 @@ hardware_init_hook(void) {
 	 *  cfgのパス3のチェックがエラーとなるため，
 	 *  削除されないようにする 
 	 */
-	// SystemCoreClock = (uint32_t)istk;
+	SystemCoreClock = (uint32_t)istk;
 }
 
 /*
@@ -131,6 +131,7 @@ target_exit(void)
 {
 	/* チップ依存部の終了処理 */
 	core_terminate();
+	syslog(LOG_EMERG, "\nTarget Exit");
 	while(1);
 }
 

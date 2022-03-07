@@ -75,6 +75,8 @@ static const unsigned int nvic_sys_pri_reg[] = {
 	NVIC_SYS_PRI3
 };
 
+void dump_sp(uint32_t *sp);
+
 /*
  *  例外と割込みの割込み優先度をセット
  *
@@ -304,10 +306,13 @@ core_int_entry(void)
 #ifdef LOG_INH_ENTER
 	log_inh_enter(intnum);
 #endif /* LOG_EXC_ENTER */
-
+  
+  if(intnum != 15 && intnum != 104)
+    syslog(LOG_EMERG, "IRQ No.%d", intnum-16);
+ 
 	/* 割り込みハンドラの呼び出し */
 	exc_tbl[intnum]();
-
+  
 #ifdef LOG_INH_LEAVE
 	log_inh_leave(intnum);
 #endif /* LOG_INH_LEAVE */
@@ -333,29 +338,45 @@ default_exc_handler(void *p_excinf)
 	uint32_t pc      = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_PC);
 	uint32_t xpsr    = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_XPSR);
 	uint32_t excno   = get_ipsr() & IPSR_ISR_NUMBER;
+  uint32_t cfsr    = SCB->CFSR;
 
 	syslog(LOG_EMERG, "\nUnregistered Exception occurs.");
 	syslog(LOG_EMERG, "Excno = %08x LR = %08x PC = %08x XPSR = %08x basepri = %08X, p_excinf = %08X",
 		   excno, lr, pc, xpsr, basepri, p_excinf);
-  syslog(LOG_EMERG, "\nsysclk = %09d", HAL_RCC_GetSysClockFreq());
-  syslog(LOG_EMERG, "\nshift = %09d", AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE)>> POSITION_VAL(RCC_CFGR_HPRE)]);
-  syslog(LOG_EMERG, "\nhclk = %09d", HAL_RCC_GetHCLKFreq());
-  syslog(LOG_EMERG, "\npclk1 = %09d", HAL_RCC_GetPCLK1Freq());
-	syslog(LOG_EMERG, "\npclk2 = %09d", HAL_RCC_GetPCLK2Freq());
-	syslog(LOG_EMERG, "\nCFSR = %08x", SCB->CFSR);
   
-  if(excno == 5) {
-	  syslog(LOG_EMERG, "\nBus Fault!");
-    if(SCB->CFSR  & SCB_CFSR_BFARVALID_Msk) {
-	    syslog(LOG_EMERG, "\n  BFAR = %08x", SCB->BFAR);
+  syslog(LOG_EMERG, "sysclk = %09d", HAL_RCC_GetSysClockFreq());
+  syslog(LOG_EMERG, "  shift = %09d", AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE)>> POSITION_VAL(RCC_CFGR_HPRE)]);
+  syslog(LOG_EMERG, "  hclk = %09d", HAL_RCC_GetHCLKFreq());
+  syslog(LOG_EMERG, "  pclk1 = %09d", HAL_RCC_GetPCLK1Freq());
+	syslog(LOG_EMERG, "  pclk2 = %09d", HAL_RCC_GetPCLK2Freq());
+	syslog(LOG_EMERG, "CFSR = %08x", SCB->CFSR);
+ 
+  if(excno == 5)
+  {
+	  syslog(LOG_EMERG, "Bus Fault!");
+    if(cfsr & SCB_CFSR_IBUSERR_Msk) {
+	    syslog(LOG_EMERG, "  IBUS ERROR; The processor detects the instruction bus error on prefetching an instruction.");
+    }
+    if(cfsr  & SCB_CFSR_BFARVALID_Msk) {
+	    syslog(LOG_EMERG, "  BFAR = %08x", SCB->BFAR);
+    }
+  } 
+  else if(excno == 6)
+  {
+    if(cfsr & SCB_CFSR_INVSTATE_Msk)
+    {
+	    syslog(LOG_EMERG, "\nInvalid state UsageFault; The processor has attempted to execute an instruction that makes illegal use of the EPSR.");
     }
   }
 
-	uint32_t *stack_p = (((uint32_t*)p_excinf) + P_EXCINF_OFFSET_XPSR + 1);
-  syslog(LOG_EMERG, "\nDump stack from top");
-  for(int i = 0; i < 10 ; i++)
-	  syslog(LOG_EMERG, "\n  %08x %08x %08x %08x",
-           *(stack_p++), *(stack_p++), *(stack_p++), *(stack_p++));
+
+  syslog(LOG_EMERG, "Dump stack from top");
+  uint32_t msp = get_msp(); 
+  syslog(LOG_EMERG, "msp %08x", msp);
+  dump_sp(msp);
+  syslog(LOG_EMERG, "sp %08x", get_sp());
+  syslog(LOG_EMERG, "psp %08x", get_psp());
+  dump_sp(get_psp());
 
   target_exit();
 }
@@ -375,4 +396,16 @@ default_int_handler(void)
 
 	target_exit();
 }
+
+void dump_sp(uint32_t *sp)
+{
+  syslog(LOG_EMERG, "sp : %08x", sp);
+  sp = (uint32_t)sp & 0xffffff00;
+  for(int i = 0; i < 0x100/4 ; i++)
+	  syslog(LOG_EMERG, "%08x:  %08x %08x %08x %08x",
+           sp, *(sp++), *(sp++), *(sp++), *(sp++));
+
+}
+
+
 #endif /* OMIT_DEFAULT_INT_HANDLER */

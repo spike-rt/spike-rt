@@ -57,7 +57,7 @@
 /*
  *  デフォルトの非タスクコンテキスト用のスタック領域の定義
  */
-#define DEFAULT_ISTKSZ			(0x4000)		/* 8K*4Byte */
+#define DEFAULT_ISTKSZ			(0x1000)		/* 4KByte */
 
 /*
  * IDLE処理の定義
