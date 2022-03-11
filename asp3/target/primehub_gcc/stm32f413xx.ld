@@ -18,6 +18,7 @@ SECTIONS
 		*(.vector)
 		*(.text)
 		*(.text.*)
+		KEEP(*(.empty.*))
 	} > FLASH
 	_etext = .;
 	PROVIDE(etext = .);

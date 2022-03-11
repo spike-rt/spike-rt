@@ -5,4 +5,4 @@ INCLUDE MANIFEST
 INCLUDE ../../MANIFEST
 INCLUDE ../../arch/arm_m_gcc/MANIFEST
 INCLUDE ../../arch/arm_m_gcc/stm32f4xx_stm32cube/MANIFEST
-INCLUDE ../../tecsgen/MANIFEST_for_asp3
+INCLUDE ../../tecsgen/MANIFEST_tecsgen_body
