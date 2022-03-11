@@ -46,7 +46,7 @@
 #include "syssvc/serial.h"
 #include "syssvc/syslog.h"
 #include "kernel_cfg.h"
-#include "sample1.h"
+#include "idle.h"
 
 /*
  *  サービスコールのエラーのログ出力
