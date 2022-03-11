@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id: core_support.S 1401 2020-04-14 08:49:46Z ertl-komori $
+ *  @(#) $Id: core_support.S 1517 2021-12-10 13:07:12Z ertl-komori $
  */
 
 /*
@@ -68,29 +68,31 @@ ALABEL(core_exc_entry)
 	 *  この内容に加えて，basepri の値と EXC_RETURN の情報を加えて保存する．
 	 *  basepri は exc_sense_context() および exc_get_iipm() で利用する．
 	 *
-	 *   ------------
-	 *  |   basepri  |
-	 *   ------------
-	 *  | EXC_RETURN |
-	 *   ------------
-	 *  |     R0     |
-	 *   ------------
-	 *  |     R1     |
-	 *   ------------
-	 *  |     R2     |
-	 *   ------------
-	 *  |     R3     |
-	 *   ------------
-	 *  |     R12    |
-	 *   ------------
-	 *  |     LR     |
-	 *   ------------
-	 *  |     PC     |
-	 *   ------------
-	 *  |    xPSR    |
-	 *   ------------
+	 *   ---------------------
+	 *  |  primask | basepri  |
+	 *   ---------------------
+	 *  |      EXC_RETURN     |
+	 *   ---------------------
+	 *  |          R0         |
+	 *   ---------------------
+	 *  |          R1         |
+	 *   ---------------------
+	 *  |          R2         |
+	 *   ---------------------
+	 *  |          R3         |
+	 *   ---------------------
+	 *  |         R12         |
+	 *   ---------------------
+	 *  |          LR         |
+	 *   ---------------------
+	 *  |          PC         |
+	 *   ---------------------
+	 *  |         xPSR        |
+	 *   ---------------------
 	 */
 	mrs   r1, basepri
+	mrs   r2, primask
+	orr   r1, r1, r2, lsl #8
 	tst   lr, #EXC_RETURN_PSP
 	beq   core_exc_entry_1
 	/* タスクコンテキストで発生した CPU 例外の場合 */
@@ -185,13 +187,13 @@ ALABEL(pendsv_handler_1)
 	pop    {r0, r1}
 #endif /* LOG_DSP_LEAVE */
 #if __TARGET_ARCH_THUMB >= 5
-	ldr    r2, [r0, #TCB_stk_top]
-	msr    psplim, r2
+	ldr    r1, [r0, #TCB_stk_top]
+	msr    psplim, r1
 #endif /* __TARGET_ARCH_THUMB >= 5 */
 	/* 戻り先が EXC_RETURN でないなら Thread モードへ */
 	ldr    r1, [r0, #TCB_pc]
-	and    r3, r1, #EXC_RETURN_PREFIX
-	cmp    r3, #EXC_RETURN_PREFIX
+	and    r2, r1, #EXC_RETURN_PREFIX
+	cmp    r2, #EXC_RETURN_PREFIX
 	bne    return_to_thread
 	ldr    r2, [r0, #TCB_sp]
 	ldmfd  r2!, {r4-r11}
@@ -218,7 +220,15 @@ ALABEL(return_to_idle)
 	stmfd  r0!, {r1, r2}
 	sub    r0, #(4 * 6)
 	msr    psp, r0
-	ldr    pc, =#EXC_RETURN
+	/*
+	 * GNU AS はバージョンにより ldr pc, =#EXC_RETURN を
+	 * mvn pc, #2 のように変換するが，mvn 命令により pc に
+	 * EXC_RETURN を代入して例外復帰することはできない．
+	 * そのため以下のように ldr 命令を直接記述している．
+	 */
+AALIGN(2)
+	ldr    pc, [pc]
+	.word  EXC_RETURN
 ALABEL(return_to_thread)
 	/*
 	 * この時点でのレジスタ
@@ -251,15 +261,19 @@ ALABEL(return_to_thread_0)
 	mov    r1, #1
 	str    r1, [r0]
 	dsb /* lock_cpu_dsp() のコメント参照 */
-	ldr    pc, =EXC_RETURN
+AALIGN(2)
+	ldr    pc, [pc] /* return_to_idle のコメント参照 */
+	.word  EXC_RETURN
 	/*
 	 * この時点でのレジスタ
 	 * lr  : p_runtsk->tskctxb.pc
 	 */
+#ifdef TOPPERS_FPU_CONTEXT
 ALABEL(return_to_thread_fp)
 	/* 例外リターンにより CONTROL.FPCA がクリアされるが，ここでまたセットされる． */
 	vpop   {s16-s31}
 	bx     lr
+#endif /* TOPPERS_FPU_CONTEXT */
 
 /*
  * Thread モードから Handler モードへの復帰
@@ -308,7 +322,7 @@ ALABEL(start_dispatch)
 	 * （割込みロック状態と同等）で呼び出される．また，割込みモード（非
 	 *  タスクコンテキストと同等）で呼び出されることを想定している．
 	 *
-	 *  core_initializeで，lock_flagをfalseに，saved_iipmをIIPM_ENAALLに
+	 *  core_initializeで，lock_flagをtrueに，saved_iipmをIIPM_ENAALLに
 	 *  初期化しているため，カーネル管理外の割込みを許可することで，
 	 *  CPUロック状態・（モデル上の）割込み優先度マスク全解除状態になる．
 	 *  また，task_initializeでdisdspをfalseに初期化しているため，ディ
@@ -432,7 +446,6 @@ ALABEL(dispatcher_2)
 	bx    r2
 
 ALABEL(idle_loop)
-	/* ここではすでに割込み許可状態 */
 #ifdef TOPPERS_CUSTOM_IDLE
 	toppers_asm_custom_idle
 #else

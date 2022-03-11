@@ -1,0 +1,9 @@
+#! /bin/sh
+# 引数は "$@" としてないと、元の引数に "--cpp=gcc-3 -E -DTECS" のような '"' で囲まれたものを期待したとおりに扱えない
+# --aggregate の引数は test/Makefile と一致させる必要がある
+# rcov 実行時 pretty.rb で ruby 例外発生した。Trac #601 参照。
+
+do="rcov -t --no-html --aggregate $TECSPATH/../test/coverage.data $TECSPATH/../tecsgen/tecsgen.rb --"
+echo $do "$@"
+$do "$@"
+

@@ -61,5 +61,6 @@
  *  ARMでは，スタックを8byte境界に配置する必要がある
  */
 #define TOPPERS_STK_T  long long
+#define TOPPERS_EMPTY_LABEL(type, var) type __attribute__((section(".empty." #var))) var[0]
 
 #endif /* TOPPERS_CORE_STDDEF_H */

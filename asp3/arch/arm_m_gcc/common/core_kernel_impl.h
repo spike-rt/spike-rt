@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  @(#) $Id: core_kernel_impl.h 1401 2020-04-14 08:49:46Z ertl-komori $
+ *  @(#) $Id: core_kernel_impl.h 1500 2021-07-28 12:35:13Z ertl-komori $
  */
 
 /*
@@ -95,6 +95,7 @@
 typedef struct task_context_block {
 	uint32_t    *sp;      /* スタックポインタ */
 	intptr_t    pc;       /* プログラムカウンタ */
+#if __TARGET_ARCH_THUMB >= 4
 #ifndef TOPPERS_FPU_CONTEXT
 	union {
 #endif /* TOPPERS_FPU_CONTEXT */
@@ -103,6 +104,7 @@ typedef struct task_context_block {
 #ifndef TOPPERS_FPU_CONTEXT
 	};
 #endif /* TOPPERS_FPU_CONTEXT */
+#endif /* __TARGET_ARCH_THUMB >= 4 */
 } TSKCTXB;
 
 /*
@@ -112,7 +114,7 @@ typedef struct task_context_block {
 
 typedef struct task_initialization_context_block {
 	uint32_t    *stk_top;    /* スタック領域の末尾番地 */
-	uint32_t	*stk_bottom; /* スタック領域の先頭番地 */
+	uint32_t    *stk_bottom; /* スタック領域の先頭番地 */
 } TSKINICTXB;
 
 #endif /* TOPPERS_MACRO_ONLY */
@@ -138,6 +140,12 @@ sense_context(void)
 }
 
 #endif /* TOPPERS_MACRO_ONLY */
+
+/*
+ *  ARMv7,8-MとARMv6-Mで異なる処理
+ *  ARMv6-Mの処理はcore_kernel_impl_v6m.hに記述する
+ */
+#if __TARGET_ARCH_THUMB >= 4
 
 /*
  *  TOPPERS標準割込み処理モデルの実現
@@ -373,6 +381,159 @@ t_get_ipm(void)
 }
 
 /*
+ *  割込み要求禁止フラグ
+ */
+
+/*
+ *  割込み属性が設定されているかを判別するための変数（kernel_cfg.c）
+ */
+extern const uint32_t	bitpat_cfgint[];
+
+/*
+ *  割込み属性の設定のチェック
+ */
+Inline bool_t
+check_intno_cfg(INTNO intno)
+{
+	if ((bitpat_cfgint[intno >> 5] & (1 << (intno & 0x1f))) == 0x00) {
+		return(false);
+	}
+	return(true);
+}
+
+/*
+ *  割込み要求禁止フラグのセット
+ *
+ */
+Inline void
+disable_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
+		tmp &= ~SYSTIC_TICINT;
+		sil_wrw_mem((void *)SYSTIC_CONTROL_STATUS, tmp);
+	}else {
+		tmp = intno - 16;
+		sil_wrw_mem((void *)((uint32_t *)NVIC_CLRENA0 + (tmp >> 5)),
+					(1 << (tmp & 0x1f)));
+	}
+}
+
+/*
+ *  割込み要求禁止フラグの解除
+ *
+ */
+Inline void
+enable_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
+		tmp |= SYSTIC_TICINT;
+		sil_wrw_mem((void *)SYSTIC_CONTROL_STATUS, tmp);
+	}else {
+		tmp = intno - 16;
+		sil_wrw_mem((void *)((uint32_t *)NVIC_SETENA0 + (tmp >> 5)),
+					(1 << (tmp & 0x1f)));
+	}
+}
+
+/*
+ *  割込み要求がクリアできる割込み番号の範囲の判定
+ */
+#define VALID_INTNO_CLRINT(intno) \
+				(IRQNO_SYSTICK <= (intno) && (intno) <= TMAX_INTNO)
+
+/*
+ *  割込み要求がクリアできる状態か？
+ */
+Inline bool_t
+check_intno_clear(INTNO intno)
+{
+	return(true);
+}
+
+/*
+ *  割込み要求のクリア
+ */
+Inline void
+clear_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		tmp = sil_rew_mem((void*)NVIC_ICSR);
+		tmp &= ~NVIC_PENDSTSET;
+		sil_wrw_mem((void*)NVIC_ICSR, tmp);
+	}else {
+		tmp = intno - 16;
+		sil_wrw_mem((void *)((uint32_t *)NVIC_ICPR0 + (tmp >> 5)),
+					(1 << (tmp & 0x1f)));
+	}
+}
+
+/*
+ *  割込みが要求できる状態か？
+ */
+Inline bool_t
+check_intno_raise(INTNO intno)
+{
+	return(true);
+}
+
+/*
+ *  割込みの要求
+ */
+Inline void
+raise_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		tmp = sil_rew_mem((void*)NVIC_ICSR);
+		tmp |= NVIC_PENDSTSET;
+		sil_wrw_mem((void*)NVIC_ICSR, tmp);
+	}else {
+		tmp = intno - 16;
+		sil_wrw_mem((void *)((uint32_t *)NVIC_ISPR0 + (tmp >> 5)),
+					(1 << (tmp & 0x1f)));
+	}
+}
+
+/*
+ *  割込み要求のチェック
+ */
+Inline bool_t
+probe_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		return ((sil_rew_mem((void*)NVIC_ICSR) & NVIC_PENDSTSET) == NVIC_PENDSTSET);
+	}else {
+		tmp = intno - 16;
+		return ((sil_rew_mem((void *)NVIC_ISPR0 + (tmp >> 5)) & (1 << (tmp & 0x1f)))
+		  == (1 << (tmp & 0x1f)));
+	}
+}
+
+#endif /* TOPPERS_MACRO_ONLY */
+
+#else /* __TARGET_ARCH_THUMB == 3 */
+
+/*
+ *  ARMv6-Mに関する処理 
+ */
+#include "core_kernel_impl_v6m.h"
+
+#endif /* __TARGET_ARCH_THUMB >= 4 */
+
+#ifndef TOPPERS_MACRO_ONLY
+
+/*
  * スタートアップルーチン（start.S）
  */
 extern void _kernel_start(void);
@@ -504,150 +665,6 @@ define_inh(INHNO inhno, FP int_entry)
 #define INTHDR_ENTRY(inhno, inhno_num, inthdr) extern void inthdr(void);
 
 /*
- *  割込み要求禁止フラグ
- */
-
-/*
- *  割込み属性が設定されているかを判別するための変数（kernel_cfg.c）
- */
-extern const uint32_t	bitpat_cfgint[];
-
-/*
- *  割込み属性の設定のチェック
- */
-Inline bool_t
-check_intno_cfg(INTNO intno)
-{
-	if ((bitpat_cfgint[intno >> 5] & (1 << (intno & 0x1f))) == 0x00) {
-		return(false);
-	}
-	return(true);
-}
-
-/*
- *  割込み要求禁止フラグのセット
- *
- */
-Inline void
-disable_int(INTNO intno)
-{
-	uint32_t tmp;
-
-	if (intno == IRQNO_SYSTICK) {
-		tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
-		tmp &= ~SYSTIC_TICINT;
-		sil_wrw_mem((void *)SYSTIC_CONTROL_STATUS, tmp);
-	}else {
-		tmp = intno - 16;
-		sil_wrw_mem((void *)((uint32_t *)NVIC_CLRENA0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
-		SCS_SYNC;
-	}
-}
-
-/*
- *  割込み要求禁止フラグの解除
- *
- */
-Inline void
-enable_int(INTNO intno)
-{
-	uint32_t tmp;
-
-	if (intno == IRQNO_SYSTICK) {
-		tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
-		tmp |= SYSTIC_TICINT;
-		sil_wrw_mem((void *)SYSTIC_CONTROL_STATUS, tmp);
-	}else {
-		tmp = intno - 16;
-		sil_wrw_mem((void *)((uint32_t *)NVIC_SETENA0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
-		SCS_SYNC;
-	}
-}
-
-/*
- *  割込み要求がクリアできる割込み番号の範囲の判定
- */
-#define VALID_INTNO_CLRINT(intno) \
-				(IRQNO_SYSTICK <= (intno) && (intno) <= TMAX_INTNO)
-
-/*
- *  割込み要求がクリアできる状態か？
- */
-Inline bool_t
-check_intno_clear(INTNO intno)
-{
-	return(true);
-}
-
-/*
- *  割込み要求のクリア
- */
-Inline void
-clear_int(INTNO intno)
-{
-	uint32_t tmp;
-
-	if (intno == IRQNO_SYSTICK) {
-		tmp = sil_rew_mem((void*)NVIC_ICSR);
-		tmp &= ~NVIC_PENDSTSET;
-		sil_wrw_mem((void*)NVIC_ICSR, tmp);
-	}else {
-		tmp = intno - 16;
-		sil_wrw_mem((void *)((uint32_t *)NVIC_ICPR0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
-		SCS_SYNC;
-	}
-}
-
-/*
- *  割込みが要求できる状態か？
- */
-Inline bool_t
-check_intno_raise(INTNO intno)
-{
-	return(true);
-}
-
-/*
- *  割込みの要求
- */
-Inline void
-raise_int(INTNO intno)
-{
-	uint32_t tmp;
-
-	if (intno == IRQNO_SYSTICK) {
-		tmp = sil_rew_mem((void*)NVIC_ICSR);
-		tmp |= NVIC_PENDSTSET;
-		sil_wrw_mem((void*)NVIC_ICSR, tmp);
-	}else {
-		tmp = intno - 16;
-		sil_wrw_mem((void *)((uint32_t *)NVIC_ISPR0 + (tmp >> 5)),
-					(1 << (tmp & 0x1f)));
-		SCS_SYNC;
-	}
-}
-
-/*
- *  割込み要求のチェック
- */
-Inline bool_t
-probe_int(INTNO intno)
-{
-	uint32_t tmp;
-
-	if (intno == IRQNO_SYSTICK) {
-		return ((sil_rew_mem((void*)NVIC_ICSR) & NVIC_PENDSTSET) == NVIC_PENDSTSET);
-	}else {
-		tmp = intno - 16;
-		return ((sil_rew_mem((void *)NVIC_ISPR0 + (tmp >> 5)) & (1 << (tmp & 0x1f)))
-		  == (1 << (tmp & 0x1f)));
-	}
-}
-
-/*
  *  割込み要求ラインの属性の設定
  */
 extern void config_int(INTNO intno, ATR intatr, PRI intpri);
@@ -706,36 +723,6 @@ define_exc(EXCNO excno, FP exc_entry)
 #define EXCHDR_ENTRY(excno, excno_num, exchdr) extern void exchdr(void *p_excinf);
 
 /*
- *  CPU例外の発生した時のコンテキストの参照
- *
- *  CPU例外の発生した時のコンテキストが，タスクコンテキストの時にfalse，
- *  そうでない時にtrueを返す．
- */
-Inline bool_t
-exc_sense_context(void *p_excinf)
-{
-	uint32_t exc_return;
-
-	exc_return = *((uint32_t *)p_excinf + P_EXCINF_OFFSET_EXC_RETURN);
-	if ((exc_return & EXC_RETURN_PSP) == EXC_RETURN_PSP){
-		return false;
-	}
-	else {
-		return true;
-	}
-}
-
-/*
- *  CPU例外の発生した時のIPM（ハードウェアの割込み優先度マスク，内部表
- *  現）の参照
- */
-Inline uint32_t
-exc_get_iipm(void *p_excinf)
-{
-	return(*((uint32_t *)p_excinf + P_EXCINF_OFFSET_BASEPRI));
-}
-
-/*
  *  CPU例外の発生した時のコンテキストと割込みのマスク状態の参照
  *
  *  CPU例外の発生した時のシステム状態が，カーネル実行中でなく，タスクコ
@@ -744,18 +731,50 @@ exc_get_iipm(void *p_excinf)
  *  にfalseを返す（CPU例外がカーネル管理外の割込み処理中で発生した場合
  *  にもfalseを返す）．
  *
- *  PU例外の発生した時のBASEPRI（ハードウェアの割込み優先度マスク）
+ *  v7,v8ではCPU例外の発生した時のBASEPRI（ハードウェアの割込み優先度マスク）
  *  がすべての割込みを許可する状態であることをチェックすることで，カー
- *  ネル実行中でないこと，割込みロック状態でないこと，CPUロック状態でな
- *  いこと，（モデル上の）割込み優先度マスク全解除状態であることの4つの
- *  条件をチェックすることができる（CPU例外が発生した時のlock_flagを参
- *  照する必要はない）．
+ *  ネル実行中でないこと，CPUロック状態でないこと，（モデル上の）割込み
+ *  優先度マスク全解除状態であることの3つの条件をチェックすることができる
+ * （CPU例外が発生した時のlock_flagを参照する必要はない）．
+ *  v6ではBASEPRIがないため例外発生時のlock_flagを参照する必要がある．
  */
 Inline bool_t
 exc_sense_intmask(void *p_excinf)
 {
-	return(!exc_sense_context(p_excinf)
-		   && (exc_get_iipm(p_excinf) == IIPM_ENAALL));
+#if __TARGET_ARCH_THUMB == 3
+	const uint32_t lockFlag = ((uint32_t *)p_excinf)[P_EXCINF_OFFSET_BASEPRI] & (1 << 9);
+	if (lockFlag) {
+		/*
+		 * (1) カーネル内のクリティカルセクションの実行中でない
+		 * (3) CPUロック状態でない
+		 */
+		return false;
+	}
+#endif /* __TARGET_ARCH_THUMB == 3 */
+	const uint32_t basepri = ((uint32_t *)p_excinf)[P_EXCINF_OFFSET_BASEPRI] & 0xFF;
+	if (basepri != IIPM_ENAALL) {
+		/*
+		 * (1) カーネル内のクリティカルセクションの実行中でない
+		 * (3) CPUロック状態でない
+		 * (7) 割込み優先度マスクが全解除
+		 */
+		return false;
+	}
+	const int primask = ((uint32_t *)p_excinf)[P_EXCINF_OFFSET_BASEPRI] & (1 << 8);
+	if (primask) {
+		/* (2) 全割込みロック状態でない */
+		return false;
+	}
+	const uint32_t lr = ((uint32_t *)p_excinf)[P_EXCINF_OFFSET_EXC_RETURN];
+	if ((lr & EXC_RETURN_PSP) == 0) {
+		/*
+		 * (4) カーネル管理外の割込みハンドラ実行中でない
+		 * (5) カーネル管理外のCPU例外ハンドラ実行中でない
+		 * (6) タスクコンテキスト
+		 */
+		return false;
+	}
+	return true;
 }
 
 /*

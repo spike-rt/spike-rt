@@ -38,7 +38,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #
-#   @(#) $Id: core_kernel.trb 1394 2020-04-10 04:44:13Z ertl-komori $
+#   @(#) $Id: core_kernel.trb 1516 2021-11-01 11:15:21Z ertl-komori $
 #
 # =====================================================================
 
@@ -54,9 +54,8 @@ $INHNO_VALID = $INTNO_VALID
 
 #
 #  有効なCPU例外番号
-#  7,8はエミュレートされた例外
 #
-$EXCNO_VALID = [ 2,3,4,5,6,7,8,11,12,14 ]
+$EXCNO_VALID = [ 2, 3, 4, 5, 6, 7, 12 ]
 
 #
 #  CRE_ISRで使用できる割込み番号とそれに対応する割込みハンドラ番号
@@ -134,7 +133,7 @@ Array(2..14).each { |excno|
         $kernelCfgC.add("    (FP)(_kernel_pendsv_handler),      /* 14 PendSV handler */")
     else
         if exc = $cfgData[:DEF_EXC][excno]
-            if exc[:excatr] == $TA_DIRECT
+            if (exc[:excatr] & $TA_DIRECT) != 0
                 $kernelCfgC.add("    (FP)(#{exc[:exchdr]}), /* #{excno} */")
                 next
             end
@@ -144,8 +143,8 @@ Array(2..14).each { |excno|
 }
 $INTNO_VALID.each { |inhno|
     if inh = $cfgData[:DEF_INH][inhno]
-        if inh[:inhatr] == $TA_NONKERNEL
-            $kernelCfgC.add("    (FP)(#{v[:inthdr]}), /* #{inhno} */")
+        if (inh[:inhatr] & $TA_NONKERNEL) != 0
+            $kernelCfgC.add("    (FP)(#{inh[:inthdr]}), /* #{inhno} */")
             next
         end
     end

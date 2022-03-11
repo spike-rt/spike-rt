@@ -1,0 +1,620 @@
+/*
+ *   Copyright (C) 2008-2019 by TOPPERS Project
+ *
+ *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
+ *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
+ *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
+ *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
+ *      権表示，この利用条件および下記の無保証規定が，そのままの形でソー
+ *      スコード中に含まれていること．
+ *  (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
+ *      用できる形で再配布する場合には，再配布に伴うドキュメント（利用
+ *      者マニュアルなど）に，上記の著作権表示，この利用条件および下記
+ *      の無保証規定を掲載すること．
+ *  (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
+ *      用できない形で再配布する場合には，次のいずれかの条件を満たすこ
+ *      と．
+ *    (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
+ *        作権表示，この利用条件および下記の無保証規定を掲載すること．
+ *    (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
+ *        報告すること．
+ *  (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
+ *      害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
+ *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
+ *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
+ *      免責すること．
+ * 
+ *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
+ *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
+ *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
+ *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
+ *  の責任を負わない．
+ * 
+ *  @(#) $Id: TECSInfo.cdl 2850 2018-04-01 12:38:45Z okuma-top $
+ */
+
+import_C( "t_stddef.h" );
+import_C( "t_syslog.h" );
+
+/* Constants of Kinds */
+const int8_t TECSTypeKind_BoolType    = 1;
+const int8_t TECSTypeKind_IntType     = 2;
+const int8_t TECSTypeKind_FloatType   = 3;
+const int8_t TECSTypeKind_PtrType     = 4;
+const int8_t TECSTypeKind_ArrayType   = 5;
+const int8_t TECSTypeKind_DefinedType = 6;
+const int8_t TECSTypeKind_StructType  = 7;
+const int8_t TECSTypeKind_EnumType    = 8;
+const int8_t TECSTypeKind_VoidType    = 9;
+const int8_t TECSTypeKind_DescriptorType = 10;
+
+/* Parameter Direction */
+const int8_t PARAM_DIR_IN         = 1;
+const int8_t PARAM_DIR_OUT        = 2;
+const int8_t PARAM_DIR_INOUT      = 3;
+const int8_t PARAM_DIR_SEND       = 4;
+const int8_t PARAM_DIR_RECEIVE    = 5;
+
+/* VarDecl declType */
+const int8_t DECLTYPE_STMEMBER    = 1;  /* Struct Member */
+const int8_t DECLTYPE_ATTR        = 2;
+const int8_t DECLTYPE_VAR         = 3;
+
+/* VarDecl place info */
+const int8_t VARDECL_PLACE_STRUCT = 1;
+const int8_t VARDECL_PLACE_NON    = 2;
+const int8_t VARDECL_PLACE_CB     = 3;
+const int8_t VARDECL_PLACE_INIB   = 4;
+
+/* CallInfo place info */
+const int8_t CALL_PLACE_NON       = 1;
+const int8_t CALL_PLACE_INIB_DES  = 2;
+const int8_t CALL_PLACE_CB_DES    = 3;
+const int8_t CALL_PLACE_INIB_IDX  = 4;
+const int8_t CALL_PLACE_CB_IDX    = 5;
+
+namespace nTECSInfo {
+
+    /*******   SIGNATURES   *******/
+
+    /* Type Information of attr, var, param, return */
+    signature sTypeInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1] = NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        uint32_t   getSize(void);    // size of the value in bytes
+        int8_t     getKind(void);    // see Constants of Kinds
+        uint32_t   getNType(void);
+           // kind == ARRAY の場合サイズ、POINTER, TYPEDEF の場合1、それ以外は0
+        ER     getTypeInfo( [out]Descriptor(sTypeInfo) *desc );
+           // kind == POINTER, TYPEDEF の場合、desc に有効な値を返す
+        uint32_t   getNMember(void);
+           // STRUCT の場合メンバー数
+        ER     getMemberInfo( [in]uint32_t ith, [out]Descriptor(sVarDeclInfo) *desc );
+           // kind == STRUCT の場合、desc に有効な値を返す
+           // ith はメンバーの添数 0<=ith<*num
+           // ith が範囲外の場合 E_NORES を返す
+//        void   getSignatureInfo( [out]Descriptor(sSignatureInfo) *desc );
+//           // kind == DESCRIPTOR の場合、desc に有効な値を返す
+    };
+
+    /* ATTR, VAR, struct member Information */
+    signature sVarDeclInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1] = NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        void       getLocationInfo(  [out]uint32_t *offset,
+                                     [out]int8_t   *place );            // VARDECL_PLACE_*
+        void       getTypeInfo( [out]Descriptor( sTypeInfo ) *desc );
+        void       getSizeIsExpr( [out,string(max_len)]char_t *expr_str, [in]int32_t max_len );
+          // size_is 計算式を文字列で返す. size_is 未指定の場合 *expr_str = NULL が返される
+        ER         getSizeIs( [out]uint32_t *size, [in]const void *p_cb);
+          // p_cb を与えると、size を返す (size_is 指定がない場合，E_NOSPT を返す)
+    };
+
+    /* PARAM Information */
+    signature sParamInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1] = NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        ER         getTypeInfo( [out]Descriptor(sTypeInfo) *desc);
+        ER         getDir( [out]int8_t *dir );
+    };
+
+    /* FUNCTION Information */
+    signature sFunctionInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1] = NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        void       getReturnTypeInfo( [out]Descriptor( sTypeInfo ) *desc );
+        uint32_t   getNParam(void);
+        ER         getParamInfo( [in]uint32_t ith, [out]Descriptor(sParamInfo) *param );
+           // 0 <= ith < *num
+           // ith が範囲外の場合 E_NORES を返す
+    };
+
+    /* SIGNATURE Information */
+    signature sSignatureInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1] = NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        uint32_t   getNFunction(void);
+        ER         getFunctionInfo( [in]uint32_t ith, [out]Descriptor( sFunctionInfo ) *desc );
+           // 0 <= ith < *num
+           // ith が範囲外の場合 E_NORES を返す
+    };
+
+    /* CALL Information */
+    signature sCallInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1]= NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        void       getSignatureInfo( [out]Descriptor( sSignatureInfo ) *desc );
+        uint32_t   getArraySize(void);
+        void       getSpecifierInfo( [out]bool_t   *b_optional,
+                                     [out]bool_t   *b_dynamic,
+                                     [out]bool_t   *b_ref_desc,
+                                     [out]bool_t   *b_omit );
+        void       getInternalInfo(  [out]bool_t   *b_allocator_port,
+                                     [out]bool_t   *b_require_port );
+        void       getLocationInfo(  [out]uint32_t *offset,             // CALL_PLACE_*
+                                     [out]int8_t   *place );            // CALL_PLACE_*
+        void       getOptimizeInfo(  [out]bool_t   *b_VMT_useless,      // VMT (関数テーブル) 不要最適化 (関数直接呼出し)
+                                     [out]bool_t   *b_skelton_useless,  // スケルトン関数不要 (
+                                     [out]bool_t   *b_cell_unique );    // 単一のセル
+    };
+
+    /* ENTRY Information */
+    signature sEntryInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1]=NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        void       getSignatureInfo( [out]Descriptor( sSignatureInfo ) *desc );
+        uint32_t   getArraySize(void);
+        bool_t     isInline(void);
+    };
+
+    /* CELLTYPE Information */
+    signature sCelltypeInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1]=NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        uint32_t   getNAttr(void);
+        ER         getAttrInfo( [in]uint32_t ith, [out]Descriptor(sVarDeclInfo)*desc );
+        uint32_t   getNVar(void);
+        ER         getVarInfo( [in]uint32_t ith,  [out]Descriptor(sVarDeclInfo)*desc );
+           // ith が範囲外の場合 E_NORES を返す
+        uint32_t   getNCall(void);
+        ER         getCallInfo( [in]uint32_t ith, [out]Descriptor(sCallInfo)*desc );
+           // ith が範囲外の場合 E_NORES を返す
+        uint32_t   getNEntry(void);
+        ER         getEntryInfo( [in]uint32_t ith, [out]Descriptor(sEntryInfo)*desc );
+           // ith が範囲外の場合 E_NORES を返す
+        bool_t     isSingleton(void);
+        bool_t     isIDX_is_ID(void);
+        uint32_t   sizeOfCB(void);
+        uint32_t   sizeOfINIB(void);
+    };
+
+    /* CELL Information */
+    [deviate]
+    signature sCellInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1]=NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        uint32_t   getNRawEntryDescriptorInfo( void );
+        ER         getRawEntryDescriptorInfo( [in]int_t index, [out]Descriptor(sRawEntryDescriptorInfo) *desc );
+           // index は、受け口を指定 (CelltypeInfo の cEntryInfo の序数に一致する)
+        void       getCelltypeInfo( [out]Descriptor( sCelltypeInfo ) *desc );
+        void       getCBP( [out]void **cbp );      // out: 逸脱
+        void       getINIBP( [out]void **inibp );  // out: 逸脱
+    };
+
+    [deviate]
+    signature sRawEntryDescriptorInfo {
+        uint16_t   getNRawEntryDescriptorInfo( void );         // 受け口配列の場合、要素数を返す。非配列の場合 1。
+        ER         getRawDescriptor( [in]int_t subsc, [out]void **rawDesc );
+                        // ith が配列範囲外の場合、E_ID を返す
+    };
+
+    /* NAMESPACE Information */
+    signature sNamespaceInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1]=NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        uint32_t   getNNamespace(void);
+        ER         getNamespaceInfo( [in]uint32_t ith, [out]Descriptor(sNamespaceInfo) *des );
+           // ith が範囲外の場合 E_NORES を返す
+        uint32_t   getNSignature(void);
+        ER         getSignatureInfo( [in]uint32_t ith, [out]Descriptor(sSignatureInfo) *des );
+           // ith が範囲外の場合 E_NORES を返す
+        uint32_t   getNCelltype(void);
+        ER     getCelltypeInfo( [in]uint32_t ith,  [out]Descriptor(sCelltypeInfo) *des );
+           // ith が範囲外の場合 E_NORES を返す
+    };
+
+    /* REGION Information */
+    signature sRegionInfo {
+        ER         getName( [out,string(max_len)]char_t *name, [in]int_t max_len );
+           // 長さが max_len を超えた場合は E_NOMEM を返す.
+           // (max_len-1) 文字コピーする。name[max_len-1]=NULL
+        uint16_t   getNameLength(void);
+           //  終端文字 (NULL) を含む長さ (strlen と仕様が異なることに注意)
+        uint32_t   getNCell(void);
+        ER         getCellInfo( [in]uint32_t ith,    [out]Descriptor(sCellInfo) *des );
+           // ith が範囲外の場合 E_NORES を返す
+        uint32_t   getNRegion(void);
+        ER         getRegionInfo( [in]uint32_t ith,  [out]Descriptor(sRegionInfo) *des );
+           // ith が範囲外の場合 E_NORES を返す
+    };
+
+    /* TECS Information */
+    signature sTECSInfo {
+        ER     findNamespace([in,string]const char_t *namespace_path, [out]Descriptor( sNamespaceInfo )*nsDesc);
+        ER     findRegion(   [in,string]const char_t *namespace_path, [out]Descriptor( sRegionInfo )*regionDesc);
+        ER     findSignature([in,string]const char_t *namespace_path, [out]Descriptor( sSignatureInfo )*signatureDesc);
+        ER     findCelltype( [in,string]const char_t *namespace_path, [out]Descriptor( sCelltypeInfo )*celltypeDesc);
+        ER     findCell(     [in,string]const char_t *namespace_path, [out]Descriptor( sCellInfo )*cellDesc);
+        ER     findRawEntryDescriptor(
+                             [in,string]const char_t *namespace_path,
+                             [out]Descriptor( sRawEntryDescriptorInfo )*rawEntryDescDesc,
+                             [out]Descriptor( sEntryInfo )*entryDesc);
+        ER     findRawEntryDescriptor_unsafe(  // TECSGEN V1.7 で配列を扱えるように変更
+                             [in,string]const char_t *namespace_path,
+                             [in]uint32_t subsc,
+                             [out]void **rawDesc );
+    };
+
+    /*******   CELLTYPES   *******/
+
+    /*
+     * tTECSInfo セルタイプのセルは、ユーザーが設置する．
+     *
+     * このセルから、tTECSInfoSub への結合は、プラグインにより自動的に
+     * 行われるため、ユーザーは、このセルを設置するだけでよい．
+     * (プロトタイプを用いていないのは、このセルを任意のリージョンに置
+     * くことを想定してのもの)
+     */
+    [singleton,
+     generate( TECSInfoPlugin, "" )]
+    celltype tTECSInfo {
+        [inline]
+            entry sTECSInfo eTECSInfo;
+        call  sTECSInfo cTECSInfo;
+        FACTORY{
+            write( "global_tecsgen.h", "#define setRawEntryDescriptor( callDesc, callPortSignature, rawEntryDesc )   (callDesc).vdes = (struct tag_ ## callPortSignature ## _VDES *) rawEntryDesc" );
+        };
+    };
+
+    /*
+     * tTECSInfoSub セルタイプのセルは、プラグインにより自動生成される．
+     * プラグインは、生成を行う前にエラーが発生している場合、セルを生成しない．
+     * (TECSInfoSub セルが未定義のエラーも出ることになる。不完全な状態
+     * で生成しようとすると、Ruby 例外を発生する可能性があるため、生成
+     * しない)
+     */
+    [singleton]
+    celltype tTECSInfoSub {
+        entry sTECSInfo eTECSInfo;
+        [ref_desc]
+            call sNamespaceInfo cNamespaceInfo;   // root namespace
+        [ref_desc]
+            call sRegionInfo    cRegionInfo;      // root region
+        // 内部処理用の呼び口 (何度も使いまわすので、使う直前に(再)設定すること）
+        [dynamic,optional]
+            call sNamespaceInfo cNamespaceInfoTemp;
+        [dynamic,optional]
+            call sRegionInfo    cRegionInfoTemp;
+        [dynamic,optional]
+            call sSignatureInfo cSignatureInfoTemp;
+        [dynamic,optional]
+            call sCelltypeInfo  cCelltypeInfoTemp;
+        [dynamic,optional]
+            call sCellInfo      cCellInfoTemp;
+        [dynamic,optional]
+            call sEntryInfo     cEntryInfoTemp;
+        [dynamic,optional]
+            call sRawEntryDescriptorInfo cRawEntryDescriptorInfoTemp;
+
+        attr {
+            int32_t name_len = 256;
+            int32_t path_len = 1024;
+        };
+        var {
+            [size_is(name_len)]
+                char_t  *name1;
+            [size_is(name_len)]
+                char_t  *name2;
+            [size_is(path_len)]
+                char_t  *path;
+        };
+    };
+
+    celltype tNamespaceInfo {
+        attr {
+            char *name;
+        };
+
+        entry sNamespaceInfo eNamespaceInfo;
+        [ref_desc,optional]
+            call  sSignatureInfo cSignatureInfo[];
+        [ref_desc,optional]
+            call  sCelltypeInfo  cCelltypeInfo[];
+        [ref_desc,optional]
+            call  sNamespaceInfo cNamespaceInfo[];
+    };
+
+    /* SIGNATURE information */
+    celltype tSignatureInfo{
+        attr {
+            char *name;
+        };
+
+        entry sSignatureInfo   eSignatureInfo;
+        [ref_desc,optional]
+            call sFunctionInfo cFunctionInfo[];
+    };
+    celltype tFunctionInfo {
+        attr {
+            char_t *name;
+            bool_t  bOneway;
+        };
+        entry sFunctionInfo eFunctionInfo;
+        [ref_desc,optional]
+            call sParamInfo cParamInfo[];
+        [ref_desc]
+            call sTypeInfo  cReturnTypeInfo;
+    };
+    celltype tParamInfo {
+        attr {
+            char_t *name;
+            int8_t dir;
+            char_t *sizeIsExpr;
+            char_t *countIsExpr;
+            char_t *stringExpr;
+        };
+        entry sParamInfo eParamInfo;
+        [ref_desc]
+            call sTypeInfo cTypeInfo;
+    };
+
+    /* CELLTYPE information */
+    celltype tCelltypeInfo{
+        attr {
+            char_t   *name;
+            bool_t   b_singleton;
+            bool_t   b_IDX_is_ID_act;
+            uint32_t sizeOfCB;         // size in bytes, 0 if not exist
+            uint32_t sizeOfINIB;       // size in bytes, 0 if not exist
+            uint32_t n_cellInLinkUnit; // CellInLinkUnit == 0 の時 セルタイプコードは、リンクされていない
+            uint32_t n_cellInSystem;   // すべてのリンクユニットを含めたセルの個数．
+                                       // この数が 0になるものは、CelltypeInfo は省略される．
+        };
+        [ref_desc,optional]
+            call  sEntryInfo   cEntryInfo[];
+        [ref_desc,optional]
+            call  sCallInfo    cCallInfo[];
+        [ref_desc,optional]
+            call  sVarDeclInfo cAttrInfo[];
+        [ref_desc,optional]
+            call  sVarDeclInfo cVarInfo[];
+
+        entry sCelltypeInfo    eCelltypeInfo;
+    };
+    celltype tCallInfo {
+        attr {
+            char_t   *name;
+            uint32_t offset;
+            uint32_t array_size;
+            bool_t   b_optional;
+            bool_t   b_omit;
+            bool_t   b_dynamic;
+            bool_t   b_ref_desc;
+            bool_t   b_allocator_port;
+            bool_t   b_require_port;
+            int8_t   place;
+            bool_t   b_VMT_useless;        // VMT (関数テーブル) 不要最適化 (関数直接呼出し)
+            bool_t   b_skelton_useless;    // スケルトン関数不要 (
+            bool_t   b_cell_unique;        // 単一のセル
+        };
+        entry sCallInfo eCallInfo;
+        [ref_desc]
+            call sSignatureInfo cSignatureInfo;
+        FACTORY {
+            write( "$ct_global$_factory.h", "#include \"include_all_signature_header.h\"" );
+        };
+    };
+    celltype tEntryInfo {
+        attr {
+            char_t *name;
+            bool_t b_inline;
+            uint32_t array_size;
+        };
+        entry sEntryInfo eEntryInfo;
+        [ref_desc]
+            call sSignatureInfo cSignatureInfo;
+        FACTORY {
+            write( "$ct_global$_factory.h", "#include \"include_all_signature_header.h\"" );
+        };
+    };
+    /* Variable Declarator (attr, var, struct member) */
+    celltype tVarDeclInfo {
+        attr {
+            char_t   *name;
+            char_t   *sizeIsExpr;
+            int8_t   declType;        /* valid when attr, var */
+            int8_t   place;
+            uint32_t offset;
+        };
+        entry sVarDeclInfo eVarDeclInfo;
+        [ref_desc]
+            call sTypeInfo cTypeInfo;
+    };
+
+    /* REGION & CELL information */
+    celltype tRegionInfo {
+        attr {
+            char *name;
+        };
+
+        entry sRegionInfo eRegionInfo;
+        [ref_desc,optional]
+            call  sCellInfo   cCellInfo[];
+        [ref_desc,optional]
+            call  sRegionInfo cRegionInfo[];
+    };
+    celltype tCellInfo {
+        attr {
+            char_t *name;
+            void   *cbp;
+            void   *inibp;
+        };
+        [ref_desc]
+            call  sCelltypeInfo cCelltypeInfo;
+        [ref_desc,optional]
+            call  sRawEntryDescriptorInfo cRawEntryDescriptor[];
+        entry sCellInfo eCellInfo;
+    };
+    celltype tRawEntryDescriptorInfo {
+        attr {
+            int_t size;   // 非配列の場合 0
+            [size_is(size)]
+                void  **rawEntryDescriptor;
+        };
+        entry sRawEntryDescriptorInfo eRawEntryDescriptor;
+        // [ref_desc]
+        //    call  sEntryInfo             cEntryInfo;
+    };
+
+    /* celltypes of TYPEs */
+    celltype tVoidTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+    };
+    celltype tBoolTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+    };
+    celltype tIntTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+    };
+    celltype tFloatTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+    };
+    celltype tStructTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+        [ref_desc]
+            call sVarDeclInfo cVarDeclInfo[];
+    };
+    celltype tPtrTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+        [ref_desc]
+            call sTypeInfo cTypeInfo;
+        FACTORY {
+            write( "$ct_global$_factory.h", "#include \"include_all_signature_header.h\"" );
+        };
+    };
+    celltype tArrayTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+        [ref_desc]
+            call sTypeInfo cTypeInfo;
+        FACTORY {
+            write( "$ct_global$_factory.h", "#include \"include_all_signature_header.h\"" );
+        };
+    };
+    celltype tDefinedTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+        [ref_desc]
+            call sTypeInfo cTypeInfo;
+    };
+    celltype tDescriptorTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+            uint32_t size;     /* bytes */
+            bool_t   b_const;
+            bool_t   b_volatile;
+        };
+        entry sTypeInfo eTypeInfo;
+        [ref_desc]
+            call sSignatureInfo cSignatureInfo;
+        FACTORY {
+            write( "$ct_global$_factory.h", "#include \"include_all_signature_header.h\"" );
+        };
+    };
+};
+

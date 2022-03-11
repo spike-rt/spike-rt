@@ -1,6 +1,6 @@
 =====================================================================
                          ARM-Mプロセッサ依存部
-  @(#) $Id: core_user.txt 1401 2020-04-14 08:49:46Z ertl-komori $
+  @(#) $Id: core_user.txt 1500 2021-07-28 12:35:13Z ertl-komori $
 =====================================================================
 
 
@@ -41,13 +41,9 @@ double型は，それぞれIEEE754準拠の単精度浮動小数点数と倍精�
 
 各ビット幅の値とCFG_INTで使用可能な割込み優先度の範囲は次の通りである．
 
-   -(2^(TBIW_IPRI)) + (2^TBITW_SUBIPRI) 〜 -1
+   -(2^(TBIW_IPRI)) 〜 -1
 
-例えば優先度のビット幅(TBITW_IPRI)が8bit，サブ優先度のビット幅
-(TBITW_SUBIPRI) が1bitの場合は，-254 〜 -1 の範囲である．
-
-優先度のビット幅(TBITW_IPRI)が3bit，サブ優先度のビット幅(TBITW_SUBIPRI) 
-が0bitの場合は，-8 〜 -1 の範囲である．
+優先度のビット幅(TBITW_IPRI)が3bitの場合は，-8 〜 -1 の範囲である．
 
 最大優先度(3bitの例では-8)は，内部優先度としては"0x00"となる．この優先
 度はCPUロックで用いるBASEPRIレジスタではマスクできないため，カーネル管
@@ -80,6 +76,8 @@ TMIN_INTPRIの値を大きく（優先度を低く）設定すると，TMIN_INTP
 スーパバイザ呼び出しで禁止される），割込み発生時は，カーネルのコードを
 経由せずに呼び出される．
 
+なお，ARMv6-MではSysTickをカーネル管理外の割り込みとしてのみサポートする．
+
 カーネル管理外の割込みに対する，DEF_INH,CFG_INTはサポートする．
 
 (3-3) CPU例外処理に関する規定
@@ -110,7 +108,8 @@ ARM-M依存部では，全てのCPU例外の優先度をCPUロックではマス
 (3-4) CPUロック・割込みロック
 
 CPUロックは，basepriをTMIN_INTPRIの優先度の割込みを禁止する値に設定す
-る．割込みロックは，FAULTMASKを'1'に設定することで実現している．
+る．basepriが存在しないARMv6-MではNVICの割り込み許可ビットを操作する．
+割込みロックは，PRIMASKを'1'に設定することで実現している．
 
 (3-5) 性能評価用システム時刻の参照に関する規定
 
@@ -120,7 +119,7 @@ get_utmをサポートする．精度に関しては，ターゲット毎に異�
 
 スタートアップルーチンは，Threadモードで呼び出されることを前提としてい
 る．実行後，割込みロック状態（FAULTMASKをセット）とする．割込みロック
-状態は，カーネルの初期化終了時に許可する．スタートアップルーチンで，
+状態は，カーネルの初期化終了時に解除する．スタートアップルーチンで，
 MSPをアクティブなスタックとし，MSPの内容を初期化するためには，INIT_MSP
 をターゲット依存部で定義する．
 
@@ -130,7 +129,6 @@ MSPをアクティブなスタックとし，MSPの内容を初期化するた�
 
    ・TMAX_INTNO     : 割込み番号の最大値(通常の割込み番号 + 15)
    ・TBITW_IPRI     : 割込み優先度のビット幅
-   ・TBITW_SUBIPRI  : 割込み優先度のビット幅中のサブ優先度のビット幅
    ・TMIN_INTPRI    : 割込み優先度の最小値（最高値）
    ・INTPRI_TIMER   : タイマ割込み割込み優先度
    ・INTATR_TIMER   : タイマ割込みの割込み属性
@@ -145,16 +143,24 @@ MSPをアクティブなスタックとし，MSPの内容を初期化するた�
     ./arm_m.h
     ./core_asm.inc
     ./core_cfg1_out.h
+    ./core_check.trb
+    ./core_design.txt
     ./core_insn.h
     ./core_kernel.h
+    ./core_kernel.trb
     ./core_kernel_impl.c
     ./core_kernel_impl.h
+    ./core_kernel_v6m.h
+    ./core_offset.trb
+    ./core_offset_v6m.trb
     ./core_rename.def
     ./core_rename.h
     ./core_sil.h
     ./core_stddef.h
     ./core_support.S
+    ./core_support_v6m.S
     ./core_sym.def
+    ./core_sym_v6m.def
     ./core_test.h
     ./core_unrename.h
     ./core_user.txt

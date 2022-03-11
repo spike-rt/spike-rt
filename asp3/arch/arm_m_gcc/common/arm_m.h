@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id: arm_m.h 1385 2020-03-28 02:12:32Z ertl-komori $
+ *  @(#) $Id: arm_m.h 1500 2021-07-28 12:35:13Z ertl-komori $
  */
 
 /*
@@ -111,16 +111,10 @@
 /*
  *  例外フレームのオフセット
  */
-#define P_EXCINF_OFFSET_BASEPRI     0x00
-#define P_EXCINF_OFFSET_EXC_RETURN  0x01
-#define P_EXCINF_OFFSET_XPSR        0x09
-#define P_EXCINF_OFFSET_PC          0x08
-#define P_EXCINF_OFFSET_LR          0x07
-#define P_EXCINF_OFFSET_R12         0x06
-#define P_EXCINF_OFFSET_R3          0x05
-#define P_EXCINF_OFFSET_R2          0x04
-#define P_EXCINF_OFFSET_R1          0x03
-#define P_EXCINF_OFFSET_R0          0x02
+#define P_EXCINF_OFFSET_BASEPRI     0
+#define P_EXCINF_OFFSET_EXC_RETURN  1
+#define P_EXCINF_OFFSET_PC          8
+#define P_EXCINF_OFFSET_XPSR        9
 
 /*
  *  NVIC関連
@@ -137,6 +131,7 @@
 #define NVIC_ICSR           0xE000ED04
 #define NVIC_PENDSVSET          (1 << 28)       /*  PenvSVC例外 */
 #define NVIC_PENDSTSET          (1 << 26)       /*  SYSTick例外 */
+#define NVIC_PENDSTCLR          (1 << 25)
 
 /*
  *  システムハンドラーコントロールレジスタ

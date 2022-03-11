@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #
-#  @(#) $Id: Makefile.core 1377 2020-03-05 03:08:31Z ertl-komori $
+#  @(#) $Id: Makefile.core 1500 2021-07-28 12:35:13Z ertl-komori $
 #
 
 #
@@ -72,16 +72,6 @@ vpath %.S $(COREDIR)
 KERNEL_DIR := $(KERNEL_DIR) $(COREDIR)
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS)
 KERNEL_COBJS := $(KERNEL_COBJS) core_kernel_impl.o
-
-#
-#  コンフィギュレータ関係の変数の定義
-#
-CFG_TABS := $(CFG_TABS) --symval-table $(COREDIR)/core_sym.def
-
-#
-#  オフセットファイル生成のための定義
-#
-TARGET_OFFSET_TRB = $(COREDIR)/core_offset.trb
 
 #
 #  コアのタイプによる違い
@@ -127,6 +117,24 @@ else ifeq ($(ARM_ARCH),ARMV7M)
 else ifeq ($(ARM_ARCH),ARMV6M)
 	KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) core_support_v6m.o
 	CDEFS := $(CDEFS) -D__TARGET_ARCH_THUMB=3
+endif
+
+#
+#  コンフィギュレータ関係の変数の定義
+#
+ifeq ($(ARM_ARCH),ARMV6M)
+	CFG_TABS := $(CFG_TABS) --symval-table $(COREDIR)/core_sym_v6m.def
+else
+	CFG_TABS := $(CFG_TABS) --symval-table $(COREDIR)/core_sym.def
+endif
+
+#
+#  オフセットファイル生成のための定義
+#
+ifeq ($(ARM_ARCH),ARMV6M)
+	TARGET_OFFSET_TRB = $(COREDIR)/core_offset_v6m.trb
+else
+	TARGET_OFFSET_TRB = $(COREDIR)/core_offset.trb
 endif
 
 #

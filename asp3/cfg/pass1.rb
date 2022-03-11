@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: pass1.rb 179 2019-10-02 04:36:46Z ertl-hiro $
+#  $Id: pass1.rb 188 2020-06-14 09:52:45Z ertl-hiro $
 #
 
 #
@@ -133,7 +133,8 @@ def ReadApiTableFile
             apiParam[:STRING] = true
             apiParam[:EXPTYPE] = "char *"
           else
-            error_exit("`#{param}' is invalid")
+            error_exit("`#{param}' is invalid in " \
+							"`#{apiTableFileName}:#{apiFile.lineno}'")
           end
 
           case postfix
@@ -154,7 +155,8 @@ def ReadApiTableFile
           apiParam = { :BRACE => "}" }
 
         else
-          error_exit("`#{param}' is invalid")
+          error_exit("`#{param}' is invalid in " \
+							"`#{apiTableFileName}:#{apiFile.lineno}'")
         end
         apiParams.push(apiParam)
       end
@@ -332,7 +334,7 @@ class CfgParser
         @line = cfgFile.getNextLine(true)
       end
     end while (@line)
-    error_exit("unterminated string meets end-of-file")
+    parse_error_fatal(cfgFile, "unterminated string meets end-of-file")
     return(string)
   end
 
@@ -358,29 +360,19 @@ class CfgParser
         @line = cfgFile.getNextLine(true)
       end
     end while (@line)
-    error_exit("unterminated string meets end-of-file")
+    parse_error_fatal(cfgFile, "unterminated string meets end-of-file")
     return(string)
   end
 
   #
   #  改行と空白文字を読み飛ばす
   #
-  def skipSpace(cfgFile, withinApi)
+  def skipSpace(cfgFile, withinApi=true)
     loop do
       return if @line.nil?						# ファイル末であればリターン
       @line.lstrip!								# 先頭の空白を削除
       return if @line != ""						# 空行でなければリターン
       @line = cfgFile.getNextLine(withinApi)	# 次の行を読む
-    end
-  end
-
-  #
-  #  次の文字まで読み飛ばす
-  #
-  def skipToToken(cfgFile, withinApi=true)
-    skipSpace(cfgFile, withinApi)
-    if @line.nil?							# ファイル末であればエラー終了
-      error_exit("#{cfgFile.getFileName}: unexpeced end-of-file")
     end
   end
 
@@ -397,7 +389,10 @@ class CfgParser
     skipComma = @skipComma
     @skipComma = false
 
-    skipToToken(cfgFile)					# 次の文字まで読み飛ばす
+    skipSpace(cfgFile)						# 改行と空白文字を読み飛ばす
+    if @line.nil?							# ファイル末であればエラー終了
+      parse_error_fatal(cfgFile, "unexpeced end-of-file within a static API")
+    end
     begin
       if parenLevel == 0
         case @line
@@ -498,7 +493,10 @@ class CfgParser
     tooFewParams = false
     skipUntilBrace = 0
 
-    skipToToken(cfgFile)					# 次の文字まで読み飛ばす
+    skipSpace(cfgFile)						# 改行と空白文字を読み飛ばす
+    if @line.nil?							# ファイル末であればエラー終了
+      parse_error_fatal(cfgFile, "unexpeced end-of-file within a static API")
+    end
     if (/^\((.*)$/ =~ @line)
       @line = $1
 
@@ -586,13 +584,13 @@ class CfgParser
     return(staticApi)
   end
 
-  def parseOpenBrace(cfgFile)
+  def parseOpenBrace(cfgFile, closure)
     # {の読み込み
-    skipToToken(cfgFile)					# 次の文字まで読み飛ばす
+    skipSpace(cfgFile)						# 改行と空白文字を読み飛ばす
     if (/^\{(.*)$/ =~ @line)
       @line = $1
     else
-      parse_error(cfgFile, "`{' expected before #{@line}")
+      parse_error(cfgFile, "`{' expected after #{closure}")
     end
   end
 
@@ -640,7 +638,7 @@ class CfgParser
             parse_error(cfgFile, "`DOMAIN' must not be nested")
           end
           @@currentDomain = "TDOM_KERNEL"
-          parseOpenBrace(cfgFile)
+          parseOpenBrace(cfgFile, apiName)
           @@nestDC.push("domain")
         when "DOMAIN"
           if !$supportDomain
@@ -658,7 +656,8 @@ class CfgParser
                 # ID番号入力ファイルに定義されていた場合
                 $domainId[domid] = $inputObjid[domid]
                 if $domainId[domid] > 32
-                  error_exit("domain ID for `#{domid}' is too large")
+                  parse_error_fatal(cfgFile,
+									"domain ID for `#{domid}' is too large")
                 end
               else
                 $domainId[domid] = nil
@@ -666,7 +665,7 @@ class CfgParser
             end
             @@currentDomain = domid
           end
-          parseOpenBrace(cfgFile)
+          parseOpenBrace(cfgFile, apiName)
           @@nestDC.push("domain")
         when "CLASS"
           if !$supportClass
@@ -678,7 +677,7 @@ class CfgParser
           @@currentClass = parseParam(cfgFile).sub(/^\((.+)\)$/m, "\\1").strip
           @@classFile = cfgFile.getFileName
           @@classLine = cfgFile.getLineNo
-          parseOpenBrace(cfgFile)
+          parseOpenBrace(cfgFile, apiName)
           @@nestDC.push("class")
         else
           if $apiDefinition.has_key?(apiName)
@@ -714,7 +713,7 @@ class CfgParser
             end
 
             # ";"を読む
-            skipToToken(cfgFile, false)		# 次の文字まで読み飛ばす
+            skipSpace(cfgFile, false)		# 改行と空白文字を読み飛ばす
             if (/^\;(.*)$/ =~ @line)
               @line = $1
             else
@@ -734,7 +733,7 @@ class CfgParser
             @@currentClass = nil
           end
         else
-          error_exit("unexpected `}'")
+          parse_error_fatal(cfgFile, "unexpected `}'")
         end
         @line = $1
       else

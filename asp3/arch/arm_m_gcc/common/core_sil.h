@@ -77,7 +77,7 @@ TOPPERS_enaint(bool_t locked)
 	}
 }
 
-#endif
+#endif /* TECSGEN */
 
 /*
  *  全割込みロック状態の制御
@@ -86,7 +86,7 @@ TOPPERS_enaint(bool_t locked)
 #define SIL_LOC_INT()    ((void)(TOPPERS_locked = TOPPERS_disint()))
 #define SIL_UNL_INT()    (TOPPERS_enaint(TOPPERS_locked))
 
-#define TOPPERS_SIL_WRITE_SYNC()	Asm("isb \n dsb \n")
+#define TOPPERS_SIL_WRITE_SYNC()	Asm("dsb")
 
 #endif /* TOPPERS_MACRO_ONLY */
 #endif /* TOPPERS_CORE_SIL_H */

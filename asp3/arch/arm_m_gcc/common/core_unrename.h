@@ -36,5 +36,9 @@
 #undef exit_and_dispatch
 #undef call_exit_kernel
 
+#undef iipm_enable_masks
+#undef current_iipm_enable_mask
+#undef iipm_enable_irq_tbl
+
 
 #endif /* TOPPERS_CORE_RENAME_H */

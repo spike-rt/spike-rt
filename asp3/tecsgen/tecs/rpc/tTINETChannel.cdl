@@ -1,0 +1,110 @@
+/*
+ *  TECS Generator
+ *      Generator for TOPPERS Embedded Component System
+ *  
+ *   Copyright (C) 2008-2013 by TOPPERS Project
+ *--
+ *   上記著作権者は，以下の(1)(4)の条件を満たす場合に限り，本ソフトウェ
+ *   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
+ *   変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
+ *   (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
+ *       権表示，この利用条件および下記の無保証規定が，そのままの形でソー
+ *       スコード中に含まれていること．
+ *   (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
+ *       用できる形で再配布する場合には，再配布に伴うドキュメント（利用
+ *       者マニュアルなど）に，上記の著作権表示，この利用条件および下記
+ *       の無保証規定を掲載すること．
+ *   (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
+ *       用できない形で再配布する場合には，次のいずれかの条件を満たすこ
+ *       と．
+ *     (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
+ *         作権表示，この利用条件および下記の無保証規定を掲載すること．
+ *     (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
+ *         報告すること．
+ *   (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
+ *       害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
+ *       また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
+ *       由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
+ *       免責すること．
+ *  
+ *   本ソフトウェアは，無保証で提供されているものである．上記著作権者お
+ *   よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
+ *   に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
+ *   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
+ *   の責任を負わない．
+ *  
+ *   $Id: tTINETChannel.cdl 2640 2017-06-03 11:27:12Z okuma-top $
+ */
+
+import_C( "netinet/in.h" );
+
+const	uint16_t	TINETIPV4_DEFAULT_PORT_NO  = 8931;
+
+signature sTINETClientOpenerIPV4 {
+	ER		open( [in]const T_IPV4EP *clientAddr, [in]TMO tmo );
+	ER		close( [in]TMO tmo );
+};
+
+signature sIPV4AcceptCheck {
+	bool_t	check( [in]const T_IPV4EP *clientAddr );
+};
+
+celltype tTINETClient {
+	entry	sChannel				eC0;
+	entry	sTINETClientOpenerIPV4	eOpener;
+	attr {
+		ID				cep_id = C_EXP( "$id$_CEPID" );
+		[omit]
+			uint16_t	recv_buf_size = C_EXP( "TCP_MSS" );
+		[omit]
+			uint16_t	send_buf_size = C_EXP( "TCP_MSS" );
+	};
+	FACTORY {
+		write( "$ct$_factory.h", "#include \"netinet/tcp.h\"\n" );
+		write( "$ct$_tecsgen.h", "#include \"tinet_cfg.h\"\n" );
+		write( "tinet_tecsgen.cfg", "#include \"$ct$_factory.h\"\n" );
+	};
+	factory {
+		write( "$ct$_factory.h", "int8_t $id$_recv_buf[%s];\n", recv_buf_size );
+		write( "$ct$_factory.h", "int8_t $id$_send_buf[%s];\n", send_buf_size );
+		write( "tinet_tecsgen.cfg", "TCP_CRE_CEP ($id$_CEPID, {\n"
+								"	0,\n"
+								"	$id$_send_buf,\n"
+								"	%s,\n"
+								"	$id$_recv_buf,\n"
+								"	%s,\n"
+								"	NULL \n"
+								"	} );\n",
+			   send_buf_size, recv_buf_size );
+	};
+};
+
+celltype tTINETServer {
+
+	entry	sChannel				eC1;
+	entry	sServerChannelOpener	eOpener;
+	[optional]
+		call  sIPV4AcceptCheck  cCheck;
+	attr {
+		ID				cep_id = C_EXP( "$id$_CEPID" );
+		ID				rep_id = C_EXP( "$id$_REPID" );
+		[omit]
+			int16_t		portNo  = TINETIPV4_DEFAULT_PORT_NO;
+		[omit]
+			uint16_t	recv_buf_size = C_EXP( "TCP_MSS" );
+		[omit]
+			uint16_t	send_buf_size = C_EXP( "TCP_MSS" );
+	};
+	FACTORY {
+		write( "$ct$_factory.h", "#include \"netinet/tcp.h\"\n" );
+		write( "$ct$_tecsgen.h", "#include \"tinet_cfg.h\"\n" );
+		write( "tinet_tecsgen.cfg", "#include \"$ct$_factory.h\"\n" );
+	};
+	factory {
+		write( "$ct$_factory.h", "int8_t $id$_recv_buf[%s];\n", recv_buf_size );
+		write( "$ct$_factory.h", "int8_t $id$_send_buf[%s];\n", send_buf_size );
+		write( "tinet_tecsgen.cfg", "TCP_CRE_REP ($id$_REPID,	{ 0, { IPV4_ADDRANY, %s } } );\n", portNo );
+		write( "tinet_tecsgen.cfg", "TCP_CRE_CEP ($id$_CEPID, {0, $id$_send_buf, %s, $id$_recv_buf, %s, NULL } );\n",
+				   send_buf_size, recv_buf_size );
+	};
+};

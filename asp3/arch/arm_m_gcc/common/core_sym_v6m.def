@@ -1,0 +1,9 @@
+TA_DIRECT
+TMAX_INTNO,TMAX_INTNO
+TBITW_IPRI,TBITW_IPRI
+sizeof_TCB,sizeof(TCB)
+offsetof_TCB_p_tinib,"offsetof(TCB,p_tinib)"
+offsetof_TCB_pc,"offsetof(TCB,tskctxb.pc)"
+offsetof_TCB_sp,"offsetof(TCB,tskctxb.sp)"
+offsetof_TINIB_TSKINICTXB_stk_bottom,"offsetof(TINIB,tskinictxb.stk_bottom)"
+offsetof_TINIB_TSKINICTXB_stk_top,"offsetof(TINIB,tskinictxb.stk_top)"

@@ -104,3 +104,4 @@ tecs/rpc/tecs_rpc.h
 tecs/rpc/tMessageBufferCEP.cdl
 tecs/rpc/tMessageBufferCEP_inline.h
 tecs/rpc/tMessageBufferChannel.cdl
+tecs/rpc/tMessageBuffer_inline.h

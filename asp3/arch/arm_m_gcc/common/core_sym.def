@@ -1,6 +1,6 @@
 TA_DIRECT
 TMAX_INTNO,TMAX_INTNO
-TIPM_LOCK,TIPM_LOCK 
+TIPM_LOCK,TIPM_LOCK
 TBITW_IPRI,TBITW_IPRI
 sizeof_TCB,sizeof(TCB)
 offsetof_TCB_p_tinib,"offsetof(TCB,p_tinib)"

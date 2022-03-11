@@ -257,3 +257,10 @@ non_tecs/target/dummy_gcc/target_serial.c
 non_tecs/target/dummy_gcc/target_serial.cfg
 non_tecs/target/dummy_gcc/target_serial.h
 non_tecs/target/dummy_gcc/target_syssvc.h
+
+non_tecs/arch/arm_m_gcc/lpc5500/chip_serial.c
+non_tecs/arch/arm_m_gcc/lpc5500/chip_serial.cfg
+non_tecs/arch/arm_m_gcc/lpc5500/chip_serial.h
+
+non_tecs/target/lpc55s69evk_gcc/target_serial.cfg
+non_tecs/target/lpc55s69evk_gcc/target_serial.h

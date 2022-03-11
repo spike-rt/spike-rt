@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  @(#) $Id: core_insn.h 1401 2020-04-14 08:49:46Z ertl-komori $
+ *  @(#) $Id: core_insn.h 1500 2021-07-28 12:35:13Z ertl-komori $
  */
 
 
@@ -85,6 +85,17 @@ set_primask(void){
 Inline void
 clear_primask(void){
 	Asm("cpsie i":::"memory");
+}
+
+/*
+ *  PRIMASKのリード
+ */
+Inline uint32_t
+get_primask(void)
+{
+	uint32_t val;
+	Asm("mrs %0, PRIMASK" : "=r"(val) :: "memory");
+	return(val);
 }
 
 /*
@@ -147,34 +158,6 @@ get_ipsr(void)
     Asm("mrs  %0, ipsr" : "=r"(sr));
     return(sr);
 }
-
-/*
- *  スタックポインタ（sp）の現在値の読出し
- */
-Inline uint32_t
-get_sp(void)
-{
-    uint32_t sr;
-    Asm("mov  %0, sp" : "=r"(sr));
-    return(sr);
-}
-
-Inline uint32_t
-get_msp(void)
-{
-    uint32_t sr;
-    Asm("mrs  %0, msp" : "=r"(sr));
-    return(sr);
-}
-
-Inline uint32_t
-get_psp(void)
-{
-    uint32_t sr;
-    Asm("mrs  %0, psp" : "=r"(sr));
-    return(sr);
-}
-
 
 /*
  *  データ同期バリア

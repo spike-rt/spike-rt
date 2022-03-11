@@ -35,5 +35,9 @@
 #define exit_and_dispatch			_kernel_exit_and_dispatch
 #define call_exit_kernel			_kernel_call_exit_kernel
 
+#define iipm_enable_masks			_kernel_iipm_enable_masks
+#define current_iipm_enable_mask	_kernel_current_iipm_enable_mask
+#define iipm_enable_irq_tbl			_kernel_iipm_enable_irq_tbl
+
 
 #endif /* TOPPERS_CORE_RENAME_H */

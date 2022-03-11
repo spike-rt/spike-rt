@@ -25,3 +25,7 @@ start_r
 start_dispatch
 exit_and_dispatch
 call_exit_kernel
+
+iipm_enable_masks
+current_iipm_enable_mask
+iipm_enable_irq_tbl

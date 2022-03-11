@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: cfg.rb 185 2019-12-01 05:01:45Z ertl-hiro $
+#  $Id: cfg.rb 188 2020-06-14 09:52:45Z ertl-hiro $
 #
 
 if $0 == __FILE__
@@ -110,6 +110,9 @@ def parse_error(cfgFile, message)
   if ($noParseError += 1) >= 10
     abort("too many errors emitted, stopping now")
   end
+end
+def parse_error_fatal(cfgFile, message)
+  error_exit(message, "#{cfgFile.getFileName}:#{cfgFile.getLineNo}:")
 end
 
 # システムコンフィギュレーションファイルの構文解析時の警告

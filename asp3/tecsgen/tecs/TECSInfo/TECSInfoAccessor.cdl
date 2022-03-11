@@ -1,0 +1,190 @@
+/*
+ *   Copyright (C) 2008-2017 by TOPPERS Project
+ *
+ *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
+ *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
+ *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
+ *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
+ *      権表示，この利用条件および下記の無保証規定が，そのままの形でソー
+ *      スコード中に含まれていること．
+ *  (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
+ *      用できる形で再配布する場合には，再配布に伴うドキュメント（利用
+ *      者マニュアルなど）に，上記の著作権表示，この利用条件および下記
+ *      の無保証規定を掲載すること．
+ *  (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
+ *      用できない形で再配布する場合には，次のいずれかの条件を満たすこ
+ *      と．
+ *    (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
+ *        作権表示，この利用条件および下記の無保証規定を掲載すること．
+ *    (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
+ *        報告すること．
+ *  (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
+ *      害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
+ *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
+ *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
+ *      免責すること．
+ * 
+ *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
+ *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
+ *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
+ *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
+ *  の責任を負わない．
+ * 
+ *  @(#) $Id: TECSInfo.cdl 2850 2018-04-01 12:38:45Z okuma-top $
+ */
+
+/*
+ * mruby からアクセスできるようなシグニチャにした、アクセス用セルタイプの定義
+ * つまり、シグニチャから Descriptor 型をなくし、名前を指定して動的結合させるセルタイプを用意する
+ */ 
+
+import( <TECSInfo.cdl> );
+
+namespace nTECSInfo {
+    signature sAccessor{
+        // 1st step selector
+        ER   selectNamespaceInfoByName( [in,string]const char_t *namespacePath );
+        ER   selectCelltypeInfoByName(  [in,string]const char_t *celltypePath );
+        ER   selectSignatureInfoByName( [in,string]const char_t *signaturePath );
+        ER   selectRegionInfoByName(    [in,string]const char_t *regionPath );
+        ER   selectCellInfoByName(      [in,string]const char_t *cellPath );
+        ER   getSignatureNameOfCellEntry( [in,string]const char_t *cellEntryPath, [out,string(max_len)]char_t *signatureGlobalName, [in]int_t max_len);
+           // この関数は内部で、セル情報、セルタイプ情報、受け口情報、シグニチャ情報を選択する
+           // MrubyInfoBridgePlugin で使用する目的で設けられた関数
+
+        // namespace
+        ER   getSelectedNamespaceInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int_t *num_namespace, [out]int_t *num_celltype, [out]int_t *num_signature );
+        ER   selectCelltypeInfo( [in]int_t ith );
+        ER   selectSignatureInfo( [in]int_t ith );
+        ER   selectNamespaceInfo( [in]int_t ith );
+
+        // celltype
+        ER   getSelectedCelltypeInfo( [out,string(max_len)]char_t *name, [in]int_t max_len,
+                                      [out]int_t *num_attr, [out]int_t *num_var, [out]int_t *num_call, [out]int_t *num_entry );
+        ER   selectCallInfo( [in]int_t ith );
+        ER   selectEntryInfo( [in]int_t ith );
+        ER   selectAttrInfo( [in]int_t ith );
+        ER   selectVarInfo( [in]int_t ith );
+
+        // attr
+        ER   getSelectedAttrInfo( [out,string(max_len)]char_t *name, [in]int_t max_len );
+        ER   getSizeIsExprOfAttr( [out,string(max_len)]char_t *expr_str, [in]int32_t max_len );
+        ER   selectTypeInfoOfAttr(void);
+
+        // var
+        ER   getSelectedVarInfo( [out,string(max_len)]char_t *name, [in]int_t max_len );
+        ER   getSizeIsExprOfVar( [out,string(max_len)]char_t *expr_str, [in]int32_t max_len );
+        ER   selectTypeInfoOfVar(void);
+
+        // call
+        ER   getSelectedCallInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int_t *array_size );
+        ER   selectSignatureOfCall(void);
+        ER   getSelectedCallSpecifierInfo( [out]bool_t   *b_optional,  [out]bool_t   *b_dynamic,
+                                           [out]bool_t   *b_ref_desc,  [out]bool_t   *b_omit );
+        ER   getSelectedCallInternalInfo(  [out]bool_t   *b_allocator_port, [out]bool_t   *b_require_port );
+        ER   getSelectedCallLocationInfo(  [out]uint32_t *offset,             // offset in CALL_PLACE_*
+                                           [out]int8_t   *place );            // CALL_PLACE_*
+        ER   getSelectedCallOptimizeInfo(  [out]bool_t   *b_VMT_useless,      // VMT (関数テーブル) 不要最適化 (関数直接呼出し)
+                                           [out]bool_t   *b_skelton_useless,  // スケルトン関数不要 (
+                                           [out]bool_t   *b_cell_unique );    // 単一のセル
+
+        // entry
+        ER   getSelectedEntryInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int_t *array_size );
+        ER   selectSignatureOfEntry(void);
+        ER   getSelectedEntryInlineInfo([out]bool_t *b_inline);
+
+        // signature
+        ER   getSelectedSignatureInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int_t *num_function );
+        ER   selectFunctionInfoByIndex( [in]int_t ith );
+
+        // function
+        ER   getSelectedFunctionInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int_t *num_args );
+        ER   selectTypeInfoOfReturn(void);
+
+        // parameter of function
+        ER   getSelectedParamInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int8_t *dir );
+        ER   selectParamInfo( [in]int_t ith );
+        ER   selectTypeInfoOfParam(void);
+
+        // type of function return and parameter, celltype attr and var
+        ER   getSelectedTypeInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int8_t *kind );
+        ER   selectTypeInfoOfType(void);
+
+        // region
+        ER   getSelectedRegionInfo( [out,string(max_len)]char_t *name, [in]int_t max_len, [out]int_t *num_cell, [out]int_t *num_region );
+        ER   selectCellInfo( [in]int_t ith );
+        ER   selectRegionInfo( [in]int_t ith );
+
+        // cell
+        ER   getSelectedCellInfo( [out,string(max_len)]char_t *name, [in]int_t max_len);
+        ER   selectCelltypeInfoOfCell(void); // 選択中セルのセルタイプを選択 (セルタイプの関数を使用できる)
+        ER   getAttrValueInStr([out,string(max_len)]char_t *buf, [in]int_t max_len);  // 事前に、セル、セルタイプ、属性を選択しておくこと．cTypeInfo が変更される
+        ER   getAttrSizeIsValue(void);       // 事前に、セル、セルタイプ、属性を選択しておくこと．cTypeInfo が変更される
+        ER   getVarValueInStr([out,string(max_len)]char_t *buf, [in]int_t max_len);   // 事前に、セル、セルタイプ、変数を選択しておくこと．cTypeInfo が変更される
+        ER   getVarSizeIsValue(void);        // 事前に、セル、セルタイプ、変数を選択しておくこと．cTypeInfo が変更される
+    };
+
+    celltype tTECSInfoAccessor {
+
+        entry sAccessor eSelector;
+
+        call  nTECSInfo::sTECSInfo cTECSInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sNamespaceInfo cNSInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sCelltypeInfo  cCelltypeInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sSignatureInfo cSignatureInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sFunctionInfo  cFunctionInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sParamInfo     cParamInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sCallInfo      cCallInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sEntryInfo     cEntryInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sVarDeclInfo   cAttrInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sVarDeclInfo   cVarInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sVarDeclInfo   cVarDeclInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sTypeInfo      cTypeInfo;
+
+        [dynamic,optional]
+            call  nTECSInfo::sRegionInfo    cRegionInfo;
+        [dynamic,optional]
+            call  nTECSInfo::sCellInfo      cCellInfo;
+
+        attr{
+            int16_t NAME_LEN = 256;
+        };
+        var{
+            [size_is(NAME_LEN)]
+                char_t  *name;
+            [size_is(NAME_LEN)]
+                char_t  *name2;
+            int8_t      *selectedCbp;
+            int8_t      *selectedInibp;
+            Descriptor( sTypeInfo )  TDesc;
+        };
+    };
+
+    [singleton, generate( TECSInfoCompoPlugin,"")]
+        composite tTECSInfoCompo {
+        entry sAccessor            eAccessor;
+        entry sTECSInfo            eTECSInfo;
+        call  nTECSInfo::sTECSInfo cTECSInfo;
+        // entry nTECSInfo::sTECSInfo eTECSInfo;
+        cell nTECSInfo::tTECSInfo TECSInfo {
+            cTECSInfo => composite.cTECSInfo;
+        };
+        cell tTECSInfoAccessor TECSInfoAccessor {
+            cTECSInfo = TECSInfo.eTECSInfo;
+        };
+        composite.eAccessor => TECSInfoAccessor.eSelector;
+        composite.eTECSInfo => TECSInfo.eTECSInfo;
+        // composite.eTECSInfo => TECSInfo.eTECSInfo;
+    };
+};

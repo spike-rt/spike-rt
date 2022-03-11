@@ -62,7 +62,11 @@
 	ATHUMB(_kernel_start)
 	AGLOBAL(_kernel_start)
 ALABEL(_kernel_start)
+#if __TARGET_ARCH_THUMB >= 4
 	cpsid f                 /* 割込みロック状態へ */
+#else
+	cpsid i
+#endif /* __TARGET_ARCH_THUMB >= 3 */
 
 #ifdef INIT_MSP
 	/*
@@ -83,7 +87,12 @@ ALABEL(_kernel_start)
 	 * は，hardware_init_hook という関数を用意する
 	 */
 	ldr  r0, =hardware_init_hook
+#if __TARGET_ARCH_THUMB == 3
+	cmp  r0, #0
+	beq  start_1
+#else
 	cbz  r0, start_1
+#endif /* __TARGET_ARCH_THUMB == 3 */
 	blx  r0
 
 ALABEL(start_1)
@@ -91,14 +100,14 @@ ALABEL(start_1)
 	/*
 	 *  BSSセクション初期化
 	 */
-	mov  r0, #0
+	movs r0, #0
 	ldr  r1, =BSS_START
 	ldr  r2, =BSS_END
 	cmp  r1, r2
 	bhs  start_3
 ALABEL(start_2)
 	str  r0, [r1]
-	add  r1,r1, #4
+	adds r1, #4
 	cmp  r1, r2
 	blo  start_2
 #endif /* OMIT_BSS_INIT */
@@ -119,8 +128,8 @@ ALABEL(start_3)
 ALABEL(start_4)
 	ldr  r0, [r1]
 	str  r0, [r3]
-	add  r1, #4
-	add  r3, #4
+	adds r1, #4
+	adds r3, #4
 	cmp  r1, r2
 	blo  start_4
 #endif /* OMIT_DATA_INIT */
@@ -134,7 +143,12 @@ ALABEL(start_4)
 	 */
 ALABEL(start_5)
 	ldr  r0, =software_init_hook
+#if __TARGET_ARCH_THUMB == 3
+	cmp  r0, #0
+	beq  start_6
+#else
 	cbz  r0, start_6
+#endif /* __TARGET_ARCH_THUMB == 3 */
 	blx  r0
 
 ALABEL(start_6)

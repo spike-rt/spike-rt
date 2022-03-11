@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id: core_kernel_impl.c 1399 2020-04-12 02:28:01Z ertl-komori $
+ *  @(#) $Id: core_kernel_impl.c 1500 2021-07-28 12:35:13Z ertl-komori $
  */
 
 /*
@@ -49,10 +49,25 @@
 #include "task.h"
 
 /*
+ *  TOPPERS標準割込み処理モデル実現のための変数と初期化処理
+ *  ARMv6-MとARMv7,8-Mで異なるためifdefに切り分けている
+ */
+
+#if __TARGET_ARCH_THUMB >= 4
+
+/*
  *  CPUロックフラグ実現のための変数
  */
 volatile bool_t		lock_flag;		/* CPUロックフラグの値を保持する変数 */
 volatile uint32_t	saved_iipm;		/* 割込み優先度マスクを保存する変数 */
+
+#else
+
+uint32_t iipm_enable_masks[(1 << TBITW_IPRI) + 1];
+uint32_t *current_iipm_enable_mask;
+volatile bool_t lock_flag;
+
+#endif /* __TARGET_ARCH_THUMB >= 4 */
 
 /*
  *  ベクタテーブル(kernel_cfg.c)
@@ -74,8 +89,6 @@ static const unsigned int nvic_sys_pri_reg[] = {
 	NVIC_SYS_PRI2,
 	NVIC_SYS_PRI3
 };
-
-void dump_sp(uint32_t *sp);
 
 /*
  *  例外と割込みの割込み優先度をセット
@@ -186,11 +199,15 @@ disable_exc(EXCNO excno)
 void
 core_initialize(void)
 {
+#if __TARGET_ARCH_THUMB >= 4
 	/*
 	 *  CPUロックフラグ実現のための変数の初期化
 	 */
-	lock_flag = false;
-	saved_iipm = IIPM_ENAALL;
+	lock_cpu_dsp();
+#else
+    lock_flag = true;
+    current_iipm_enable_mask = &iipm_enable_masks[IIPM_ENAALL];
+#endif /* __TARGET_ARCH_THUMB >= 4 */
 
 	/*
 	 *  ベクタテーブルを設定
@@ -202,6 +219,7 @@ core_initialize(void)
 	 *  CPUロック状態でも発生するように，BASEPRIレジスタでマスクでき
 	 *  ない'0'とする．
 	 */
+#if __TARGET_ARCH_THUMB >= 4
 	set_exc_int_priority(EXCNO_MPU, 0);
 	set_exc_int_priority(EXCNO_BUS, 0);
 	set_exc_int_priority(EXCNO_USAGE, 0);
@@ -239,6 +257,10 @@ core_initialize(void)
 	for (int i = 0; i < tnum_tsk; ++i) {
 		tcb_table[i].tskctxb.stk_top = tinib_table[i].tskinictxb.stk_top;
 	}
+#else
+	set_exc_int_priority(EXCNO_SVCALL, 0);
+	set_exc_int_priority(EXCNO_PENDSV, INT_NVIC_PRI(-1));
+#endif /* __TARGET_ARCH_THUMB >= 4 */
 }
 
 /*
@@ -267,7 +289,7 @@ void
 config_int(INTNO intno, ATR intatr, PRI intpri)
 {
 	assert(VALID_INTNO_CFGINT(intno));
-	assert(TMIN_INTPRI <= intpri && intpri <= TMAX_INTPRI);
+	assert(-(1 << TBITW_IPRI) <= intpri && intpri <= TMAX_INTPRI);
 
 	/* 
 	 *  一旦割込みを禁止する
@@ -277,14 +299,18 @@ config_int(INTNO intno, ATR intatr, PRI intpri)
 	/*
 	 *  割込み優先度をセット
 	 */
+#if __TARGET_ARCH_THUMB >= 4
 	set_exc_int_priority(intno, INT_IPM(intpri));
+#else
+	set_exc_int_priority(intno, INT_NVIC_PRI(intpri));
+#endif /* __TARGET_ARCH_THUMB >= 4 */
 
 	/*
 	 *  割込み要求マスク解除(必要な場合)
 	 */
 	if ((intatr & TA_ENAINT) != 0U) {
 		(void)enable_int(intno);
-	}    
+	}
 }
 
 /*
@@ -293,8 +319,10 @@ config_int(INTNO intno, ATR intatr, PRI intpri)
 void
 core_int_entry(void)
 {
+#if __TARGET_ARCH_THUMB >= 4
 	/* 割り込み優先度の保存 */
 	const uint32_t basepri = get_basepri();
+#endif /* __TARGET_ARCH_THUMB >= 4 */
 	const uint32_t intnum = get_ipsr();
 
 #ifdef TOPPERS_SUPPORT_OVRHDR
@@ -306,13 +334,10 @@ core_int_entry(void)
 #ifdef LOG_INH_ENTER
 	log_inh_enter(intnum);
 #endif /* LOG_EXC_ENTER */
-  
-  if(intnum != 15 && intnum != 104)
-    syslog(LOG_EMERG, "IRQ No.%d", intnum-16);
- 
+
 	/* 割り込みハンドラの呼び出し */
 	exc_tbl[intnum]();
-  
+
 #ifdef LOG_INH_LEAVE
 	log_inh_leave(intnum);
 #endif /* LOG_INH_LEAVE */
@@ -322,8 +347,12 @@ core_int_entry(void)
 #endif /* TOPPERS_SUPPORT_OVRHDR */
 
 	/* 割り込み優先度を復帰し CPU ロック解除状態へ */
+#if __TARGET_ARCH_THUMB >= 4
 	lock_flag = 0;
 	set_basepri(basepri);
+#else
+	unlock_cpu();
+#endif /* __TARGET_ARCH_THUMB >= 4 */
 }
 
 #ifndef OMIT_DEFAULT_EXC_HANDLER
@@ -334,51 +363,15 @@ void
 default_exc_handler(void *p_excinf)
 {
 	uint32_t basepri = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_BASEPRI);
-	uint32_t lr      = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_LR);
 	uint32_t pc      = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_PC);
 	uint32_t xpsr    = *(((uint32_t*)p_excinf) + P_EXCINF_OFFSET_XPSR);
 	uint32_t excno   = get_ipsr() & IPSR_ISR_NUMBER;
-  uint32_t cfsr    = SCB->CFSR;
 
 	syslog(LOG_EMERG, "\nUnregistered Exception occurs.");
-	syslog(LOG_EMERG, "Excno = %08x LR = %08x PC = %08x XPSR = %08x basepri = %08X, p_excinf = %08X",
-		   excno, lr, pc, xpsr, basepri, p_excinf);
-  
-  syslog(LOG_EMERG, "sysclk = %09d", HAL_RCC_GetSysClockFreq());
-  syslog(LOG_EMERG, "  shift = %09d", AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE)>> POSITION_VAL(RCC_CFGR_HPRE)]);
-  syslog(LOG_EMERG, "  hclk = %09d", HAL_RCC_GetHCLKFreq());
-  syslog(LOG_EMERG, "  pclk1 = %09d", HAL_RCC_GetPCLK1Freq());
-	syslog(LOG_EMERG, "  pclk2 = %09d", HAL_RCC_GetPCLK2Freq());
-	syslog(LOG_EMERG, "CFSR = %08x", SCB->CFSR);
- 
-  if(excno == 5)
-  {
-	  syslog(LOG_EMERG, "Bus Fault!");
-    if(cfsr & SCB_CFSR_IBUSERR_Msk) {
-	    syslog(LOG_EMERG, "  IBUS ERROR; The processor detects the instruction bus error on prefetching an instruction.");
-    }
-    if(cfsr  & SCB_CFSR_BFARVALID_Msk) {
-	    syslog(LOG_EMERG, "  BFAR = %08x", SCB->BFAR);
-    }
-  } 
-  else if(excno == 6)
-  {
-    if(cfsr & SCB_CFSR_INVSTATE_Msk)
-    {
-	    syslog(LOG_EMERG, "\nInvalid state UsageFault; The processor has attempted to execute an instruction that makes illegal use of the EPSR.");
-    }
-  }
+	syslog(LOG_EMERG, "Excno = %08x PC = %08x XPSR = %08x basepri = %08X, p_excinf = %08X",
+		   excno, pc, xpsr, basepri, p_excinf);
 
-
-  syslog(LOG_EMERG, "Dump stack from top");
-  uint32_t msp = get_msp(); 
-  syslog(LOG_EMERG, "msp %08x", msp);
-  dump_sp(msp);
-  syslog(LOG_EMERG, "sp %08x", get_sp());
-  syslog(LOG_EMERG, "psp %08x", get_psp());
-  dump_sp(get_psp());
-
-  target_exit();
+	target_exit();
 }
 #endif /* OMIT_DEFAULT_EXC_HANDLER */
 
@@ -396,16 +389,4 @@ default_int_handler(void)
 
 	target_exit();
 }
-
-void dump_sp(uint32_t *sp)
-{
-  syslog(LOG_EMERG, "sp : %08x", sp);
-  sp = (uint32_t)sp & 0xffffff00;
-  for(int i = 0; i < 0x100/4 ; i++)
-	  syslog(LOG_EMERG, "%08x:  %08x %08x %08x %08x",
-           sp, *(sp++), *(sp++), *(sp++), *(sp++));
-
-}
-
-
 #endif /* OMIT_DEFAULT_INT_HANDLER */
