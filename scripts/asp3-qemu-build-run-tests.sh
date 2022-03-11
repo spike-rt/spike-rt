@@ -1,7 +1,7 @@
 #!/bin/bash -xe
 
 QEMU=${QEMU:-"qemu-system-arm"}
-TARGET=stm32f413xx_gcc
+TARGET=discovery_f413xx_gcc
 
 RUN="
   $QEMU -cpu cortex-m4 -machine legospike \

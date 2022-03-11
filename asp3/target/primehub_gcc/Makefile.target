@@ -27,7 +27,10 @@ KERNEL_TIMER = SYSTICK
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
 CDEFS := $(CDEFS) -DSTM32F413xx
 COPTS := $(COPTS) -mthumb -mtune=cortex-m4 -mcpu=cortex-m4  -msoft-float
+COPTS := $(COPTS) -DUSE_FULL_LL_DRIVER
 LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
+LDFLAGS := $(LDFLAGS) -L$(SRCDIR)/../asp3-app-pybricks/bricks/primehub_asp3 
+LIBS := -lpybricks
 
 #
 # ファイルサイズ削減のためのオプション
@@ -41,11 +44,22 @@ OBJ_LDFLAGS := $(OBJ_LDFLAGS) -Wl,--gc-sections
 KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o
 KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
-                system_stm32f4xx.o stm32f4xx_nucleo.o systemclock_config.o \
-                stm32f4xx_hal.o stm32f4xx_hal_gpio.o stm32f4xx_hal_uart.o \
-                stm32f4xx_hal_rcc.o stm32f4xx_hal_dma.o
+                system_stm32f4xx.o stm32f4xx_nucleo.o systemclock_config.o
 
-KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal_tim.o
+# KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal.o \
+# 								stm32f4xx_hal_adc.o stm32f4xx_hal_adc_ex.o \
+#                 stm32f4xx_hal_cortex.o \
+# 								stm32f4xx_hal_dac.o stm32f4xx_hal_dac_ex.o \
+#                 stm32f4xx_hal_dma.o \
+# 								stm32f4xx_hal_gpio.o \
+#                 stm32f4xx_hal_i2c.o stm32f4xx_hal_fmpi2c.o \
+#                 stm32f4xx_hal_pwr_ex.o \
+#                 stm32f4xx_hal_rcc.o stm32f4xx_hal_rcc_ex.o\
+#                 stm32f4xx_hal_spi.o \
+# 								stm32f4xx_hal_tim.o stm32f4xx_hal_tim_ex.o \
+# 								stm32f4xx_hal_uart.o
+# 								
+# KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal_pcd.o stm32f4xx_hal_pcd_ex.o stm32f4xx_ll_usb.o
 
 #
 #  システムサービスに関する定義
@@ -104,8 +118,8 @@ include $(SRCDIR)/arch/$(PRC)_$(TOOL)/$(CHIP)/Makefile.chip
 MPTOP = $(SRCDIR)/../asp3-app-pybricks/micropython
 PYTHON3 :=  python3
 
-DFU = $(TARGETDIR)/dfu.py
-PYDFU = $(TARGETDIR)/pydfu.py
+DFU = $(TARGETDIR)/tools/dfu.py
+PYDFU = $(TARGETDIR)/tools/pydfu.py
 
 TEXT0_ADDR = 0x8008000
 DFU_VID = 0x0694
