@@ -24,7 +24,12 @@ KERNEL_TIMER = SYSTICK
 #
 #  コンパイルオプション
 #
-INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube -I$(TARGETDIR)/drivers
+INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube -I$(TARGETDIR)/drivers \
+	          -I$(TARGETDIR)/drivers/libpybricks/lib/pbio/include \
+	          -I$(TARGETDIR)/drivers/libpybricks/bricks/primehub_asp3 \
+	          -I$(TARGETDIR)/drivers/libpybricks/lib/pbio/platform/prime_hub_asp3 \
+	          -I$(TARGETDIR)/drivers/libpybricks/lib/libfixmath/libfixmath \
+	          -I$(TARGETDIR)/drivers/libpybricks/lib/lego
 CDEFS := $(CDEFS) -DSTM32F413xx
 COPTS := $(COPTS) -mthumb -mtune=cortex-m4 -mcpu=cortex-m4  -msoft-float
 COPTS := $(COPTS) -DUSE_FULL_LL_DRIVER
