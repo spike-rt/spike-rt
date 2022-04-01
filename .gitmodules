@@ -4,3 +4,6 @@
 [submodule "qemu-primehub"]
 	path = qemu-primehub
 	url = git@github.com:envzhu/qemu-primehub
+[submodule "Unity"]
+	path = external/Unity
+	url = https://github.com/ThrowTheSwitch/Unity.git
