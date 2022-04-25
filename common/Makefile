@@ -192,8 +192,12 @@ else
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o
 APPL_CFLAGS := $(APPL_CFLAGS)
-ifdef APPLDIRS
-	INCLUDES := $(INCLUDES) $(foreach dir,$(APPLDIRS),-I$(dir))
+
+EXTERNAL_DIR = $(SRCDIR)/../external/
+include $(APPLDIRS)/Makefile.inc
+
+ifdef APPL_DIRS
+	INCLUDES := $(INCLUDES) $(foreach dir,$(APPL_DIRS),-I$(dir))
 endif
 
 #
