@@ -7,16 +7,19 @@
 
 static void RunAllTests(void)
 {
-	// RUN_TEST_GROUP(Device);
-	// RUN_TEST_GROUP(ForceSensor);
 	RUN_TEST_GROUP(Led);
 	RUN_TEST_GROUP(Motor);
+	RUN_TEST_GROUP(PUPDevice);
+	RUN_TEST_GROUP(ForceSensor);
+	RUN_TEST_GROUP(UltrasonicSensor);
 }
 
 void TestMainTask(intptr_t exinf)
 {
  // pbsys_processをユーザプログラム実行状態に遷移させる．
  // pbsys_user_program_prepare(NULL);
+ int argc = 2;
+ const char **argv = {"asp3-primehub test", "-v"};
 
-  UnityMain(0, NULL, RunAllTests);
+  UnityMain(argc, argv, RunAllTests);
 }

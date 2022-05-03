@@ -24,18 +24,11 @@ KERNEL_TIMER = SYSTICK
 #
 #  コンパイルオプション
 #
-INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube -I$(TARGETDIR)/drivers \
-	          -I$(TARGETDIR)/drivers/libpybricks/lib/pbio/include \
-	          -I$(TARGETDIR)/drivers/libpybricks/bricks/primehub_asp3 \
-	          -I$(TARGETDIR)/drivers/libpybricks/lib/pbio/platform/prime_hub_asp3 \
-	          -I$(TARGETDIR)/drivers/libpybricks/lib/libfixmath/libfixmath \
-	          -I$(TARGETDIR)/drivers/libpybricks/lib/lego
+INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
 CDEFS := $(CDEFS) -DSTM32F413xx
 COPTS := $(COPTS) -mthumb -mtune=cortex-m4 -mcpu=cortex-m4  -msoft-float
 COPTS := $(COPTS) -DUSE_FULL_LL_DRIVER
 LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
-LDFLAGS := $(LDFLAGS) -L$(TARGETDIR)/drivers/libpybricks/bricks/primehub_asp3 
-LIBS := -lpybricks
 
 #
 # ファイルサイズ削減のためのオプション
@@ -46,11 +39,10 @@ OBJ_LDFLAGS := $(OBJ_LDFLAGS) -Wl,--gc-sections
 #
 #  カーネルに関する定義
 #
-KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube $(TARGETDIR)/drivers
+KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o
 KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
                 system_stm32f4xx.o stm32f4xx_nucleo.o systemclock_config.o \
-								pybricks.o
 
 # KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal.o \
 # 								stm32f4xx_hal_adc.o stm32f4xx_hal_adc_ex.o \
@@ -66,6 +58,12 @@ KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
 # 								stm32f4xx_hal_uart.o
 # 								
 # KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal_pcd.o stm32f4xx_hal_pcd_ex.o stm32f4xx_ll_usb.o
+
+
+#
+#  ドライバ関連のインクルード
+#
+include $(TARGETDIR)/drivers/Makefile
 
 #
 #  システムサービスに関する定義
