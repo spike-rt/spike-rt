@@ -3,7 +3,7 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <cbricks/cb_device.h>
+#include <cbricks/pup_device.h>
 
 TEST_GROUP(PUPDevice);
 
@@ -24,10 +24,10 @@ TEST_TEAR_DOWN(PUPDevice)
 
 TEST(PUPDevice, get_device)
 {
-  pb_device_t *pbdev;
+  pup_device_t *pdev;
 
   dly_tsk(3000000);
 
-  pbdev = pb_device_get_device(PBIO_PORT_ID_B, PBIO_IODEV_TYPE_ID_SPIKE_FORCE_SENSOR);
-  TEST_ASSERT_NOT_NULL(pbdev);
+  pdev = pup_device_get_device(PBIO_PORT_ID_B, PBIO_IODEV_TYPE_ID_SPIKE_FORCE_SENSOR);
+  TEST_ASSERT_NOT_NULL(pdev);
 }
