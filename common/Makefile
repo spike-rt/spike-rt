@@ -194,7 +194,10 @@ APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o
 APPL_CFLAGS := $(APPL_CFLAGS)
 
 EXTERNAL_DIR = $(SRCDIR)/../external/
-include $(APPLDIRS)/Makefile.inc
+
+ifneq ("$(wildcard $(APPLDIRS)/Makefile.inc)","")
+	include $(APPLDIRS)/Makefile.inc
+endif
 
 ifdef APPL_DIRS
 	INCLUDES := $(INCLUDES) $(foreach dir,$(APPL_DIRS),-I$(dir))
@@ -529,6 +532,14 @@ ifdef USE_CXX
 else
 	LINK = $(CC)
 endif
+
+#
+# ビルドディレクトリの作成
+#
+ALL_OBJDIRS = $(sort $(dir $(ALL_OBJS)))
+$(ALL_OBJS): | $(ALL_OBJDIRS)
+$(ALL_OBJDIRS):
+	mkdir -p $@
 
 #
 #  コンパイルルールの定義

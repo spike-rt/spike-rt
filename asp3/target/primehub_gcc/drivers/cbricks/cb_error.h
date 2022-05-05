@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2018-2020 The Pybricks Authors
+// Copyright (c) 2022 Shu Yoshifumi <envzhu@gmail.com>
 
-#ifndef _CBRICKS_CBERROR_H_
-#define _CBRICKS_CBERROR_H_
+#ifndef _CBRICKS_CB_ERROR_H_
+#define _CBRICKS_CB_ERROR_H_
 
 #include <pbio/error.h>
 
 #define cb_assert(error) assert(error == PBIO_SUCCESS)
 
-#endif // _CBRICKS_CBERROR_H_
+#endif // _CBRICKS_CB_ERROR_H_

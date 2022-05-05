@@ -4,10 +4,8 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <cbricks/pup_device.h>
+#include <cbricks/pup/ultrasonicsensor.h>
 #include <pbsys/user_program.h>
-#include <pbsys/light.h>
-#include <pbio/light.h>
 
 TEST_GROUP(UltrasonicSensor);
 

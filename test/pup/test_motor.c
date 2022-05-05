@@ -29,24 +29,27 @@ TEST(Motor, Run)
   pbio_error_t err;
   pbio_servo_t *servo;
   
-  dly_tsk(5000000);
+  dly_tsk(3000000);
 
   // Get pointer to servo
   TEST_ASSERT_EQUAL(pbio_motor_process_get_servo(PBIO_PORT_ID_A, &servo), PBIO_SUCCESS);
   
   // Set up servo
-  err = pbio_servo_setup(servo, PBIO_DIRECTION_CLOCKWISE, F16C(1, 0), false);
-  if(err == PBIO_ERROR_AGAIN)
+  for(int i = 0; i < 10; i++)
   {
-    dly_tsk(1000000);
     err = pbio_servo_setup(servo, PBIO_DIRECTION_CLOCKWISE, F16C(1, 0), false);
+    if(err != PBIO_ERROR_AGAIN)
+      break;
+    
+    // Wait 1s and try one more
+    dly_tsk(1000000);
   }
+  TEST_ASSERT_NOT_EQUAL(err, PBIO_ERROR_NO_DEV);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
   
   TEST_ASSERT_EQUAL(pbio_servo_run(servo, 500), PBIO_SUCCESS);
-	syslog(LOG_EMERG, "pbio_servo_run() end");
   
   // Wait 1 sec
   dly_tsk(1000000);
-	syslog(LOG_EMERG, "dly end");
+  TEST_ASSERT_EQUAL(pbio_servo_stop(servo, PBIO_DCMOTOR_COAST), PBIO_SUCCESS);
 }

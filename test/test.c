@@ -7,10 +7,21 @@
 
 static void RunAllTests(void)
 {
-	RUN_TEST_GROUP(Led);
-	RUN_TEST_GROUP(Motor);
+  // Tests for Hub Device
+	// RUN_TEST_GROUP(Light);
+	RUN_TEST_GROUP(Display);
+	// RUN_TEST_GROUP(Button);
+	// RUN_TEST_GROUP(IMU);
+	// RUN_TEST_GROUP(Speaker);
+	// RUN_TEST_GROUP(System);
+	// RUN_TEST_GROUP(Battery);
+	// RUN_TEST_GROUP(Charger);
+
+  // Tests for Powerd Up Device
 	RUN_TEST_GROUP(PUPDevice);
-	RUN_TEST_GROUP(ForceSensor);
+	RUN_TEST_GROUP(Motor);
+	// RUN_TEST_GROUP(ColorSensor);
+	// RUN_TEST_GROUP(ForceSensor);
 	RUN_TEST_GROUP(UltrasonicSensor);
 }
 
