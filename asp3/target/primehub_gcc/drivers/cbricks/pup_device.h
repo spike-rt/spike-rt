@@ -1,5 +1,11 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2018-2021 The Pybricks Authors
+/*
+ * Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/util_pb/pb_device.h
+ *
+ * Copyright (c) 2018-2021 The Pybricks Authors
+ * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Shu Yoshifumi <envzhu@gmail.com>.
+ */
+
 
 #ifndef _PBDEVICE_H_
 #define _PBDEVICE_H_
@@ -13,20 +19,9 @@
 typedef struct _pup_device_t pup_device_t;
 
 pup_device_t *pup_device_get_device(pbio_port_id_t port, pbio_iodev_type_id_t valid_id);
+pbio_error_t pup_device_get_values(pup_device_t *pdev, uint8_t mode, int32_t *values);
+pbio_error_t pup_device_set_values(pup_device_t *pdev, uint8_t mode, int32_t *values, uint8_t num_values);
 
-void pup_device_get_values(pup_device_t *pbdev, uint8_t mode, int32_t *values);
-
-void pup_device_set_values(pup_device_t *pbdev, uint8_t mode, int32_t *values, uint8_t num_values);
-
-void pup_device_set_power_supply(pup_device_t *pbdev, int32_t duty);
-
-pbio_iodev_type_id_t pup_device_get_id(pup_device_t *pbdev);
-
-uint8_t pup_device_get_mode(pup_device_t *pbdev);
-
-uint8_t pup_device_get_num_values(pup_device_t *pbdev);
-
-int8_t pup_device_get_mode_id_from_str(pup_device_t *pbdev, const char *mode_str);
 
 // LEGO POWERED UP Color and Distance Sensor
 enum {

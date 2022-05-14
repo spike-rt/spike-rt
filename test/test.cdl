@@ -65,7 +65,7 @@ cell tSysLog SysLog {
 	logBufferSize = 32;					/* ログバッファのサイズ */
 	initLogMask = C_EXP("LOG_UPTO(LOG_NOTICE)");
 										/* ログバッファに記録すべき重要度 */
-	initLowMask = C_EXP("LOG_UPTO(LOG_EMERG)");
+	initLowMask = C_EXP("LOG_UPTO(LOG_WARNING)");
 									   	/* 低レベル出力すべき重要度 */
 	/* 低レベル出力との結合 */
 	cPutLog = PutLogTarget.ePutLog;

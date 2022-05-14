@@ -1,9 +1,9 @@
 #include <kernel.h>
-#include <t_syslog.h>
 
 #include <unity.h>
 #include <unity_fixture.h>
 
+#include <test_config.h>
 #include <cbricks/pup/ultrasonicsensor.h>
 #include <pbsys/user_program.h>
 
@@ -30,7 +30,7 @@ TEST(UltrasonicSensor, get_device)
 {
   pup_device_t *eyes;
 
-  eyes = UltrasonicSensor_init(PBIO_PORT_ID_C);
+  eyes = pup_ultrasonic_sensor_get_device(PBIO_PORT_ID_TEST_ULTRASONIC_SENSOR);
   TEST_ASSERT_NOT_NULL(eyes);
 }
 
@@ -39,11 +39,12 @@ TEST(UltrasonicSensor, distance)
   pup_device_t *eyes;
   int distance;
 
-  eyes = UltrasonicSensor_init(PBIO_PORT_ID_C);
+  eyes = pup_ultrasonic_sensor_get_device(PBIO_PORT_ID_TEST_ULTRASONIC_SENSOR);
   TEST_ASSERT_NOT_NULL(eyes);
   
-  distance = UltrasonicSensor_distance(eyes);
+  distance = pup_ultrasonic_sensor_distance(eyes);
   TEST_PRINTF("Distance : %d mm\n", distance);
+  TEST_ASSERT_GREATER_THAN(0, distance);
 }
 
 TEST(UltrasonicSensor, presence)
@@ -51,10 +52,10 @@ TEST(UltrasonicSensor, presence)
   pup_device_t *eyes;
   int presence;
 
-  eyes = UltrasonicSensor_init(PBIO_PORT_ID_C);
+  eyes = pup_ultrasonic_sensor_get_device(PBIO_PORT_ID_TEST_ULTRASONIC_SENSOR);
   TEST_ASSERT_NOT_NULL(eyes);
   
-  presence = UltrasonicSensor_presence(eyes);
+  presence = pup_ultrasonic_sensor_presence(eyes);
   TEST_PRINTF("Presence : %d \n", presence);
   // TEST_ASSERT_TRUE(presence);
 }
@@ -62,13 +63,17 @@ TEST(UltrasonicSensor, presence)
 TEST(UltrasonicSensor, light)
 {
   pup_device_t *eyes;
+  pbio_error_t err;
 
-  eyes = UltrasonicSensor_init(PBIO_PORT_ID_C);
+  eyes = pup_ultrasonic_sensor_get_device(PBIO_PORT_ID_TEST_ULTRASONIC_SENSOR);
   TEST_ASSERT_NOT_NULL(eyes);
 
-  UltrasonicSensor_light_on(eyes);
-  // Wait 1 sec
+  err = pup_ultrasonic_sensor_light_on(eyes);
+  TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
+
+  // Wait 1 sec for visual confirmation.
   dly_tsk(1000000);
 
-  UltrasonicSensor_light_off(eyes);
+  err = pup_ultrasonic_sensor_light_off(eyes);
+  TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
 }

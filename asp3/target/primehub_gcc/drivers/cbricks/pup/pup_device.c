@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 /*
+ * Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/util_pb/pb_device_stm32.c
+ *
  * Copyright (c) 2018-2021 The Pybricks Authors
- * Copyright (c) 2022 Shu Yoshifumi <envzhu@gmail.com>
- * This source file is based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/util_pb/pup_device_stm32.c
+ * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Shu Yoshifumi <envzhu@gmail.com>.
  */
 
 #include <kernel.h>
@@ -21,7 +22,7 @@ struct _pup_device_t {
     pbio_iodev_t iodev;
 };
 
-static void wait(pbio_error_t (*end)(pbio_iodev_t *), void (*cancel)(pbio_iodev_t *), pbio_iodev_t *iodev) {
+static pbio_error_t wait(pbio_error_t (*end)(pbio_iodev_t *), void (*cancel)(pbio_iodev_t *), pbio_iodev_t *iodev) {
     pbio_error_t err;
 
     while ((err = end(iodev)) == PBIO_ERROR_AGAIN) {
@@ -36,7 +37,7 @@ static void wait(pbio_error_t (*end)(pbio_iodev_t *), void (*cancel)(pbio_iodev_
         }
     }
 
-    cb_assert(err);
+    return err;
 }
 
 
@@ -55,7 +56,7 @@ static uint32_t get_mode_switch_delay(pbio_iodev_type_id_t id, uint8_t mode) {
     }
 }
 
-static void set_mode(pbio_iodev_t *iodev, uint8_t new_mode) {
+static pbio_error_t set_mode(pbio_iodev_t *iodev, uint8_t new_mode) {
     pbio_error_t err;
 
     if (iodev->mode == new_mode) {
@@ -66,7 +67,7 @@ static void set_mode(pbio_iodev_t *iodev, uint8_t new_mode) {
         // dly_tsk(1000000);
         wup_tsk(PYBRICKS_TASK); // TODO: There has to be a better way 
     }
-    cb_assert(err);
+    check_pbio_error(err);
 
     wait(pbio_iodev_set_mode_end, pbio_iodev_set_mode_cancel, iodev);
 
@@ -75,10 +76,11 @@ static void set_mode(pbio_iodev_t *iodev, uint8_t new_mode) {
     if (delay > 0) {
         dly_tsk(delay*1000);
     }
+
+    return PBIO_SUCCESS;
 }
 
 pup_device_t *pup_device_get_device(pbio_port_id_t port, pbio_iodev_type_id_t valid_id) {
-
     // Get the iodevice
     pbio_iodev_t *iodev;
     pbio_error_t err;
@@ -87,33 +89,32 @@ pup_device_t *pup_device_get_device(pbio_port_id_t port, pbio_iodev_type_id_t va
     while ((err = pbdrv_ioport_get_iodev(port, &iodev)) == PBIO_ERROR_AGAIN) {
         dly_tsk(50000);
     }
-    cb_assert(err);
+    check_pbio_error_r(err, NULL);
 
     // Verify the ID or always allow generic LUMP device
     if (iodev->info->type_id != valid_id && valid_id != PBIO_IODEV_TYPE_ID_LUMP_UART) {
-        cb_assert(PBIO_ERROR_NO_DEV);
+        check_pbio_error_r(PBIO_ERROR_NO_DEV, NULL);
     }
 
-    // Return pointer to device
     iodev->port = port;
     return (pup_device_t *)iodev;
 }
 
-void pup_device_get_values(pup_device_t *pbdev, uint8_t mode, int32_t *values) {
+pbio_error_t pup_device_get_values(pup_device_t *pdev, uint8_t mode, int32_t *values) {
 
-    pbio_iodev_t *iodev = &pbdev->iodev;
+    pbio_iodev_t *iodev = &pdev->iodev;
 
     uint8_t *data;
     uint8_t len;
     pbio_iodev_data_type_t type;
 
-    set_mode(iodev, mode);
+    check_pbio_error(set_mode(iodev, mode));
 
-    cb_assert(pbio_iodev_get_data(iodev, &data));
-    cb_assert(pbio_iodev_get_data_format(iodev, iodev->mode, &len, &type));
+    check_pbio_error(pbio_iodev_get_data(iodev, &data));
+    check_pbio_error(pbio_iodev_get_data_format(iodev, iodev->mode, &len, &type));
 
     if (len == 0) {
-        cb_assert(PBIO_ERROR_IO);
+        return PBIO_ERROR_IO;
     }
 
     for (uint8_t i = 0; i < len; i++) {
@@ -133,25 +134,27 @@ void pup_device_get_values(pup_device_t *pbdev, uint8_t mode, int32_t *values) {
                 break;
             #endif
             default:
-                cb_assert(PBIO_ERROR_IO);
+                return PBIO_ERROR_IO;
         }
     }
+    return PBIO_SUCCESS;
 }
 
-void pup_device_set_values(pup_device_t *pbdev, uint8_t mode, int32_t *values, uint8_t num_values) {
+pbio_error_t pup_device_set_values(pup_device_t *pdev, uint8_t mode, int32_t *values, uint8_t num_values) {
 
-    pbio_iodev_t *iodev = &pbdev->iodev;
+    pbio_iodev_t *iodev = &pdev->iodev;
 
     uint8_t data[PBIO_IODEV_MAX_DATA_SIZE];
     uint8_t len;
     pbio_iodev_data_type_t type;
+    pbio_error_t err;
 
-    set_mode(iodev, mode);
+    check_pbio_error(set_mode(iodev, mode));
 
-    cb_assert(pbio_iodev_get_data_format(iodev, iodev->mode, &len, &type));
+    check_pbio_error(pbio_iodev_get_data_format(iodev, iodev->mode, &len, &type));
 
     if (len != num_values) {
-        cb_assert(PBIO_ERROR_INVALID_ARG);
+        return PBIO_ERROR_INVALID_ARG;
     }
 
     for (uint8_t i = 0; i < len; i++) {
@@ -171,15 +174,16 @@ void pup_device_set_values(pup_device_t *pbdev, uint8_t mode, int32_t *values, u
                 break;
             #endif
             default:
-                cb_assert(PBIO_ERROR_IO);
+                return PBIO_ERROR_IO;
         }
     }
-    pbio_error_t err;
+
     while ((err = pbio_iodev_set_data_begin(iodev, iodev->mode, data)) == PBIO_ERROR_AGAIN) {
         // dly_tsk(1000000);
         wup_tsk(PYBRICKS_TASK); // TODO: There has to be a better way 
     }
-    cb_assert(err);
+    check_pbio_error(err);
+
     wait(pbio_iodev_set_data_end, pbio_iodev_set_data_cancel, iodev);
 
     // Give some time for the set values to take effect
@@ -187,15 +191,6 @@ void pup_device_set_values(pup_device_t *pbdev, uint8_t mode, int32_t *values, u
     if (delay > 0) {
         dly_tsk(delay*100);
     }
-}
 
-void pup_device_set_power_supply(pup_device_t *pbdev, int32_t duty) {
-    // Bind user input to percentage
-    if (duty < 0) {
-        duty = 0;
-    } else if (duty > 100) {
-        duty = 100;
-    }
-    // Apply duty cycle in reverse to activate power
-    cb_assert(pbdrv_motor_set_duty_cycle(pbdev->iodev.port, -100 * duty));
+    return PBIO_SUCCESS;
 }

@@ -6,6 +6,11 @@
 
 #include <pbio/error.h>
 
-#define cb_assert(error) assert(error == PBIO_SUCCESS)
+#define check_pbio_error_r(err, retval) \
+  if (err != PBIO_SUCCESS) { \
+    return retval; \
+  }
+
+#define check_pbio_error(err) check_pbio_error_r(err, err)
 
 #endif // _CBRICKS_CB_ERROR_H_
