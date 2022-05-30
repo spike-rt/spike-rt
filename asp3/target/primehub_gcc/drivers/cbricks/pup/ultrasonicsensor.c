@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2022 Shu Yoshifumi <envzhu@gmail.com>
+/*
+ * API for ultrasonic sensors
+ *
+ * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
 
 #include <t_syslog.h>
 #include <cbricks/cb_error.h>
@@ -18,7 +23,7 @@ int32_t pup_ultrasonic_sensor_distance(pup_device_t *pdev) {
   err = pup_device_get_values(pdev, PBIO_IODEV_MODE_PUP_ULTRASONIC_SENSOR__DISTL, &distance);
   if (err != PBIO_SUCCESS) {
     syslog(LOG_ERROR, "pup_ultrasonic_sensor_distance() failed.");
-    distance = -1;
+    distance = -err;
   }
   // return (distance < 0 || distance >= 2000) ? 2000 : distance;
   return distance;

@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 /*
+ * Common codes for controlling PUP devices.
  * Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/util_pb/pb_device.h
  *
- * Copyright (c) 2018-2021 The Pybricks Authors
- * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Shu Yoshifumi <envzhu@gmail.com>.
+ * Original codes Copyright (c) 2018-2021 The Pybricks Authors
+ * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                                                          Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 
-#ifndef _PBDEVICE_H_
-#define _PBDEVICE_H_
+#ifndef __PUP_DEVICE_H__
+#define __PUP_DEVICE_H__
 
 #include <stdint.h>
 
