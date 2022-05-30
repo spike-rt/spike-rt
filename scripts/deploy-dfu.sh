@@ -1,9 +1,9 @@
 #!/bin/bash -xe
-TOOL_DIR=$(pwd)/tools
+TOOL_DIR=$( cd "$( dirname "$0" )" && pwd -P )/../tools
 
 PYTHON3=${PYTHON3:-"$TOOL_DIR/python/bin/python3"}
 
-MPTOP=$TOOL_DIR/../asp3-app-pybricks/micropython
+MPTOP=$TOOL_DIR/../external/libpybricks/micropython
 DFU=$MPTOP/tools/dfu.py
 PYDFU=$MPTOP/tools/pydfu.py
 
