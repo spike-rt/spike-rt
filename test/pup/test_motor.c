@@ -1,3 +1,12 @@
+// SPDX-License-Identifier: MIT
+/*
+ * Tests for servo motors.
+ *
+ * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
+
+
 #include <kernel.h>
 #include <t_syslog.h>
 
@@ -16,11 +25,13 @@ TEST_GROUP_RUNNER(Motor) {
 
 TEST_SETUP(Motor)
 {
-  // pbsys_user_program_prepare(NULL); // pbsys_processをユーザプログラム実行状態に遷移させる．
+  // Prepare the pybricks runtime for running a user program.
+  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(Motor)
 {
+  // Perform cleanup/reset after running a user program.
   // pbsys_user_program_unprepare();
 }
 

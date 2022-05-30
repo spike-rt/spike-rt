@@ -1,14 +1,18 @@
-#ifndef UNITY_CONFIG_H
-#define UNITY_CONFIG_H
-
+// SPDX-License-Identifier: MIT
 /*
- * Configuration for Unity.
+ * Configurations for Unity, a test framework.
  * For more information, please see 
  *  - http://www.throwtheswitch.org/build/cross
  *  - https://github.com/ThrowTheSwitch/Unity/blob/master/docs/UnityConfigurationGuide.md
+ *
+ * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                    Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
-#include "unity.h"
+#ifndef UNITY_CONFIG_H
+#define UNITY_CONFIG_H
+
+#include <unity.h>
 
 #define UNITY_INT_WIDTH      32
 #define UNITY_POINTER_WIDTH  32
@@ -22,8 +26,12 @@
 
 #define UNITY_FIXTURE_NO_EXTRAS
 
-void low_putchar(char c);
-#define UNITY_OUTPUT_CHAR(c)  low_putchar(c)
+#include <stdbool.h>
+#include <stdint.h>
+bool pbsys_usb_stdout_put_char(uint8_t c);
+#define UNITY_OUTPUT_CHAR(c)  pbsys_usb_stdout_put_char(c)
+#define UNITY_PRINT_EOL() \
+    do { UNITY_OUTPUT_CHAR('\r'); UNITY_OUTPUT_CHAR('\n'); } while (0)
 #define UNITY_OUTPUT_COLOR
 
 #endif

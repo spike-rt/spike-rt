@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: MIT
+/*
+ * Tests for ultrasonic sensors.
+ *
+ * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
+
 #include <kernel.h>
 
 #include <unity_fixture.h>
@@ -9,7 +17,7 @@ static void RunAllTests(void)
 {
   // Tests for Hub Device
 	// RUN_TEST_GROUP(Light);
-	RUN_TEST_GROUP(Display);
+	 RUN_TEST_GROUP(Display);
 	// RUN_TEST_GROUP(Button);
 	// RUN_TEST_GROUP(IMU);
 	// RUN_TEST_GROUP(Speaker);
@@ -27,10 +35,16 @@ static void RunAllTests(void)
 
 void TestMainTask(intptr_t exinf)
 {
- // pbsys_processをユーザプログラム実行状態に遷移させる．
- // pbsys_user_program_prepare(NULL);
- int argc = 2;
- const char **argv = {"asp3-primehub test", "-v"};
+  // Prepare the pybricks runtime for running a user program.
+  // pbsys_user_program_prepare(NULL);
+
+  int argc = 2;
+  const char **argv = {"asp3-primehub test", "-v"};
+
+  // Wait 1 sec for console connecting.
+  dly_tsk(1000000);
 
   UnityMain(argc, argv, RunAllTests);
+
+
 }

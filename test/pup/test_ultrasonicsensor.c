@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: MIT
+/*
+ * Tests for ultrasonic sensors.
+ *
+ * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
+
 #include <kernel.h>
 
 #include <unity.h>
@@ -18,11 +26,13 @@ TEST_GROUP_RUNNER(UltrasonicSensor) {
 
 TEST_SETUP(UltrasonicSensor)
 {
-  // pbsys_user_program_prepare(NULL); // pbsys_processをユーザプログラム実行状態に遷移させる．
+  // Prepare the pybricks runtime for running a user program.
+  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(UltrasonicSensor)
 {
+  // Perform cleanup/reset after running a user program.
   // pbsys_user_program_unprepare();
 }
 
@@ -43,7 +53,7 @@ TEST(UltrasonicSensor, distance)
   TEST_ASSERT_NOT_NULL(eyes);
   
   distance = pup_ultrasonic_sensor_distance(eyes);
-  TEST_PRINTF("Distance : %d mm\n", distance);
+  // TEST_PRINTF("Distance : %d mm\n", distance);
   TEST_ASSERT_GREATER_THAN(0, distance);
 }
 
@@ -56,8 +66,8 @@ TEST(UltrasonicSensor, presence)
   TEST_ASSERT_NOT_NULL(eyes);
   
   presence = pup_ultrasonic_sensor_presence(eyes);
-  TEST_PRINTF("Presence : %d \n", presence);
-  // TEST_ASSERT_TRUE(presence);
+  // TEST_PRINTF("Presence : %d \n", presence);
+  TEST_ASSERT_FALSE(presence);
 }
 
 TEST(UltrasonicSensor, light)
@@ -71,7 +81,7 @@ TEST(UltrasonicSensor, light)
   err = pup_ultrasonic_sensor_light_on(eyes);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
 
-  // Wait 1 sec for visual confirmation.
+  // Wait 1 sec for visual confirmation the four lights are lit.
   dly_tsk(1000000);
 
   err = pup_ultrasonic_sensor_light_off(eyes);

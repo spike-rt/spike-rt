@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: MIT
+/*
+ * Tests for controlling PUP devices.
+ *
+ * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
+
 #include <kernel.h>
 
 #include <unity.h>
@@ -15,13 +23,13 @@ TEST_GROUP_RUNNER(PUPDevice) {
 
 TEST_SETUP(PUPDevice)
 {
-  // pbsys_user_program_prepare(NULL); // pbsys_processをユーザプログラム実行状態に遷移させる．
-
-  dly_tsk(3000000);
+  // Prepare the pybricks runtime for running a user program.
+  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(PUPDevice)
 {
+  // Perform cleanup/reset after running a user program.
   // pbsys_user_program_unprepare();
 }
 
