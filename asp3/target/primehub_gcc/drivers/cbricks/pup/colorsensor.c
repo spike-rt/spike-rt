@@ -10,77 +10,15 @@
 #include <cbricks/cb_error.h>
 #include <cbricks/pup/colorsensor.h>
 #include <pbio/color.h>
-/*
-const pbio_color_hsv_t pbio_color_hsv_RED_obj = {
-    PBIO_COLOR_HUE_RED, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_BROWN_obj = {
-    PBIO_COLOR_HUE_ORANGE, 100, 50
-};
-
-const pbio_color_hsv_t pbio_color_hsv_ORANGE_obj = {
-    PBIO_COLOR_HUE_ORANGE, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_YELLOW_obj = {
-    PBIO_COLOR_HUE_YELLOW, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_GREEN_obj = {
-    PBIO_COLOR_HUE_GREEN, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_CYAN_obj = {
-   	PBIO_COLOR_HUE_CYAN, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_BLUE_obj = {
-    PBIO_COLOR_HUE_BLUE, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_VIOLET_obj = {
-    PBIO_COLOR_HUE_VIOLET, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_MAGENTA_obj = {
-    PBIO_COLOR_HUE_MAGENTA, 100, 100
-};
-
-const pbio_color_hsv_t pbio_color_hsv_NONE_obj = {
-    0, 0, 0
-};
-
-const pbio_color_hsv_t pbio_color_hsv_BLACK_obj = {
-    0, 0, 10
-};
-
-const pbio_color_hsv_t pbio_color_hsv_GRAY_obj = {
-    0, 0, 50
-};
-
-const pbio_color_hsv_t pbio_color_hsv_WHITE_obj = {
-    0, 0, 100
-};
-*/
 
 pbio_color_hsv_t pup_color_map_default[] = {
 	{ PBIO_COLOR_HUE_RED, 100, 100 },
   { PBIO_COLOR_HUE_YELLOW, 100, 100	},
   { PBIO_COLOR_HUE_GREEN, 100, 100 },
   {	PBIO_COLOR_HUE_BLUE, 100, 100	},
-  {	0, 0, 100	},
-  {	0, 0, 0	},
+  {	0, 0, 100	},//White
+  {	0, 0, 0	},//None
 };
-/*
-	pbio_color_hsv_RED_obj,
-	pbio_color_hsv_YELLOW_obj,
-	pbio_color_hsv_GREEN_obj,
-	pbio_color_hsv_BLUE_obj,
-	pbio_color_hsv_WHITE_obj,
-	pbio_color_hsv_NONE_obj
-};
-*/
 typedef struct {
 	int32_t size;
 	pbio_color_hsv_t *colors;
@@ -90,7 +28,7 @@ pup_color_map_t color_map;
 pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port) {
 	// init color_map
 	// dafault detectable color are {RED, YELLOW, GREEN, BLUE, WHITE, NONE}
-	color_map.size = 6;
+	color_map.size = sizeof(pup_color_map_default) / sizeof(pbio_color_hsv_t);
 	color_map.colors = pup_color_map_default;
 
   // Get iodevices
