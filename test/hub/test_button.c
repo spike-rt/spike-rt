@@ -16,7 +16,7 @@
 TEST_GROUP(Button);
 
 TEST_GROUP_RUNNER(Button) {
-  RUN_TEST_CASE(Button, putc);
+  RUN_TEST_CASE(Button, button_is_pressed);
 }
 
 TEST_SETUP(Button)
@@ -31,7 +31,7 @@ TEST_TEAR_DOWN(Button)
   // pbsys_user_program_unprepare();
 }
 
-TEST(Button, putc)
+TEST(Button, button_is_pressed)
 {
 	pbio_button_flags_t pressed;
   TEST_ASSERT_EQUAL(pbio_button_is_pressed(&pressed), PBIO_SUCCESS);
