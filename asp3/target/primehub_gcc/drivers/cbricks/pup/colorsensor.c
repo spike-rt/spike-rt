@@ -10,6 +10,7 @@
 #include <cbricks/cb_error.h>
 #include <cbricks/pup/colorsensor.h>
 #include <pbio/color.h>
+#define PUP_COLOR_MAP_SIZE 30
 
 pbio_color_hsv_t pup_color_map_default[] = {
 	{ PBIO_COLOR_HUE_RED, 100, 100 },
@@ -21,7 +22,7 @@ pbio_color_hsv_t pup_color_map_default[] = {
 };
 typedef struct {
 	int32_t size;
-	pbio_color_hsv_t *colors;
+	pbio_color_hsv_t colors[PUP_COLOR_MAP_SIZE];
 } pup_color_map_t;
 pup_color_map_t color_map;
 
@@ -29,7 +30,9 @@ pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port) {
 	// init color_map
 	// dafault detectable color are {RED, YELLOW, GREEN, BLUE, WHITE, NONE}
 	color_map.size = sizeof(pup_color_map_default) / sizeof(pbio_color_hsv_t);
-	color_map.colors = pup_color_map_default;
+	for(size_t i = 0; i < color_map.size; i++){
+		color_map.colors[i] = pup_color_map_default[i];
+	}
 
   // Get iodevices
   return pup_device_get_device(port, PBIO_IODEV_TYPE_ID_SPIKE_COLOR_SENSOR);
@@ -236,4 +239,17 @@ pbio_error_t pup_color_sensor_light_on(pup_device_t *pdev) {
 
 pbio_error_t pup_color_sensor_light_off(pup_device_t *pdev) {
   return pup_color_sensor_light_set(pdev, 0, 0, 0);
+}
+
+pbio_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pbio_color_hsv_t *colors){
+	if(size > PUP_COLOR_MAP_SIZE || size < 1){
+		return color_map.colors;
+	}
+
+	color_map.size = size;
+	for(size_t i = 0; i < size; i++){
+		color_map.colors[i] = colors[i];
+	}
+
+	return NULL;
 }
