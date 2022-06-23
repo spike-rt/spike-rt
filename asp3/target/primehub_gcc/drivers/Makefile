@@ -5,7 +5,7 @@ INCLUDES += -I$(TARGETDIR)/drivers \
 	          -I$(LIBPYBRICKS_DIR)/bricks/primehub_asp3 \
 	          -I$(LIBPYBRICKS_DIR)/lib/pbio/platform/prime_hub_asp3 \
 	          -I$(LIBPYBRICKS_DIR)/lib/libfixmath/libfixmath \
-	          -I$(LIBPYBRICKS_DIR)/lib/lego \
+	          -I$(LIBPYBRICKS_DIR)/lib/lego
 
 LDFLAGS += -L$(LIBPYBRICKS_DIR)/bricks/primehub_asp3 
 LIBS = -lpybricks

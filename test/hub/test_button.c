@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Tests for the internal LED matrix display.
+ * Tests for the internal buttons.
  *
  * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
  *                    Graduate School of Information Science, Nagoya Univ., JAPAN

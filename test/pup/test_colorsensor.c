@@ -55,16 +55,12 @@ TEST(ColorSensor, hsv)
   TEST_ASSERT_NOT_NULL(sensor);
   
   hsv = pup_color_sensor_hsv(sensor, true);
-  TEST_PRINTF("hsv reflected : h : %u  s : %u v : %u\n", hsv.h, hsv.s, hsv.v);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.h);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.s);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.v);
-	dly_tsk(100000);
+  //TEST_PRINTF("hsv reflected : h : %u  s : %u v : %u\n", hsv.h, hsv.s, hsv.v);
+	TEST_ASSERT_FALSE(hsv.h == 0 && hsv.s == 0 && hsv.v == 0);
+
   hsv = pup_color_sensor_hsv(sensor, false);
-  TEST_PRINTF("hsv ambient : h : %u  s : %u v : %u\n", hsv.h, hsv.s, hsv.v);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.h);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.s);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.v);
+  //TEST_PRINTF("hsv ambient : h : %u  s : %u v : %u\n", hsv.h, hsv.s, hsv.v);
+	TEST_ASSERT_FALSE(hsv.h == 0 && hsv.s == 0 && hsv.v == 0);
 }
 
 TEST(ColorSensor, color)
@@ -74,18 +70,16 @@ TEST(ColorSensor, color)
 
   sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
   TEST_ASSERT_NOT_NULL(sensor);
-  
+
   hsv = pup_color_sensor_color(sensor, true);
   TEST_PRINTF("color reflected : h : %u  s : %u v : %u\n", hsv.h, hsv.s, hsv.v);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.h);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.s);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.v);
-	dly_tsk(100000);
+	//Since hsv = {0, 0, 0} means it detects NONE, 
+	//this may cause error, even if pup_color_sensor_color() success.
+	TEST_ASSERT_FALSE(hsv.h == 0 && hsv.s == 0 && hsv.v == 0);
+
   hsv = pup_color_sensor_color(sensor, false);
   TEST_PRINTF("color ambient : h : %u  s : %u v : %u\n", hsv.h, hsv.s, hsv.v);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.h);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.s);
-  TEST_ASSERT_NOT_EQUAL(0, hsv.v);
+	TEST_ASSERT_FALSE(hsv.h == 0 && hsv.s == 0 && hsv.v == 0);
 }
 
 
@@ -93,28 +87,26 @@ TEST(ColorSensor, color)
 TEST(ColorSensor, reflection)
 {
   pup_device_t *sensor;
-	int reflection;
+	int32_t reflection;
 
   sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
   TEST_ASSERT_NOT_NULL(sensor);
   
-	dly_tsk(100000);
   reflection = pup_color_sensor_reflection(sensor);
-  TEST_PRINTF("reflection : %d \n", reflection);
+  //TEST_PRINTF("reflection : %d \n", reflection);
   TEST_ASSERT_GREATER_THAN(0, reflection);
 }
 
 TEST(ColorSensor, ambient)
 {
   pup_device_t *sensor;
-	int ambient;
+	int32_t ambient;
 
   sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
   TEST_ASSERT_NOT_NULL(sensor);
   
-	dly_tsk(100000);
   ambient = pup_color_sensor_ambient(sensor);
-  TEST_PRINTF("ambient : %d \n", ambient);
+  //TEST_PRINTF("ambient : %d \n", ambient);
 	TEST_ASSERT_GREATER_THAN(0, ambient);
 }
 
@@ -127,12 +119,12 @@ TEST(ColorSensor, light)
   sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
   TEST_ASSERT_NOT_NULL(sensor);
 
-  err = pup_color_sensor_light_off(sensor);
+  err = pup_color_sensor_light_on(sensor);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
 
-  // Wait 1 sec for visual confirmation the four lights are lit.
-  dly_tsk(5000000);
+  // Wait 1 sec for visual confirmation the three lights are lit.
+  dly_tsk(1000000);
 
-  err = pup_color_sensor_light_on(sensor);
+  err = pup_color_sensor_light_off(sensor);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
 }
