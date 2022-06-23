@@ -2,8 +2,11 @@
 /*
  * API for color sensors
  *
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ *  Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/pupdevices/pb_type_pupdevices_colorsensor.c
+ *  Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/util_pb/pb_color_map.c
+ * 
+ * Copyright (c) 2018-2020 The Pybricks Authors
+ * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Kajita Shun <kajita.shun.dev@gmail.com>.
  */
 
 #include <t_syslog.h>
