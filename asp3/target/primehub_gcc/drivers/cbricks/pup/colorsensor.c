@@ -4,18 +4,19 @@
  *
  *  Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/pupdevices/pb_type_pupdevices_colorsensor.c
  *  Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/util_pb/pb_color_map.c
- * 
+ *
  * Copyright (c) 2018-2020 The Pybricks Authors
- * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Kajita Shun <kajita.shun.dev@gmail.com>.
+ * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                    Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #include <t_syslog.h>
 #include <cbricks/cb_error.h>
 #include <cbricks/pup/colorsensor.h>
 #include <pbio/color.h>
-#define PUP_COLOR_MAP_SIZE 30
+#define CB_COLOR_MAP_SIZE 30
 
-pbio_color_hsv_t pup_color_map_default[] = {
+pbio_color_hsv_t cb_color_map_default[] = {
 	{ PBIO_COLOR_HUE_RED, 100, 100 },
   { PBIO_COLOR_HUE_YELLOW, 100, 100	},
   { PBIO_COLOR_HUE_GREEN, 100, 100 },
@@ -25,23 +26,23 @@ pbio_color_hsv_t pup_color_map_default[] = {
 };
 typedef struct {
 	int32_t size;
-	pbio_color_hsv_t colors[PUP_COLOR_MAP_SIZE];
-} pup_color_map_t;
-pup_color_map_t color_map;
+	pbio_color_hsv_t colors[CB_COLOR_MAP_SIZE];
+} cb_color_map_t;
+cb_color_map_t color_map;
 
 pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port) {
 	// init color_map
 	// dafault detectable color are {RED, YELLOW, GREEN, BLUE, WHITE, NONE}
-	color_map.size = sizeof(pup_color_map_default) / sizeof(pbio_color_hsv_t);
+	color_map.size = sizeof(cb_color_map_default) / sizeof(pbio_color_hsv_t);
 	for(size_t i = 0; i < color_map.size; i++){
-		color_map.colors[i] = pup_color_map_default[i];
+		color_map.colors[i] = cb_color_map_default[i];
 	}
 
   // Get iodevices
   return pup_device_get_device(port, PBIO_IODEV_TYPE_ID_SPIKE_COLOR_SENSOR);
 }
 
-void pup_color_map_rgb_to_hsv(const pbio_color_rgb_t *rgb, pbio_color_hsv_t *hsv) {
+void cb_color_map_rgb_to_hsv(const pbio_color_rgb_t *rgb, pbio_color_hsv_t *hsv) {
 
     // Standard conversion
     pbio_color_rgb_to_hsv(rgb, hsv);
@@ -68,7 +69,7 @@ void pup_color_map_rgb_to_hsv(const pbio_color_rgb_t *rgb, pbio_color_hsv_t *hsv
     hsv->v = hsv->v * (200 - hsv->v) / 100;
 }
 
-int32_t pup_get_hsv_cost(const pbio_color_hsv_t *x, const pbio_color_hsv_t *c) {
+int32_t cb_get_hsv_cost(const pbio_color_hsv_t *x, const pbio_color_hsv_t *c) {
 
     // Calculate the hue error
     int32_t hue_error;
@@ -96,7 +97,7 @@ int32_t pup_get_hsv_cost(const pbio_color_hsv_t *x, const pbio_color_hsv_t *c) {
 }
 
 // Get a discrete color that matches the given hsv values most closely
-pbio_color_hsv_t pup_color_map_get_color(pup_color_map_t *color_map, pbio_color_hsv_t *hsv) {
+pbio_color_hsv_t cb_color_map_get_color(cb_color_map_t *color_map, pbio_color_hsv_t *hsv) {
 
     // Initialize minimal cost to maximum
     pbio_color_hsv_t match;
@@ -109,7 +110,7 @@ pbio_color_hsv_t pup_color_map_get_color(pup_color_map_t *color_map, pbio_color_
     for (size_t i = 0; i < n; i++) {
 
         // Evaluate the cost function
-        cost_now = pup_get_hsv_cost(hsv, &colors[i]);
+        cost_now = cb_get_hsv_cost(hsv, &colors[i]);
 
         // If cost is less than before, update the minimum and the match
         if (cost_now < cost_min) {
@@ -137,7 +138,7 @@ static pbio_error_t pup_color_sensor__get_hsv_reflected(pup_device_t *pdev, pbio
     };
 
     // Convert to HSV
-    pup_color_map_rgb_to_hsv(&rgb, hsv);
+    cb_color_map_rgb_to_hsv(&rgb, hsv);
 		return err;
 }
 
@@ -181,7 +182,6 @@ pbio_color_hsv_t pup_color_sensor_hsv(pup_device_t *pdev, bool surface) {
 	return hsv;
 }
 
-// Checks for the presence of other color sensors by detecting color sounds.
 pbio_color_hsv_t pup_color_sensor_color(pup_device_t *pdev, bool surface) {
 
   pbio_error_t err;
@@ -199,7 +199,7 @@ pbio_color_hsv_t pup_color_sensor_color(pup_device_t *pdev, bool surface) {
   }
 	//need convert into one of the default color hsv.
 	
-	return pup_color_map_get_color(&color_map, &hsv);
+	return cb_color_map_get_color(&color_map, &hsv);
 }
 
 int32_t pup_color_sensor_reflection(pup_device_t *pdev) {
@@ -245,7 +245,7 @@ pbio_error_t pup_color_sensor_light_off(pup_device_t *pdev) {
 }
 
 pbio_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pbio_color_hsv_t *colors){
-	if(size > PUP_COLOR_MAP_SIZE || size < 1){
+	if(size > CB_COLOR_MAP_SIZE || size < 1){
 		return color_map.colors;
 	}
 

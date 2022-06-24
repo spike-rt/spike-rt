@@ -165,7 +165,7 @@ pbio_error_t pup_color_sensor_light_off(pup_device_t *pdev);
  * \~Japanese
  * \brief 	     カラーセンサが検知する色を設定する。
  * \param  			カラーの配列とそのサイズ。 
- * \retval err   エラー番号。
+ * \retval err   色。
  */
 pbio_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pbio_color_hsv_t *colors);
 
