@@ -135,7 +135,7 @@ TEST(ColorSensor, detectable_colors)
 	pup_device_t *sensor;
 	pbio_color_hsv_t hsv;
 	pbio_color_hsv_t *ret;
-	//Note pup_color_sensor_color() detects {RED, YELLOW, GREEN, BLUE, WHITE, NONE}
+	//Note pup_color_sensor_color() detects {RED, YELLOW, GREEN, BLUE, WHITE, NONE} as default.
 	pbio_color_hsv_t my_colors[] = {
 		{ PBIO_COLOR_HUE_ORANGE, 100, 100 },
 		{ PBIO_COLOR_HUE_CYAN, 100, 100 },
