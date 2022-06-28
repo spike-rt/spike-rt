@@ -29,7 +29,7 @@ static void RunAllTests(void)
 	RUN_TEST_GROUP(PUPDevice);
 	RUN_TEST_GROUP(Motor);
 	RUN_TEST_GROUP(ColorSensor);
-	// RUN_TEST_GROUP(ForceSensor);
+	RUN_TEST_GROUP(ForceSensor);
 	RUN_TEST_GROUP(UltrasonicSensor);
 }
 

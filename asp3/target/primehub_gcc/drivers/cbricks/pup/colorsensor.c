@@ -30,18 +30,6 @@ typedef struct {
 } cb_color_map_t;
 cb_color_map_t color_map;
 
-pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port) {
-	// init color_map
-	// dafault detectable color are {RED, YELLOW, GREEN, BLUE, WHITE, NONE}
-	color_map.size = sizeof(cb_color_map_default) / sizeof(pbio_color_hsv_t);
-	for(size_t i = 0; i < color_map.size; i++){
-		color_map.colors[i] = cb_color_map_default[i];
-	}
-
-  // Get iodevices
-  return pup_device_get_device(port, PBIO_IODEV_TYPE_ID_SPIKE_COLOR_SENSOR);
-}
-
 void cb_color_map_rgb_to_hsv(const pbio_color_rgb_t *rgb, pbio_color_hsv_t *hsv) {
 
     // Standard conversion
@@ -105,6 +93,7 @@ pbio_color_hsv_t cb_color_map_get_color(cb_color_map_t *color_map, pbio_color_hs
     int32_t cost_min = INT32_MAX;
 
 		int32_t n = color_map->size;
+	
 		pbio_color_hsv_t *colors = color_map->colors;
     // Compute cost for each candidate
     for (size_t i = 0; i < n; i++) {
@@ -118,6 +107,7 @@ pbio_color_hsv_t cb_color_map_get_color(cb_color_map_t *color_map, pbio_color_hs
             match = colors[i];
         }
     }
+
     return match;
 }
 
@@ -163,6 +153,24 @@ static pbio_error_t pup_color_sensor__get_hsv_ambient(pup_device_t *pdev, pbio_c
         hsv->v = 100;
     }
 		return err;
+}
+
+pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port) {
+  // Get iodevices
+	pup_device_t *pdev = pup_device_get_device(port, PBIO_IODEV_TYPE_ID_SPIKE_COLOR_SENSOR);
+	pbio_color_hsv_t hsv;
+
+	// Do one reading
+	pup_color_sensor__get_hsv_reflected(pdev, &hsv);
+
+	// init color_map
+	// dafault detectable color are {RED, YELLOW, GREEN, BLUE, WHITE, NONE}
+	color_map.size = sizeof(cb_color_map_default) / sizeof(pbio_color_hsv_t);
+	for(size_t i = 0; i < color_map.size; i++){
+		color_map.colors[i] = cb_color_map_default[i];
+	}
+
+  return pdev;
 }
 
 pbio_color_hsv_t pup_color_sensor_hsv(pup_device_t *pdev, bool surface) {

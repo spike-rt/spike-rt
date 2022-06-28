@@ -14,7 +14,7 @@ KERNEL_DIRS += $(TARGETDIR)/drivers \
 							 $(TARGETDIR)/drivers/cbricks \
 							 $(TARGETDIR)/drivers/cbricks/pup
 
-KERNEL_COBJS += pybricks.o pup_device.o ultrasonicsensor.o colorsensor.o
+KERNEL_COBJS += pybricks.o pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o
 
 .PHONY: libpybricks.a
 libpybricks.a:
