@@ -10,7 +10,6 @@
 
 #include <kernel.h>
 #include <t_syslog.h>
-#include "kernel_cfg.h"
 
 #include <pbdrv/ioport.h>
 #include <pbdrv/motor.h>
@@ -29,7 +28,7 @@ static pbio_error_t wait(pbio_error_t (*end)(pbio_iodev_t *), void (*cancel)(pbi
 
     while ((err = end(iodev)) == PBIO_ERROR_AGAIN) {
         // dly_tsk(1000000);
-        wup_tsk(PYBRICKS_TASK); // TODO: There has to be a better way 
+        wup_pybricks(); // TODO: There has to be a better way 
     }
     
     if (err != PBIO_SUCCESS) {
@@ -67,7 +66,7 @@ static pbio_error_t set_mode(pbio_iodev_t *iodev, uint8_t new_mode) {
     
     while ((err = pbio_iodev_set_mode_begin(iodev, new_mode)) == PBIO_ERROR_AGAIN) {
         // dly_tsk(1000000);
-        wup_tsk(PYBRICKS_TASK); // TODO: There has to be a better way 
+        wup_pybricks(); // TODO: There has to be a better way 
     }
     check_pbio_error(err);
 
@@ -182,7 +181,7 @@ pbio_error_t pup_device_set_values(pup_device_t *pdev, uint8_t mode, int32_t *va
 
     while ((err = pbio_iodev_set_data_begin(iodev, iodev->mode, data)) == PBIO_ERROR_AGAIN) {
         // dly_tsk(1000000);
-        wup_tsk(PYBRICKS_TASK); // TODO: There has to be a better way 
+        wup_pybricks(); // TODO: There has to be a better way 
     }
     check_pbio_error(err);
 

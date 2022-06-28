@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * A task to run pybricks.
+ * A task to run pybricks and functions to call asp3 api from pybricks.
  *
  * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
  *                    Graduate School of Information Science, Nagoya Univ., JAPAN
@@ -13,19 +13,29 @@
 #include <syssvc/syslog.h>
 #include <kernel_cfg.h>
 
+/*
+ * Task to run pybricks.
+ */
 int pb_main_task(int argc, char **argv) {
 	  syslog(LOG_INFO, "pybricks main task start");
+
+    // Call pybricks platform initialization function.
     pb_SystemInit();
         
+    // Call pybricks.
     main();
+
+    // Never come back here because the shutdown procedure is handled by pybricks.
+
     return 0;
 }
 
-void pb_slp_tsk(void) {
+
+void slp_pybricks(void) {
 		slp_tsk();
 }
 
-void pb_wup_tsk(void) {
+void wup_pybricks(void) {
     wup_tsk(PYBRICKS_TASK);
 }
 
