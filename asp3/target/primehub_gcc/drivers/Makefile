@@ -36,4 +36,4 @@ libpybricks.a: $(LIBPYBRICKS_DIR)/bricks/primehub_asp3/libpybricks.a
 # recipe for building pybricks
 .PHONY: $(LIBPYBRICKS_DIR)/bricks/primehub_asp3/libpybricks.a
 $(LIBPYBRICKS_DIR)/bricks/primehub_asp3/libpybricks.a:
-	make -C $(LIBPYBRICKS_DIR)/bricks/primehub_asp3
+	$(MAKE) -C $(LIBPYBRICKS_DIR)/bricks/primehub_asp3
