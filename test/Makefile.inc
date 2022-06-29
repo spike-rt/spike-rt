@@ -1,4 +1,4 @@
-include $(EXTERNAL_DIR)/Makefile.unity
+include $(EXTERNAL_DIR)/unity.mk
 
 APPL_DIRS += $(Unity_SRCDIR)
 APPL_COBJS += $(Unity_COBJS)
