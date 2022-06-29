@@ -1,0 +1,39 @@
+# クイックスタートガイド
+とりあえず，動かしてみたい人のために，サンプル・アプリケーションを動かす方法を説明する．
+各作業の詳しい説明は，[DevelopApp.md](DevelopApp.md)を参照．
+
+## ソースコードの入手
+```bash
+git clone https://github.com/envzhu/asp3-primehub.git
+cd asp3-primehub
+git submodule sync ./external/
+```
+
+## 開発環境の構築
+[Env.md](Env.md)に従って，開発環境を構築する．
+
+## ビルド
+### コンフィグ（初回時のみ）
+```bash
+mkdir -p build/obj-primehub_kernel
+cd build/obj-primehub_kernel
+../../asp3/configure.rb -T primehub_gcc -f -m ../../common/kernel.mk
+cd ../..
+```
+
+```bash
+mkdir -p build/obj-primehub_led
+cd build/obj-primehub_led
+../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../samples/ -A app -m ../../common/app.mk
+```
+
+### ビルド
+```bash
+(cd ../obj-primehub_kernel && make libpybricks.a && make libkernel.a) && rm -rf asp asp.bin && make && make asp.bin
+```
+
+## 組み立て
+## 書き込み
+```bash
+PYTHON3=../../tools/python/bin/python3 sudo ../../scripts/deploy-dfu.sh asp.bin     
+```

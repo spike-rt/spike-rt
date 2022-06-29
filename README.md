@@ -1,20 +1,39 @@
-### GCC
-- gcc-arm-none-eabi-5_4-2016q3
-  - https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update
+For Japanese document please see [README_jp.md](README_jp.md).
+日本語版は，[README_jp.md](README_jp.md) を参照
 
-### ターゲットバイナリのビルド
-```shell-sessions
-$ mkdir -p build/obj-primehub_pybricks
-$ cd build/obj-primehub_gcc
-$ ../../asp3/configure.rb -T primehub_gcc -a ../../sample/ -A idle
-$ make
-```
+# SPIKE-RT
+An RTOS-based software platform for [LEGO® Education SPIKE™ Prime](https://education.lego.com/en-us/products/lego-education-spike-prime-set/45678#spike%E2%84%A2-prime).
 
-### 使用しているOSS
-- TOPPERS/ASP3カーネル Nucleo F401RE簡易パッケージ 
-  - https://www.toppers.jp/download.cgi/asp3_nucleo_f401re_gcc-20211228.zip
-  - 「TOPPERS第3世代カーネル（ITRON系）統合仕様書」, https://www.toppers.jp/docs/tech/tgki_spec-350.pdf
--  STM32Cube MCU Full Package for the STM32F4 series
-  - https://github.com/STMicroelectronics/STM32CubeF4/tree/v1.26.2
-- QEMU
-  - v6.1.0 よりフォーク
+## Feature
+- TOPPERS/ASP3 real-time operating system. 
+  - A µITRON-like RTOS.
+- C programming environment．
+- Supported device:
+  - Hub
+    - 5x5 LED Matrix Display
+    - Single LED
+    - Display
+    - Button
+    - Gyro Sensor
+    - Speaker
+    - Battery Charging
+    - USB Serial
+    - Bluetooth
+  - PUP Device
+    - Angular Motor
+    - Color Sensor
+    - Ultrasonic Sensor
+    - Force Sensor
+- Flash application by USB DFU．
+
+## API
+- ASP3 API
+  - TOPPERS/ASP3 is an implementation of the TOPPERS 3rd-generation kernel (ITRON-based) specification, an extension of the µITRON4.0 specification.
+  - Sorry, but the API document is [Japanaese](https://www.toppers.jp/docs/tech/tgki_spec-350.pdf) only for now. 
+  - For English reference, [µITRON 4.0 document](http://www.ertl.jp/ITRON/SPEC/FILE/mitron-400e.pdf), the base of the TOPPERS specification, may be helpful.
+- C standard library (Newlib)
+- SPIKE API
+  - An API for controlling device from applications.
+
+## Detail
+For more information, see [docs/en/](docs/en/).
