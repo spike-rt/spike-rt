@@ -195,6 +195,7 @@ APPL_CFLAGS := $(APPL_CFLAGS)
 
 EXTERNAL_DIR = $(SRCDIR)/../external/
 
+# TODO 複数のアプリケーションのビルドに対応する
 ifneq ("$(wildcard $(APPLDIRS)/Makefile.inc)","")
 	include $(APPLDIRS)/Makefile.inc
 endif
@@ -367,7 +368,7 @@ cfg1_out.timestamp: $(APPL_CFG) $(TECSGEN_TIMESTAMP)
 
 $(CFG1_OUT): $(START_OBJS) $(OBJDIR)/cfg1_out.o $(END_OBJS) $(HIDDEN_OBJS)
 	$(LINK) $(CFLAGS) $(LDFLAGS) $(CFG1_OUT_LDFLAGS) -o $(CFG1_OUT) \
-						$(START_OBJS) $(OBJDIR)/cfg1_out.o $(LIBS) $(END_OBJS)
+						$(START_OBJS) $(OBJDIR)/cfg1_out.o $(END_OBJS)
 
 cfg1_out.syms: $(CFG1_OUT)
 	$(NM) -n $(CFG1_OUT) > cfg1_out.syms
