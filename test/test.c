@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Tests for ultrasonic sensors.
+ * Test main.
  *
  * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
  *                    Graduate School of Information Science, Nagoya Univ., JAPAN
@@ -16,7 +16,7 @@
 static void RunAllTests(void)
 {
   // Tests for Hub Device
-	// RUN_TEST_GROUP(Light);
+	RUN_TEST_GROUP(Light);
 	RUN_TEST_GROUP(Display);
 	RUN_TEST_GROUP(Button);
 	// RUN_TEST_GROUP(IMU);
