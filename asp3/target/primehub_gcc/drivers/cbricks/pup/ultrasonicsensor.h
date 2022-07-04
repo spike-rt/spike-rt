@@ -8,19 +8,24 @@
 
 /**
  * \file    cbricks/pup/ultrasonicsensor.h
- * \brief	  API for ultrasonic sensors
- * \author	Shu Yoshifumi
+ * \brief   API for ultrasonic sensors
+ * \author  Shu Yoshifumi
+ */
+
+/**
+ * \addtogroup  PUPDevice
+ * @{
  */
 
 /**
  * \~English
- * \defgroup PUPDevice UltrasonicSensor
- * \brief	  APIs for ultrasonic sensors
+ * \defgroup  UltrasonicSensor Ultrasonic Sensor
+ * \brief     APIs for ultrasonic sensors
  * @{
  *
  * \~Japanese
- * \defgroup PUPデバイス 超音波
- * \brief    超音波センサのAPI．
+ * \defgroup  UltrasonicSensor 超音波センサ
+ * \brief     超音波センサのAPI．
  * @{
  */
 
@@ -33,7 +38,7 @@
 
 /**
  * \~English
- * \brief 	      Get the PUP device pointer of the ultrasonic sensor specified with the port ID.
+ * \brief         Get the PUP device pointer of the ultrasonic sensor specified with the port ID.
  * \details       If it fails, it outputs an error log and returns NULL.
  * \param   port  PUP port ID to be inquired.
  * \return  pdev  PUP device pointer.
@@ -124,8 +129,13 @@ pbio_error_t pup_ultrasonic_sensor_light_on(pup_device_t *pdev);
  */
 pbio_error_t pup_ultrasonic_sensor_light_off(pup_device_t *pdev);
 
+#endif // _PUP_ULTRASONIC_SENSOR_H_
+
 /**
  * @} // End of group
  */
 
-#endif // _PUP_ULTRASONIC_SENSOR_H_
+/**
+ * @} // End of group
+ */
+

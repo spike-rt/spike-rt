@@ -13,13 +13,18 @@
  */
 
 /**
+ * \addtogroup  PUPDevice
+ * @{
+ */
+
+/**
  * \~English
- * \defgroup PUPDevice ColorSensor
+ * \defgroup ColorSensor Color Sensor
  * \brief	  APIs for color sensors
  * @{
  *
  * \~Japanese
- * \defgroup PUPデバイス カラーセンサ
+ * \defgroup ColorSensor カラーセンサ
  * \brief    カラーセンサのAPI．
  * @{
  */
@@ -169,8 +174,12 @@ pbio_error_t pup_color_sensor_light_off(pup_device_t *pdev);
  */
 pbio_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pbio_color_hsv_t *colors);
 
+#endif // _PUP_COLOR_SENSOR_H_
+
 /**
  * @} // End of group
  */
 
-#endif // _PUP_COLOR_SENSOR_H_
+/**
+ * @} // End of group
+ */

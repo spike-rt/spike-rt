@@ -13,13 +13,18 @@
  */
 
 /**
+ * \addtogroup  PUPDevice
+ * @{
+ */
+
+/**
  * \~English
- * \defgroup PUPDevice ForceSensor
+ * \defgroup ForceSensor Force Sensor
  * \brief	  APIs for force sensors
  * @{
  *
  * \~Japanese
- * \defgroup PUPデバイス フォースセンサ
+ * \defgroup ForceSensor フォースセンサ
  * \brief    フォースセンサのAPI．
  * @{
  */
@@ -105,8 +110,12 @@ bool pup_force_sensor_pressed(pup_device_t *pdev, float force);
  */
 bool pup_force_sensor_touched(pup_device_t *pdev);
 
+#endif // _PUP_FORCE_SENSOR_H_
+
 /**
  * @} // End of group
  */
 
-#endif // _PUP_FORCE_SENSOR_H_
+/**
+ * @} // End of group
+ */

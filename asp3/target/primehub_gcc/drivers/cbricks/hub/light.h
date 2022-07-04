@@ -13,6 +13,12 @@
  */
 
 /**
+ * \addtogroup  Hub Hub
+ * @{
+ */
+
+
+/**
  * \~English
  * \defgroup  Hub Light
  * \brief     API for the hub built-in status light.
@@ -75,3 +81,6 @@ pbio_error_t hub_light_off(void);
  * @} // End of group
  */
 
+/**
+ * @} // End of group
+ */
