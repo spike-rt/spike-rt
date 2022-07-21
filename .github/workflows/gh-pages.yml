@@ -1,0 +1,32 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: false
+      - name: Prepare build directory for Doxygen
+        run: mkdir -p asp3/target/primehub_gcc/drivers/build/
+      - name: Build Doxygen-en
+        uses: mattnotmitt/doxygen-action@v1.9.4
+        with:
+          working-directory: asp3/target/primehub_gcc/drivers/
+          doxyfile-path: Doxyfile-en
+      - name: Build Doxygen-ja
+        uses: mattnotmitt/doxygen-action@v1.9.4
+        with:
+          working-directory: asp3/target/primehub_gcc/drivers/
+          doxyfile-path: Doxyfile-ja
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: asp3/target/primehub_gcc/drivers/build/
