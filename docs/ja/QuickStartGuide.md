@@ -6,7 +6,7 @@
 ```bash
 git clone https://github.com/envzhu/asp3-primehub.git
 cd asp3-primehub
-git submodule sync ./external/
+git submodule update --init ./external/
 ```
 
 ## 開発環境の構築
