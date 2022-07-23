@@ -1,5 +1,5 @@
-For Japanese document please see [README_ja.md](README_jp.md).
-日本語版は，[README_ja.md](README_jp.md) を参照
+For Japanese document please see [README_ja.md](README_ja.md).
+日本語版は，[README_ja.md](README_ja.md) を参照
 
 # SPIKE-RT
 An RTOS-based software platform for [LEGO® Education SPIKE™ Prime](https://education.lego.com/en-us/products/lego-education-spike-prime-set/45678#spike%E2%84%A2-prime).
