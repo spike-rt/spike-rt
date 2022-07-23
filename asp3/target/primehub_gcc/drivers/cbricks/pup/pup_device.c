@@ -4,8 +4,8 @@
  * Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/util_pb/pb_device_stm32.c
  *
  * Copyright (c) 2018-2021 The Pybricks Authors
- * Modifications for TOPPERS/APS3 Kernel Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                                                          Graduate School of Information Science, Nagoya Univ., JAPAN
+ * Modifications for SPIKE-RT Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ *                                               Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #include <kernel.h>
@@ -27,14 +27,15 @@ static pbio_error_t wait(pbio_error_t (*end)(pbio_iodev_t *), void (*cancel)(pbi
     pbio_error_t err;
 
     while ((err = end(iodev)) == PBIO_ERROR_AGAIN) {
-        // dly_tsk(1000000);
-        wup_pybricks(); // TODO: There has to be a better way 
+        // Wait 1 ms
+        dly_tsk(1000);
     }
     
     if (err != PBIO_SUCCESS) {
         cancel(iodev);
         while (end(iodev) == PBIO_ERROR_AGAIN) {
-            dly_tsk(1000000);
+            // Wait 1 ms
+            dly_tsk(1000);
         }
     }
 
@@ -65,8 +66,8 @@ static pbio_error_t set_mode(pbio_iodev_t *iodev, uint8_t new_mode) {
     }
     
     while ((err = pbio_iodev_set_mode_begin(iodev, new_mode)) == PBIO_ERROR_AGAIN) {
-        // dly_tsk(1000000);
-        wup_pybricks(); // TODO: There has to be a better way 
+        // Wait 1 ms
+        dly_tsk(1000);
     }
     check_pbio_error(err);
 
@@ -75,6 +76,7 @@ static pbio_error_t set_mode(pbio_iodev_t *iodev, uint8_t new_mode) {
     // Give some time for the mode to take effect and discard stale data
     uint32_t delay = get_mode_switch_delay(iodev->info->type_id, new_mode);
     if (delay > 0) {
+        // Wait delay ms
         dly_tsk(delay*1000);
     }
 
@@ -88,7 +90,8 @@ pup_device_t *pup_device_get_device(pbio_port_id_t port, pbio_iodev_type_id_t va
 
     // Set up device
     while ((err = pbdrv_ioport_get_iodev(port, &iodev)) == PBIO_ERROR_AGAIN) {
-        dly_tsk(50000);
+        // Wait 50 ms
+        dly_tsk(50*1000);
     }
     check_pbio_error_r(err, NULL);
 
@@ -129,11 +132,9 @@ pbio_error_t pup_device_get_values(pup_device_t *pdev, uint8_t mode, int32_t *va
             case PBIO_IODEV_DATA_TYPE_INT32:
                 values[i] = *((int32_t *)(data + i * 4));
                 break;
-            #if MICROPY_PY_BUILTINS_FLOAT
             case PBIO_IODEV_DATA_TYPE_FLOAT:
                 *(float *)(values + i) = *((float *)(data + i * 4));
                 break;
-            #endif
             default:
                 return PBIO_ERROR_IO;
         }
@@ -169,19 +170,17 @@ pbio_error_t pup_device_set_values(pup_device_t *pdev, uint8_t mode, int32_t *va
             case PBIO_IODEV_DATA_TYPE_INT32:
                 *(int32_t *)(data + i * 4) = values[i];
                 break;
-            #if MICROPY_PY_BUILTINS_FLOAT
             case PBIO_IODEV_DATA_TYPE_FLOAT:
                 *(float *)(data + i * 4) = values[i];
                 break;
-            #endif
             default:
                 return PBIO_ERROR_IO;
         }
     }
 
     while ((err = pbio_iodev_set_data_begin(iodev, iodev->mode, data)) == PBIO_ERROR_AGAIN) {
-        // dly_tsk(1000000);
-        wup_pybricks(); // TODO: There has to be a better way 
+        // Wait 1 ms
+        dly_tsk(1000);
     }
     check_pbio_error(err);
 
@@ -190,7 +189,8 @@ pbio_error_t pup_device_set_values(pup_device_t *pdev, uint8_t mode, int32_t *va
     // Give some time for the set values to take effect
     uint32_t delay = get_mode_switch_delay(iodev->info->type_id, mode);
     if (delay > 0) {
-        dly_tsk(delay*100);
+        // Wait delay/10 ms
+        dly_tsk(delay/10*1000);
     }
 
     return PBIO_SUCCESS;
