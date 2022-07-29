@@ -1,22 +1,29 @@
 #  SPDX-License-Identifier: MIT
-# 
+#
 #  Makefile for driver API.
 #
 #  Copyright (C) 2022 by Embedded and Real-Time Systems Laboratory,
-#              					 Graduate School of Information Science, Nagoya Univ., JAPAN
+#                        Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 
-LIBPYBRICKS_DIR = $(SRCDIR)/../external/libpybricks
+PYBRICKS_SRCDIR = $(SRCDIR)/../external/libpybricks
+
+ifdef KERNEL_LIB
+	PYBRICKS_OBJDIR ?= $(abspath $(KERNEL_LIB)/../obj-primehub_pybricks)
+else
+	PYBRICKS_OBJDIR ?= $(abspath ../obj-primehub_pybricks)
+endif
+
 INCLUDES += -I$(TARGETDIR)/drivers \
 						-I$(TARGETDIR)/drivers/cbricks \
-	          -I$(LIBPYBRICKS_DIR)/lib/pbio/include \
-	          -I$(LIBPYBRICKS_DIR)/bricks/primehub_asp3 \
-	          -I$(LIBPYBRICKS_DIR)/lib/pbio/platform/prime_hub_asp3 \
-	          -I$(LIBPYBRICKS_DIR)/lib/libfixmath/libfixmath \
-	          -I$(LIBPYBRICKS_DIR)/lib/lego
+						-I$(PYBRICKS_SRCDIR)/lib/pbio/include \
+						-I$(PYBRICKS_SRCDIR)/bricks/primehub_asp3 \
+						-I$(PYBRICKS_SRCDIR)/lib/pbio/platform/prime_hub_asp3 \
+						-I$(PYBRICKS_SRCDIR)/lib/libfixmath/libfixmath \
+						-I$(PYBRICKS_SRCDIR)/lib/lego
 
-LDFLAGS += -L$(LIBPYBRICKS_DIR)/bricks/primehub_asp3 
-LIBS = $(LIBPYBRICKS_DIR)/bricks/primehub_asp3/libpybricks.a
+LDFLAGS += -L$(PYBRICKS_SRCDIR)/bricks/primehub_asp3
+LIBS = $(PYBRICKS_OBJDIR)/libpybricks.a
 
 KERNEL_DIRS += $(TARGETDIR)/drivers \
 							 $(TARGETDIR)/drivers/cbricks \
@@ -33,9 +40,9 @@ KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o
 SYSSVC_COBJS += pybricks.o
 
 .PHONY: libpybricks.a
-libpybricks.a: $(LIBPYBRICKS_DIR)/bricks/primehub_asp3/libpybricks.a
+libpybricks.a: $(PYBRICKS_OBJDIR)/libpybricks.a
 
 # recipe for building pybricks
-.PHONY: $(LIBPYBRICKS_DIR)/bricks/primehub_asp3/libpybricks.a
-$(LIBPYBRICKS_DIR)/bricks/primehub_asp3/libpybricks.a:
-	$(MAKE) -C $(LIBPYBRICKS_DIR)/bricks/primehub_asp3
+.PHONY: $(PYBRICKS_OBJDIR)/libpybricks.a
+$(PYBRICKS_OBJDIR)/libpybricks.a:
+	$(MAKE) -C $(PYBRICKS_SRCDIR)/bricks/primehub_asp3 BUILD=$(PYBRICKS_OBJDIR)
