@@ -129,6 +129,11 @@ OBJDIR = @(OBJDIR)
 DEPDIR = @(OBJDIR)
 
 #
+# 外部モジュールのディレクトリの定義
+#
+EXTERNAL_DIR = $(SRCDIR)/../external/
+
+#
 #  ターゲット依存部のディレクトリの定義
 #
 TARGETDIR = $(SRCDIR)/target/$(TARGET)
@@ -192,8 +197,6 @@ else
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o
 APPL_CFLAGS := $(APPL_CFLAGS)
-
-EXTERNAL_DIR = $(SRCDIR)/../external/
 
 # TODO 複数のアプリケーションのビルドに対応する
 ifneq ("$(wildcard $(APPLDIRS)/Makefile.inc)","")
