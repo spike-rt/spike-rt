@@ -55,7 +55,7 @@ TARGET = @(TARGET)
 #
 SRCLANG = @(SRCLANG)
 ifeq ($(SRCLANG),c)
-	LIBS = -lc
+	#LIBS = -lc
 endif
 ifeq ($(SRCLANG),c++)
 	USE_CXX = true

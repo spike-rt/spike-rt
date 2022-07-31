@@ -6,6 +6,8 @@
 #                        Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 
+SYSSVC_COBJS += newlib_stub.o
+
 PYBRICKS_SRCDIR = $(SRCDIR)/../external/libpybricks
 
 ifdef KERNEL_LIB
@@ -23,7 +25,7 @@ INCLUDES += -I$(TARGETDIR)/drivers \
 						-I$(PYBRICKS_SRCDIR)/lib/lego
 
 LDFLAGS += -L$(PYBRICKS_SRCDIR)/bricks/primehub_asp3
-LIBS = $(PYBRICKS_OBJDIR)/libpybricks.a
+LIBS += $(PYBRICKS_OBJDIR)/libpybricks.a
 
 KERNEL_DIRS += $(TARGETDIR)/drivers \
 							 $(TARGETDIR)/drivers/cbricks \
