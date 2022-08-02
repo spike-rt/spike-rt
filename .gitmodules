@@ -1,9 +1,6 @@
 [submodule "asp3-app-pybricks"]
 	path = external/libpybricks
 	url = git@github.com:envzhu/asp3-app-pybricks.git
-[submodule "qemu-primehub"]
-	path = tools/qemu-primehub
-	url = git@github.com:envzhu/qemu-primehub
 [submodule "Unity"]
 	path = external/Unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
