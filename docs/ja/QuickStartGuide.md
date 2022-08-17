@@ -1,12 +1,11 @@
-# クイックスタートガイド
+# クイックスタートガイド(WIP!, TODO)
 とりあえず，動かしてみたい人のために，サンプル・アプリケーションを動かす方法を説明する．
 各作業の詳しい説明は，[DevelopApp.md](DevelopApp.md)を参照．
 
 ## ソースコードの入手
 ```bash
-git clone https://github.com/envzhu/asp3-primehub.git
-cd asp3-primehub
-git submodule update --init ./external/
+git clone --recursive https://github.com/spike-rt/spike-rt.git
+cd spike-rt
 ```
 
 ## 開発環境の構築

@@ -4,9 +4,8 @@
 ## ソースコードの入手
 以下により，ソースコードをクローンする．
 ```bash
-git clone git@github.com:envzhu/spike-rt.git
+git clone --recursive https://github.com/spike-rt/spike-rt.git
 cd spike-rt
-git submodule update --init ./external/
 ```
 以下，特に断りの無い限りトップディレクトリが`spike-rt` のディレクトリであるとする．
 
@@ -59,13 +58,12 @@ cd build/obj-primehub_app
 cd build/obj-primehub_app
 ```
 
-#### HubのDFUモードへの遷移
-
+### HubのDFUモードへの遷移
 - USBケーブルを抜き，Hubの電源を切る．
 - Bluetoothボタンを押しながらUSBを接続する．
 - ボタンのLEDが点滅するまで，Bluetoothボタンを押し続ける．
 
-#### 書き込みの実行
+### 書き込みの実行
 (TODO: これは，Mac でも動作可能？)
 ここでは，USBの権限の問題から，管理者権限により書き込みを行う．
 `PYTHON3`でpythonの実行ファイルを指定し，以下により，Hubに書き込む．
@@ -78,7 +76,6 @@ PYTHON3=../../tools/python/bin/python3 sudo ../../scripts/deploy-dfu.sh asp.bin
 sudo make deploy-dfu PYTHON3=../../tools/python/bin/python3
 ```
 
-## ヒント
 ## USBシリアルの接続
 (TODO: これは，Mac でも動作可能？)
 USBシリアルに接続し，ログ出力を確認することができる．

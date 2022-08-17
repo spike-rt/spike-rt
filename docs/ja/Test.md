@@ -2,7 +2,8 @@
 SPIKE-RT 自体のテストを実行する方法を説明する．
 
 ## テストの実装
-[test/](../../test)以下にテストが実装されている．テストの実現にUnityを用いている．
+[test/](../../test)以下にテストが実装されている．テストの実現にテストフレームワークUnityを用いている．  
+Unityについては[external/Unity/README.md](../../external/Unity/README.md)を参照．
 
 ## テストのビルド
 アプリケーションと同様にビルドできる．
@@ -12,8 +13,11 @@ SPIKE-RT 自体のテストを実行する方法を説明する．
 ```
 
 ## PUP デバイスの接続
-[test/test_config.h](../..//test/test_config.h)に従って，PUP デバイスの接続を行う．
+[test/test_config.h](../..//test/test_config.h)に従って，PUP デバイスの接続を行う．  
 ただし，接続しなくても，LED マトリックスディスプレイに`a`が表示されることを以て動作確認することも可能．
+
+## 書き込み
+[DevelopApp.md#書き込み](DevelopApp.md#書き込み)を参照．ただし，obj-primehub_appを`obj-primehub_test`と読み替える．
 
 ## USB シリアルの接続
 一旦，Hub の電源をONにしてからでないと，接続できないことに注意する．
