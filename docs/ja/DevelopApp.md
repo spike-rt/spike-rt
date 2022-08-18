@@ -4,8 +4,9 @@
 ## ソースコードの入手
 以下により，ソースコードをクローンする．
 ```bash
-git clone --recursive https://github.com/spike-rt/spike-rt.git
+git clone git@github.com:spike-rt/spike-rt.git
 cd spike-rt
+git submodule update --init ./external/
 ```
 以下，特に断りの無い限りトップディレクトリが`spike-rt` のディレクトリであるとする．
 

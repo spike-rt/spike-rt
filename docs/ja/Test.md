@@ -3,7 +3,7 @@ SPIKE-RT 自体のテストを実行する方法を説明する．
 
 ## テストの実装
 [test/](../../test)以下にテストが実装されている．テストの実現にテストフレームワークUnityを用いている．  
-Unityについては[external/Unity/README.md](../../external/Unity/README.md)を参照．
+Unityについては[external/Unity/README.md](https://github.com/ThrowTheSwitch/Unity/tree/0b899aec14d3a9abb2bf260ac355f0f28630a6a3)を参照．
 
 ## テストのビルド
 アプリケーションと同様にビルドできる．
