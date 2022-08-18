@@ -1,4 +1,8 @@
+[![Build](https://github.com/spike-rt/spike-rt/workflows/Build/badge.svg?branch=main)](https://github.com/spike-rt/spike-rt/workflows/Build/badge.svg?branch=main)
+
 For English document please see [README.md](README.md).
+
+**プレリリースのため，一部動作が不安定だったり，言及なしに破壊的変更が導入される可能性があります．**
 
 # SPIKE-RT
 [LEGO® Education SPIKE™ Prime](https://education.lego.com/ja-jp/products/-spike-/45678#spike%E3%83%97%E3%83%A9%E3%82%A4%E3%83%A0) 向け RTOS ベースのソフトウェアプラットフォーム．
@@ -33,5 +37,12 @@ For English document please see [README.md](README.md).
   - Pybricks の API を参考にした アプリケーションからデバイスを制御するための API．
   - [ドキュメント](https://envzhu.github.io/spike-rt/ja/html/modules.html) を参照．
 
-## 詳細
+## 使い方
 アプリケーションの開発方法などの詳細については，[docs/ja/](docs/ja/) を参照．
+
+## 貢献方法
+バグ報告は，GitHub Issuesへ．
+パッチの提供などの貢献は，[docs/ja/CONTRIBUTING.md](docs/ja/CONTRIBUTING.md)を参照．
+
+## 言語
+IssuesやPull RequestsなどのGitHub上では，日本語と英語を受け付けます．
