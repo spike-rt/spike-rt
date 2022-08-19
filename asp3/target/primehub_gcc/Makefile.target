@@ -26,7 +26,7 @@ KERNEL_TIMER = SYSTICK
 #
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
 CDEFS := $(CDEFS) -DSTM32F413xx
-COPTS := $(COPTS) -mthumb -mtune=cortex-m4 -mcpu=cortex-m4  -msoft-float
+COPTS := $(COPTS) -mtune=cortex-m4
 COPTS := $(COPTS) -DUSE_FULL_LL_DRIVER
 #LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
 LDFLAGS := -nostartfiles $(LDFLAGS)
