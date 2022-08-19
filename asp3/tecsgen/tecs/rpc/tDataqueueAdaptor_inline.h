@@ -58,15 +58,6 @@ Inline ER
 eChannel_open(CELLIDX idx, const int8_t* arg, int16_t size, TMO tmo)
 {
 	ER		ercd = E_OK;
-	CELLCB	*p_cellcb;
-	if (VALID_IDX(idx)) {
-		p_cellcb = GET_CELLCB(idx);
-	}
-	else {
-		return(E_ID);
-	}
-
-	/* ここに処理本体を記述します #_TEFB_# */
 
 	return(ercd);
 }
@@ -80,15 +71,6 @@ Inline ER
 eChannel_close(CELLIDX idx)
 {
 	ER		ercd = E_OK;
-	CELLCB	*p_cellcb;
-	if (VALID_IDX(idx)) {
-		p_cellcb = GET_CELLCB(idx);
-	}
-	else {
-		return(E_ID);
-	}
-
-	/* ここに処理本体を記述します #_TEFB_# */
 
 	return(ercd);
 }
@@ -103,12 +85,7 @@ eChannel_reset(CELLIDX idx)
 {
 	ER		ercd = E_OK;
 	CELLCB	*p_cellcb;
-	if (VALID_IDX(idx)) {
-		p_cellcb = GET_CELLCB(idx);
-	}
-	else {
-		return(E_ID);
-	}
+	p_cellcb = GET_CELLCB(idx);
 
 	/* ここに処理本体を記述します #_TEFB_# */
 	cEventflag_clear( 0 );
@@ -127,17 +104,14 @@ eChannel_send(CELLIDX idx, const int8_t* buf, int16_t size, TMO tmo)
 	ER		ercd = E_OK;
 	CELLCB	*p_cellcb;
 	int     i;
-	if (VALID_IDX(idx)) {
-		p_cellcb = GET_CELLCB(idx);
-	}
-	else {
-		return(E_ID);
-	}
+	p_cellcb = GET_CELLCB(idx);
 
 	/* ここに処理本体を記述します #_TEFB_# */
 	ercd = 0;
-	for( i = 0; i < size; i++ )
+	for( i = 0; i < size; i++ ){
 		ercd |= cDataqueue_send( (intptr_t)((uint8_t)buf[ i ]) );
+		// syslog( LOG_INFO, "tDataqueueAdaptor.eChannnel.send buf[%d]=%02x", i, ((uint8_t)buf[ i ]) );
+	}
 
 	return(ercd);
 }
@@ -151,15 +125,6 @@ Inline ER
 eChannel_flush(CELLIDX idx, TMO tmo)
 {
 	ER		ercd = E_OK;
-	CELLCB	*p_cellcb;
-	if (VALID_IDX(idx)) {
-		p_cellcb = GET_CELLCB(idx);
-	}
-	else {
-		return(E_ID);
-	}
-
-	/* ここに処理本体を記述します #_TEFB_# */
 
 	return(ercd);
 }
@@ -176,18 +141,16 @@ eChannel_receive(CELLIDX idx, int8_t* buf, int16_t size, TMO tmo)
 	CELLCB	*p_cellcb;
 	intptr_t data;
 	int     i;
-	if (VALID_IDX(idx)) {
-		p_cellcb = GET_CELLCB(idx);
-	}
-	else {
-		return(E_ID);
-	}
+	// ID		task_id;
+	// (void)get_tid( &task_id );
+	p_cellcb = GET_CELLCB(idx);
 
-	/* ここに処理本体を記述します #_TEFB_# */
 	/* printf( "DQA: receive(%d) ", size ); */
 	for( i = 0; i < size; i++ ){
 		ercd = cDataqueue_receive( &data );
 		buf[i] = (int8_t)data;
+		// syslog( LOG_INFO, "tDataqueueAdaptor.eChannnel.receive buf[%%d]=%02x task_id=%d ercd~%d cDataqueue=%08x p_cellcb=%08x", /*   */
+		// 	 /*i,*/ ((uint8_t)buf[ i ]), task_id, ercd, (intptr_t)p_cellcb->cDataqueue, (intptr_t)p_cellcb );
 		if( ercd != E_OK )
 			break;
 	}
@@ -206,15 +169,6 @@ Inline ER
 eChannel_end_receive(CELLIDX idx)
 {
 	ER		ercd = E_OK;
-	CELLCB	*p_cellcb;
-	if (VALID_IDX(idx)) {
-		p_cellcb = GET_CELLCB(idx);
-	}
-	else {
-		return(E_ID);
-	}
-
-	/* ここに処理本体を記述します #_TEFB_# */
 
 	return(ercd);
 }

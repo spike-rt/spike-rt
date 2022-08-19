@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2017 by TOPPERS Project
+#   Copyright (C) 2008-2020 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -272,6 +272,8 @@ class TECSGEN
     dbgPrint( "## Creating reverse join (for post code) \n")
     Cell.create_reverse_join
 
+    ################  ここで　セルタイプ、シグニチャのチェックが行われないのは、よいのか？  ################
+  
     # Join の定義の設定とチェック
     #0 # 前方参照対応
     #0 set_definition_join は2回呼び出される（2回目）  post_code で生成された

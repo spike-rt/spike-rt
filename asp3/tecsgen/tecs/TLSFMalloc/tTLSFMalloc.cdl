@@ -35,9 +35,18 @@
 
 import( <sMalloc.cdl> );
 
+signature sTLSFStatistics {
+    size_t getUsed( void );
+    size_t getMaxUsed( void );
+};
+
 celltype tTLSFMalloc {
     [inline]
         entry  sMalloc  eMalloc;
+
+    [inline]
+        entry sTLSFStatistics eStatistics;
+
     attr {
         /* memory pool size in bytes */
         size_t  memoryPoolSize;

@@ -32,6 +32,11 @@
  * 
  *  @(#) $Id: mruby.cdl 2640 2017-06-03 11:27:12Z okuma-top $
  */
+ 
+ /*
+  * POSIX 向き mruby VM
+  * RTOS 向きのものは tMruby.cdl を使用してください。
+  */
 
 import_C( "tecs_mruby.h" );
 

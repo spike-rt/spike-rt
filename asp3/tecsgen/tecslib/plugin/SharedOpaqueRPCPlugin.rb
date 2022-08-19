@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2014 by TOPPERS Project
+#   Copyright (C) 2008-2020 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: SharedOpaqueRPCPlugin.rb 2952 2018-05-07 10:19:07Z okuma-top $
+#   $Id: SharedOpaqueRPCPlugin.rb 3140 2020-03-29 09:21:42Z okuma-top $
 #++
 
 require_tecsgen_lib "lib/GenOpaqueMarshaler.rb"
@@ -160,7 +160,7 @@ composite #{@shared_channel_client_ct_name} {
     cChannel => composite.cClientChannel;
   };
   cell tSemaphore Semaphore {
-    count = 1;
+    initialCount = 1;
     attribute = C_EXP("TA_NULL");
   };
   cell tRPCSharedChannelMan SharedChannelMan{
@@ -191,8 +191,8 @@ composite #{@shared_channel_server_ct_name} {
     cOpener => composite.cOpener;
   };
   cell tTask Task {
-    cBody = RPCSharedTaskMain.eMain;
-    taskAttribute = C_EXP("TA_ACT");
+    cTaskBody = RPCSharedTaskMain.eMain;
+    attribute = C_EXP("TA_ACT");
     stackSize = 4096;
     priority = composite.priority;
   };

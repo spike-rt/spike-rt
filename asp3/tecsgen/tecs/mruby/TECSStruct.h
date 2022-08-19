@@ -38,7 +38,9 @@
 #ifndef TECSStruct_h__
 #define TECSStruct_h__
 
+// もし mruby 関連のヘッダ取り込みでエラーが出るようなら仮の定義で TECS ジェネレータを通す
 #ifndef TECSGEN
+// #if 1
 
 #define MEMBER_GET_SET_INT( TAG, MEMBER, Type, TYPE )					\
 	static mrb_value													\

@@ -345,6 +345,7 @@ struct_specifier		# mikan
 	   struct_declaration_list '}'
 		{
 			StructType.end_of_parse
+      set_no_type_name true
 			result = val[1]
 		}
 #        | STRUCT
@@ -356,13 +357,14 @@ struct_specifier		# mikan
 	   '{' struct_declaration_list '}'
 		{
 			StructType.end_of_parse
+      set_no_type_name true
 			result = val[1]
 		}
-#        | STRUCT struct_tag   # mikan struct_tag は namespace 対応が必要
         | struct_term struct_tag   # mikan struct_tag は namespace 対応が必要
 		{
 			StructType.set_define( false )
 			StructType.end_of_parse
+      set_no_type_name true
 			result = val[1]
 		}
 
@@ -393,8 +395,8 @@ struct_declaration
 			}
 			result = val[1]
 		}
-        | union_specifier ';'                       # 無名
-        | struct_specifier ';'                       # 無名
+        | union_specifier ';'             # 無名
+        | struct_specifier ';'            # 無名
 
 
 
@@ -423,19 +425,17 @@ struct_declarator_list
         | struct_declarator_list ',' struct_declarator
 		{ result << val[2] }
 
-# ビットフィールドは使えない
 struct_declarator
         : declarator
-
-
+        | declarator ':' constant_expression  # bit フィールド
 
 union_specifier
 #        : UNION union_tag '{' union_declaration_list '}'
 #        | UNION '{' union_declaration_list '}'
 #        | UNION union_tag   # mikan struct_tag は namespace 対応が必要
-        : union_term union_tag '{' union_declaration_list '}'
-        | union_term '{' union_declaration_list '}'
-        | union_term union_tag   # mikan struct_tag は namespace 対応が必要
+        : union_term union_tag '{' union_declaration_list '}' { set_no_type_name true }
+        | union_term '{' union_declaration_list '}' { set_no_type_name true }
+        | union_term union_tag   { set_no_type_name true } # mikan struct_tag は namespace 対応が必要
 
 union_term
         : UNION { set_no_type_name true }
@@ -449,26 +449,23 @@ union_tag:
 
 union_declaration
         : declaration_specifiers union_declarator_list ';'
-		| union_specifier ';'                       # 無名
-		| struct_specifier ';'                      # 無名
+		| union_specifier ';'                         # 無名
+		| struct_specifier ';'                        # 無名
 
 union_declarator_list
         : union_declarator
         | union_declarator_list ',' union_declarator
 
-# ビットフィールドは使えない
 union_declarator
         : declarator
 
-
-
 # enumの種類を追加
 enum_specifier
-         : ENUM '{' enumerator_list '}'
-         | ENUM IDENTIFIER '{' enumerator_list '}'
+         : ENUM IDENTIFIER
+         | ENUM '{' enumerator_list '}'
          | ENUM '{' enumerator_list ',' '}'
+         | ENUM IDENTIFIER '{' enumerator_list '}'
          | ENUM IDENTIFIER '{' enumerator_list ',' '}'
-         | ENUM IDENTIFIER
          | ENUM TYPE_NAME '{' enumerator_list '}'
          | ENUM TYPE_NAME '{' enumerator_list ',' '}'
          | ENUM TYPE_NAME
@@ -480,6 +477,8 @@ enumerator_list
 enumerator
         : IDENTIFIER
         | IDENTIFIER '=' constant_expression
+        # : IDENTIFIER { p "enumerator #{val[0]}"}
+        # | IDENTIFIER '=' constant_expression { p "enumerator #{val[0]}"}
 
 type_qualifier
         : CONST	{ result = :CONST }
@@ -653,7 +652,7 @@ C_parser
         | C_parser extension_statement
 
 extension_statement
-        : statement
+        : statement              { set_no_type_name false }
         | EXTENSION statement
 
 statement
@@ -856,6 +855,12 @@ end
    begin
 
     @q = []
+
+    # typedef, struct のみ
+    @in = false   # typedef, struct の途中
+    @count = 0
+    @prev_block_end = true
+
     comment = false
 #    b_asm   = false
 
@@ -963,6 +968,34 @@ end
 
   def next_token
     token = @q.shift
+    # typedef, struct の宣言文のみ評価する
+    if @in then
+      @prev_block_end = false
+      # ':' で 文の終わり
+      if token[0] == '{' then
+        @count += 1
+      elsif token[0] == '}' then
+        @count -= 1
+      elsif token[0] == ';' && @count == 0 then
+         @in = false
+         @prev_block_end = true
+      else
+      end
+    else
+      while token
+        if ( token[0] == :TYPEDEF || token[0] == :STRUCT ) && @prev_block_end == true then
+          @in = true
+          @prev_block_end = false
+          break
+        end
+        if token[0] == ';' || token[0] == '}' then
+          @prev_block_end = true
+        else
+          @prev_block_end = false
+        end
+        token = @q.shift
+      end
+    end
 
     if token then
       @@current_locale[@@generator_nest] = token[1].locale
@@ -1014,8 +1047,8 @@ end
   end
 
   def set_no_type_name b_no_type_name
-    locale = @@current_locale[ @@generator_nest ]
-#print "b_no_type_name=#{b_no_type_name} #{locale[0]}: line #{locale[1]}\n"
+    # locale = @@current_locale[ @@generator_nest ]
+    # print "b_no_type_name=#{b_no_type_name} #{locale[0]}: line #{locale[1]}\n"
     @b_no_type_name = b_no_type_name
   end
 

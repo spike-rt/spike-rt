@@ -67,6 +67,7 @@
 #include "t_syslog.h"
 
 MRB_API mrb_state* mrb_open_TECS( CELLCB *p_cellcb);
+static mrb_value mrb_run__(mrb_state *mrb, struct RProc *proc, mrb_value self);
 
 #ifndef E_OK
 #define	E_OK	0		/* success */
@@ -134,7 +135,7 @@ eMrubyVM_run(CELLIDX idx)
 	} /* end if VALID_IDX(idx) */
 
 	/* ここに処理本体を記述します #_TEFB_# */
-  mrb_run(VAR_mrb, VAR_rproc, mrb_top_self(VAR_mrb));
+  mrb_run__(VAR_mrb, VAR_rproc, mrb_top_self(VAR_mrb));
   if (VAR_mrb->exc) {
     mrb_p(VAR_mrb, mrb_obj_value(VAR_mrb->exc));
     return false;
@@ -218,6 +219,22 @@ mrb_open_TECS( CELLCB *p_cellcb)
     return mrb_open_allocf(mrb_TECS_allocf, (void *)p_cellcb);
 };
 
+// mruby V3.0.0 から mrb_run が非公開となったため、代わりをこちらに記述する
+// mruby 3.0.0 の state.c mrb_run のソースコードを参考にしている。
+// mrb_state(mrb) の中を直接のぞくのは、お行儀のよくないので、
+// mrb->c->ci->argc == 0 を仮定して呼び出す
+static mrb_value
+mrb_run__(mrb_state *mrb, struct RProc *proc, mrb_value self)
+{
+  // syslog( LOG_NOTICE, "nMruby_tMruby.c: mrb_run: argc=%d",mrb->c->ci->argc );
+
+// mruby の state.c より
+// mrb->c->ci->argc == 0 を仮定
+  return mrb_vm_run(mrb, proc, self, 2); /* argc + 2 (receiver and block) */
+}
+
+// ダミーを外す
+#if 0
 /*** ダミー関数 ***/
 #ifndef EV3_SOUND
 void _write(){}
@@ -233,4 +250,4 @@ void _read(){}
 //void _kill(){}
 void _gettimeofday(){}
 void _fini(){}
-
+#endif

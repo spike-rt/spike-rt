@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2018 by TOPPERS Project
+#   Copyright (C) 2008-2021 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#  $Id: HRPRPCPlugin.rb 2952 2018-05-07 10:19:07Z okuma-top $
+#  $Id: HRPRPCPlugin.rb 3241 2021-11-21 12:06:12Z okuma-top $
 #++
 
 require_tecsgen_lib "lib/GenOpaqueMarshaler.rb"
@@ -55,6 +55,7 @@ class HRPRPCPlugin < ThroughPlugin
   HRPRPCPluginArgProc[ "noClientSemaphore"  ] = Proc.new { |obj,rhs| obj.set_noClientSemaphore rhs }
   HRPRPCPluginArgProc[ "semaphoreCelltype"  ] = Proc.new { |obj,rhs| obj.set_semaphoreCelltype rhs }
   @@isFirstInstance = true
+  @@class_generated_region = {}     # { Region(parent) => region_name(generating) }
 
   #=== RPCPlugin の initialize
   #  説明は ThroughPlugin (plugin.rb) を参照
@@ -128,6 +129,7 @@ class HRPRPCPlugin < ThroughPlugin
     # 同じ内容を二度書く可能性あり (AppFile は不可)
 
     f.print <<EOT
+/* HRPRPCPlugin:000 */
 import( <rpc.cdl> );
 import( <tMessageBufferCEP.cdl> );
 generate( OpaqueMarshalerPlugin, #{@signature.get_namespace_path}, "" );
@@ -159,10 +161,17 @@ EOT
   def gen_through_cell_code( file )
 
     gen_plugin_decl_code( file )
+
     file.print <<EOT
+/* HRPRPCPlugin:000
+ * caller_cell:#{@caller_cell.get_namespace_path}
+ * next_cell:#{@next_cell.get_namespace_path}
+ */ 
 import( <#{@rpc_channel_celltype_file_name}> );
 EOT
 
+    # MessageBuffer チャンネルの生成 (OutOfDomain に生成)
+    # アクセス許可ベクタの作成 (呼び元、呼び先のドメインからアクセス可能)
     case @start_region.get_domain_root.get_domain_type.get_kind
     when :kernel
       tacp_str = "\"TACP_KERNEL"
@@ -180,59 +189,77 @@ EOT
     when :OutOfDomain
       tacp_str += "|TACP_SHARED\""
     end
-    nest_str = ""
+
+    node_root = @end_region.get_node_root
+    nest = node_root.gen_region_str_pre file
+    nest = print_class_region_str_pre node_root, file, nest
+    nest_str = "    " * nest
+
+    # MessageBuffer Client->Server
     file.print <<EOT
-#{nest_str}  //  MessageBuffer client=>server
-#{nest_str}  cell tMessageBuffer #{@clientChannelCell}Body0{
-#{nest_str}      maxMessageSize = 64;      /* This value must be same as MessageBufferCEP's buffer size */
-#{nest_str}      bufferSize     = 128;
-#{nest_str}      accessPattern1 = C_EXP( #{tacp_str} );
-#{nest_str}      accessPattern2 = C_EXP( #{tacp_str} );
-#{nest_str}      accessPattern3 = C_EXP( #{tacp_str} );
-#{nest_str}      accessPattern4 = C_EXP( #{tacp_str} );
-#{nest_str}  };
+#{nest_str}/* HRPRPCPlugin001 */
+#{nest_str}//  MessageBuffer client=>server
+#{nest_str}cell tMessageBuffer #{@clientChannelCell}Body0{
+#{nest_str}    maxMessageSize = 64;      /* This value must be same as MessageBufferCEP's buffer size */
+#{nest_str}    bufferSize     = 128;
+#{nest_str}    accessPattern1 = C_EXP( #{tacp_str} );
+#{nest_str}    accessPattern2 = C_EXP( #{tacp_str} );
+#{nest_str}    accessPattern3 = C_EXP( #{tacp_str} );
+#{nest_str}    accessPattern4 = C_EXP( #{tacp_str} );
+#{nest_str}};
 EOT
+    # MessageBuffer Server->Client
     file.print <<EOT
 
-#{nest_str}  //  MessageBuffer server=>client
-#{nest_str}  cell tMessageBuffer #{@clientChannelCell}Body1{
-#{nest_str}      maxMessageSize = 64;      /* This value must be same as MessageBufferCEP's buffer size */
-#{nest_str}      bufferSize     = 128;
-#{nest_str}      accessPattern1 = C_EXP( #{tacp_str} );
-#{nest_str}      accessPattern2 = C_EXP( #{tacp_str} );
-#{nest_str}      accessPattern3 = C_EXP( #{tacp_str} );
-#{nest_str}      accessPattern4 = C_EXP( #{tacp_str} );
-#{nest_str}  };
+#{nest_str}/* HRPRPCPlugin002 */
+#{nest_str}//  MessageBuffer server=>client
+#{nest_str}cell tMessageBuffer #{@clientChannelCell}Body1{
+#{nest_str}    maxMessageSize = 64;      /* This value must be same as MessageBufferCEP's buffer size */
+#{nest_str}    bufferSize     = 128;
+#{nest_str}    accessPattern1 = C_EXP( #{tacp_str} );
+#{nest_str}    accessPattern2 = C_EXP( #{tacp_str} );
+#{nest_str}    accessPattern3 = C_EXP( #{tacp_str} );
+#{nest_str}    accessPattern4 = C_EXP( #{tacp_str} );
+#{nest_str}};
 EOT
+    nest -= 1
+    print_class_region_str_post node_root, file, nest
+    node_root.gen_region_str_post file
 
     ##### クライアント側のセルの生成 #####
     nest = @start_region.gen_region_str_pre file
-    nest_str = "  " * nest
+    nest = print_class_region_str_pre @start_region, file, nest
+    nest_str = "    " * nest
 
     # セマフォの生成
     if @b_noClientSemaphore == false then
       file.print <<EOT
-#{nest_str}  //  Semaphore for Multi-task use ("specify noClientSemaphore" option to delete this)
-#{nest_str}  cell #{@semaphoreCelltype} #{@serverChannelCell}_Semaphore{
+
+/* HRPRPCPlugin003 */
+#{nest_str}//  Semaphore for Multi-task use ("specify noClientSemaphore" option to delete this)
+#{nest_str}cell #{@semaphoreCelltype} #{@serverChannelCell}_Semaphore{
 #{nest_str}    initialCount = 1;
-#{nest_str}  };
+#{nest_str}};
 EOT
     end
 
     # クライアント側チャンネル (tMessageBufferCEP)の生成
     # チャンネルは必ずリージョン下にあるので、 '::' でつなぐ (でなければ、ルートリージョンにないかチェックが必要）
 
+    # node_root が OutOfDomain でない場合、恐らく問題がある ***
+    class_path = get_default_class_region_path @end_region.get_node_root
     file.print <<EOT
-#{nest_str}  //  Client Side Channel
-#{nest_str}  cell tMessageBufferCEP #{@clientChannelCell}_CEP{
-#{nest_str}      cMessageBuffer0 = #{@clientChannelCell}Body0.eMessageBuffer;
-#{nest_str}      cMessageBuffer1 = #{@clientChannelCell}Body1.eMessageBuffer;
-#{nest_str}  };
+/* HRPRPCPlugin004 */
+#{nest_str}//  Client Side Channel
+#{nest_str}cell tMessageBufferCEP #{@clientChannelCell}_CEP{
+#{nest_str}    cMessageBuffer0 = #{class_path}#{@clientChannelCell}Body0.eMessageBuffer;
+#{nest_str}    cMessageBuffer1 = #{class_path}#{@clientChannelCell}Body1.eMessageBuffer;
+#{nest_str}};
 
-#{nest_str}  //  Client Side TDR
-#{nest_str}  cell tTDR #{@clientChannelCell}_TDR{
+#{nest_str}//  Client Side TDR
+#{nest_str}cell tTDR #{@clientChannelCell}_TDR{
 #{nest_str}    cChannel = #{@clientChannelCell}_CEP.eChannel;
-#{nest_str}  };
+#{nest_str}};
 
 #{nest_str}  //  Marshaler
 EOT
@@ -285,17 +312,22 @@ EOT
     end
 
     file.print <<EOT
-#{nest_str}  cell tOpaqueMarshaler_#{@signature.get_global_name}_through #{@cell_name} {
+/* HRPRPCPlugin005 */
+#{nest_str}cell tOpaqueMarshaler_#{@signature.get_global_name}_through #{@cell_name} {
 #{nest_str}    cTDR = #{@clientChannelCell}_TDR.eTDR;
-#{clientErrorHandler_str}#{semaphore}#{nest_str}  };
+#{clientErrorHandler_str}#{semaphore}#{nest_str}};
 EOT
+
     ### END: クライアント側チャンネル (マーシャラ+TDR)の生成 ###
+    nest -= 1
+    print_class_region_str_post @start_region, file, nest
     @start_region.gen_region_str_post file
     file.print "\n\n"
 
     ##### サーバー側のセルの生成 #####
     nest = @end_region.gen_region_str_pre file
-    nest_str = "  " * nest
+    nest = print_class_region_str_pre @end_region, file, nest
+    nest_str = "    " * nest
 
     if @serverErrorHandler then
       serverErrorHandler_str = "#{nest_str}    cErrorHandler = #{@serverErrorHandler};\n"
@@ -313,9 +345,9 @@ EOT
     if @PPAllocatorSize then
       alloc_cell =<<EOT
 
-#{nest_str}  cell tPPAllocator #{@serverChannelCell}_PPAllocator {
+#{nest_str}cell tPPAllocator #{@serverChannelCell}_PPAllocator {
 #{nest_str}    heapSize = #{@PPAllocatorSize};
-#{nest_str}  };
+#{nest_str}};
 EOT
       alloc_call_port_join = "#{nest_str}    cPPAllocator = #{@serverChannelCell}_PPAllocator.ePPAllocator;\n"
     else
@@ -324,20 +356,23 @@ EOT
     end
 
     file.print <<EOT
-#{nest_str}  //  Server Side Channel
-#{nest_str}  cell tMessageBufferCEP #{@serverChannelCell}_CEP{
-#{nest_str}      cMessageBuffer0 = #{@clientChannelCell}Body1.eMessageBuffer;
-#{nest_str}      cMessageBuffer1 = #{@clientChannelCell}Body0.eMessageBuffer;
-#{nest_str}  };
+/* HRPRPCPlugin006 */
+#{nest_str}//  Server Side Channel
+#{nest_str}cell tMessageBufferCEP #{@serverChannelCell}_CEP{
+#{nest_str}    cMessageBuffer0 = #{class_path}#{@clientChannelCell}Body1.eMessageBuffer;
+#{nest_str}    cMessageBuffer1 = #{class_path}#{@clientChannelCell}Body0.eMessageBuffer;
+#{nest_str}};
 EOT
 
     # サーバー側TDR
     file.print <<EOT
 
-#{nest_str}  //  Server Side TDR
-#{nest_str}  cell tTDR #{@serverChannelCell}_TDR{
+/* HRPRPCPlugin007 */
+#{nest_str}//  Server Side TDR
+#{nest_str}cell tTDR #{@serverChannelCell}_TDR{
 #{nest_str}    cChannel = #{@serverChannelCell}_CEP.eChannel;
-#{nest_str}  };
+#{nest_str}};
+
 EOT
 
     if @next_cell_port_subscript then
@@ -348,37 +383,114 @@ EOT
 
     # サーバー側チャンネル (アンマーシャラ)
     file.print <<EOT
-#{alloc_cell}
-#{nest_str}  //  Unmarshaler
-#{nest_str}  cell tOpaqueUnmarshaler_#{@signature.get_global_name} #{@serverChannelCell}_Unmarshaler {
+/* HRPRPCPlugin008 */#{alloc_cell}
+#{nest_str}//  Unmarshaler
+#{nest_str}cell tOpaqueUnmarshaler_#{@signature.get_global_name} #{@serverChannelCell}_Unmarshaler {
 #{nest_str}    cTDR        = #{@serverChannelCell}_TDR.eTDR;
 #{nest_str}    cServerCall = #{@next_cell.get_namespace_path.get_path_str}.#{@next_cell_port_name}#{subscript};
-#{alloc_call_port_join}#{serverErrorHandler_str}#{nest_str}  };
+#{alloc_call_port_join}#{serverErrorHandler_str}#{nest_str}};
 EOT
 
     # サーバー側タスクメイン
     file.print <<EOT
 
-#{nest_str}  //  Unmarshaler Task Main
-#{nest_str}  cell #{@taskMainCelltype} #{@serverChannelCell}_TaskMain {
+/* HRPRPCPlugin009 */
+#{nest_str}//  Unmarshaler Task Main
+#{nest_str}cell #{@taskMainCelltype} #{@serverChannelCell}_TaskMain {
 #{nest_str}    cMain         = #{@serverChannelCell}_Unmarshaler.eService;
-#{opener}#{nest_str}  };
+#{opener}#{nest_str}};
 EOT
 
     # サーバー側タスク
     file.print <<EOT
 
-#{nest_str}  //  Unmarshaler Task
-#{nest_str}  cell #{@taskCelltype} #{@serverChannelCell}_Task {
+/* HRPRPCPlugin010 */
+#{nest_str}//  Unmarshaler Task
+#{nest_str}cell #{@taskCelltype} #{@serverChannelCell}_Task {
 #{nest_str}    cTaskBody = #{@serverChannelCell}_TaskMain.eMain;
 #{nest_str}    priority  = #{@taskPriority};
 #{nest_str}    stackSize = #{@stackSize};
 #{nest_str}    attribute = C_EXP( "TA_ACT" );  /* mikan : marshaler task starts at beginning */
-#{nest_str}  };
+#{nest_str}};
 EOT
+    nest -= 1
+    print_class_region_str_post @end_region, file, nest
     @end_region.gen_region_str_post file
   end
 
+  #=== デフォルトのクラス名、クラスリージョン名を返す
+  # デフォルトのクラス名は "CLS_PRC1"
+  # デフォルトのクラスリージョン名は "__CLS_P1_GLOBAL"
+  def get_default_class_and_region region
+    class_type = region.get_class_root.get_class_type
+    if class_type == nil then
+      return "", ""
+    else
+      return "CLS_PRC1", "__CLS_P1_GLOBAL"
+    end
+  end
+
+  #=== OutofDomain なクラスへのパス
+  # region
+  def get_default_class_region_path region
+    class_name, class_region = get_default_class_and_region region
+    if class_region != "" then
+      if region.is_root? then
+        return "::" + class_region + "::"
+      else
+        return region.get_namespace_path.to_s + "::" + class_region + "::"
+      end
+    else
+      return ""
+    end
+  end
+
+  #=== ファイルにクラスリージョンの CDL での定義を出力
+  def print_class_region_str_pre region, file, nest
+    class_type = region.get_class_root.get_class_type
+    if class_type == nil then
+      return nest
+    end
+    klass = class_type.get_option
+    dbgPrint "HRPRPCPlugin#print_class_region_str_pre class_type=#{class_type.get_name} class=#{klass}\n"
+    print  "HRPRPCPlugin#print_class_region_str_pre class_type=#{class_type.get_name} class=#{klass}\n"
+
+    nest_str = "    " * nest
+    if klass == :root then
+      klass, region_name = get_default_class_and_region region
+    else
+      return nest
+    end
+    region_name = region_name.to_s
+    if region.is_root? then
+      nsp = "::" + region_name
+    else
+      nsp = region.get_namespace_path.to_s + "::" + region_name
+    end
+    file.print "#{nest_str}/* HRPRPCPlugin011 */\n"
+    region_namespacepath = NamespacePath.analyze( nsp )
+    first = false
+    if Namespace.find( region_namespacepath ) == nil then
+      file. print "#{nest_str}[class(#{class_type.get_name},\"#{klass}\")]\n"
+      first = true
+    end
+    dbgPrint "HRPRPCPlugin: In class class_type=#{class_type.class.name} class=#{klass} region=#{region.get_class_root.get_name} nsp=#{nsp} first=#{first}\n"
+    file.print "#{nest_str}region #{region_name}{\n"
+    return nest + 1
+  end
+
+  def print_class_region_str_post region, file, nest
+    class_type = region.get_class_root.get_class_type
+    if class_type == nil then
+      return
+    end
+    klass = class_type.get_option
+    if klass != :root then
+      return
+    end
+    nest_str = "    " * nest
+    file.print "#{nest_str}};\n"
+  end
 
   #=== プラグイン引数 noClientSemaphore のチェック
   def set_noClientSemaphore rhs
@@ -407,6 +519,10 @@ EOT
   def get_cell_namespace_path
 #    nsp = @region.get_namespace.get_namespace_path
     nsp = @start_region.get_namespace_path
+    class_path, class_region = get_default_class_and_region @start_region
+    if class_region != "" then
+      nsp = nsp.append( class_region.to_sym )
+    end
     return nsp.append( @cell_name )
   end
 

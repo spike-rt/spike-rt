@@ -74,9 +74,15 @@ eTDR_reset(CELLIDX idx)
 	else {
 		return(E_ID);
 	}
-  (void)p_cellcb;   // to avoid unused warning
+ 	(void)p_cellcb;   // to avoid unused warning
 
-	syslog( LOG_INFO, "TDR: resetting channel" );
+#ifdef RPC_DEBUG
+	{
+	    ID		task_id;
+	    (void)get_tid( &task_id );   // これがとれないことは、タスクコンテキストで動いている限り、ありえないハズ
+	    syslog( LOG_INFO, "TDR: resetting channel task_id=%d", task_id );
+	}
+#endif
 	ercd = cChannel_reset();
 	return(ercd);
 }
@@ -102,7 +108,7 @@ eTDR_sendSOP(CELLIDX idx, bool_t b_client )
 	else {
 		return(E_ID);
 	}
-  (void)p_cellcb;   // to avoid unused warning
+  	(void)p_cellcb;   // to avoid unused warning
 
 	/* ここに処理本体を記述します #_TEFB_# */
 #ifdef RPC_DEBUG
@@ -121,12 +127,12 @@ eTDR_sendSOP(CELLIDX idx, bool_t b_client )
 
 	val = (uint8_t)(*((uint8_t *)p_sopMagic));
 	ercd = eTDR_putUInt8( idx, val );
-	// syslog( LOG_INFO, "sendSOP:1 %02X", val );
+	// syslog( LOG_INFO, "sendSOP:1 %02X ercd=%d", val, ercd );
 	if( ercd != E_OK )
 		return	ercd;
 	val = (uint8_t)*(((uint8_t *)p_sopMagic)+1);
 	ercd = eTDR_putUInt8( idx, val );
-	// syslog( LOG_INFO, "sendSOP:2 %02X", val );
+	// syslog( LOG_INFO, "sendSOP:2 %02X ercd=%d", val, ercd );
 
 	return	ercd;
 }
@@ -177,8 +183,10 @@ eTDR_receiveSOP(CELLIDX idx, bool_t b_client)
 		ercd = E_MAGIC;
 	}
 
+#ifdef RPC_DEBUG
 	if( ercd != E_OK )
-		syslog( LOG_INFO, "receiveSOP: ERCD=%d", ercd );
+	 	syslog( LOG_INFO, "receiveSOP: ERCD=%d", ercd );
+#endif
 
 	return ercd;
 }

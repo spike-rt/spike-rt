@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2018 by TOPPERS Project
+#   Copyright (C) 2008-2020 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: GenOpaqueMarshaler.rb 3064 2019-03-18 10:21:52Z okuma-top $
+#   $Id: GenOpaqueMarshaler.rb 3176 2020-10-25 08:07:05Z okuma-top $
 #++
 
 #== GenOpaqueMarshaler
@@ -279,7 +279,8 @@ module GenOpaqueMarshaler
   def initialize_opaque_marshaler
 
     # オプション設定される変数のデフォルトを設定
-    @taskPriority = 11
+    # @taskPriority = 11
+    @taskPriority = 9
     @stackSize  = 4096
     @serverChannelCelltype = :"tSocketServer"
     @clientChannelCelltype = :"tSocketClient"
@@ -294,7 +295,7 @@ module GenOpaqueMarshaler
     @substituteAllocator = {}
     @noServerChannelOpenerCode = false
     @semaphoreCelltype = :"tSemaphore"
-    @semaphoreInitializer = :"count = 1; attribute = C_EXP( \"TA_NULL\" ); ";
+    @semaphoreInitializer = :"initialCount = 1; attribute = C_EXP( \"TA_NULL\" ); ";
     @clientErrorHandler = nil
     @serverErrorHandler = nil
     @b_genOpener = false
@@ -303,6 +304,10 @@ module GenOpaqueMarshaler
     @marshaler_celltype_name = :"tOpaqueMarshaler_#{@signature.get_global_name}"
     @unmarshaler_celltype_name = :"tOpaqueUnmarshaler_#{@signature.get_global_name}"
     @marshaler_celltype_file_name = "#{$gen}/#{@marshaler_celltype_name}.cdl"
+
+    if @signature.get_context != "task" then
+      cdl_error( "OPQ9999 context of signature ($1) must be 'task'. $2 is not compatible with RPCPlugin", @signature.get_name, @signature.get_context )
+    end
 
     # signature で対応できないものをチェック
     @signature.each_param{ |func_decl, param_decl|
@@ -362,7 +367,7 @@ module GenOpaqueMarshaler
     end
 
     f.print <<EOT
-
+// GenOpaqueMarshler0001
 celltype #{@marshaler_celltype_name} {
   entry #{@signature.get_namespace_path} eClientEntry;
   call sTDR       cTDR;
@@ -403,6 +408,7 @@ EOT
     # 関数の戻り値の元の型を得る(typedef されている場合)
     type = func_type.get_type.get_original_type
 
+    file.print( "\t// GenOpaqueMarshler0010\n" )
     # 戻り値記憶用の変数を出力（void 型の関数では出力しない）
     if ! type.is_void? then
       file.print( "\t#{func_type.get_type.get_type_str}\t\tretval_;\n" )
@@ -460,8 +466,7 @@ EOT
 
     # channel lock コード
     file.print <<EOT
-
-	/* Channel Lock */
+	/* Channel Lock (GenOpaqueMarshler0012) */
 	SET_RPC_STATE( state_, RPCSTATE_CLIENT_GET_SEM );
 	if( is_cLockChannel_joined() ){
 		if( (ercd_=cLockChannel_wait()) != E_OK )
@@ -470,13 +475,13 @@ EOT
 EOT
 
     # SOP を送信
-    file.print "	/* SOPの送出 */\n"
+    file.print "	/* SOPの送出 (GenOpaqueMarshler0013) */\n"
     file.print "	SET_RPC_STATE( state_, RPCSTATE_CLIENT_SEND_SOP );\n"
     file.print "	if( ( ercd_ = cTDR_sendSOP( true ) ) != E_OK )\n"
     file.print "		goto error_reset;\n"
 
     # func_id を送信
-    file.print "	/* 関数 id の送出 */\n"
+    file.print "	/* 関数 id の送出 (GenOpaqueMarshler0014) */\n"
     file.print "	if( ( ercd_ = cTDR_putInt16( func_id_ ) ) != E_OK )\n"
     file.print "		goto error_reset;\n"
 
@@ -488,7 +493,7 @@ EOT
 
     # in 方向の入出力を出力
     if func_type.has_inward? then
-      file.print "	/* 入力引数送出 */\n"
+      file.print "	/* 入力引数送出 (GenOpaqueMarshler0015) */\n"
       file.print "	SET_RPC_STATE( state_, RPCSTATE_CLIENT_SEND_BODY );\n"
       print_params( params, file, 1, b_marshal, b_get, true, "eClientEntry", func_name )
       print_params( params, file, 1, b_marshal, b_get, false, "eClientEntry", func_name )
@@ -500,14 +505,14 @@ EOT
     else
       b_continue = "false"
     end
-    file.print "	/* EOPの送出（パケットの掃きだし） */\n"
+    file.print "	/* EOPの送出（パケットの掃きだし）(GenOpaqueMarshler0016) */\n"
     file.print "	SET_RPC_STATE( state_, RPCSTATE_CLIENT_SEND_EOP );\n"
     file.print "	if( (ercd_=cTDR_sendEOP(#{b_continue})) != E_OK )\n"
     file.print "		goto error_reset;\n\n"
 
     # send のメモリをデアロケート
     if func_type.has_send? then
-      file.print "	/* dealloc send parameter while executing */\n"
+      file.print "	/* dealloc send parameter while executing (GenOpaqueMarshler0017) */\n"
       file.print "	SET_RPC_STATE( state_, RPCSTATE_CLIENT_EXEC );\n"
       dir = :SEND; nest = 1; dealloc_cp = "eClientEntry_#{func_name}"
       dealloc_for_params( params, file, nest, dir, dealloc_cp )
@@ -516,13 +521,13 @@ EOT
 
     if ! func_type.is_oneway? then
 
-      file.print "	/* パケットの始まりをチェック */\n"
+      file.print "	/* パケットの始まりをチェック (GenOpaqueMarshler0018) */\n"
       file.print "	SET_RPC_STATE( state_, RPCSTATE_CLIENT_RECV_SOP );\n"
       file.print "	if( (ercd_=cTDR_receiveSOP( true )) != E_OK )\n"
       file.print "		goto error_reset;\n"
 
       b_get = true     # marshaler は get
-      file.print "	/* 戻り値の受け取り */\n"
+      file.print "	/* 戻り値の受け取り (GenOpaqueMarshler0019) */\n"
       print_param( "retval_", func_type.get_type, file, 1, :RETURN, nil, nil, b_marshal, b_get )
 
       if func_type.has_outward? then
@@ -534,7 +539,7 @@ EOT
         end
         indent = "	" * indent_level
 
-        file.print "#{indent}/* 出力値の受け取り */\n"
+        file.print "#{indent}/* 出力値の受け取り (GenOpaqueMarshler0020) */\n"
         file.print "#{indent}SET_RPC_STATE( state_, RPCSTATE_CLIENT_RECV_BODY );\n"
         print_params( params, file, indent_level, b_marshal, b_get, true, "eClientEntry", func_name )
         print_params( params, file, indent_level, b_marshal, b_get, false, "eClientEntry", func_name )
@@ -544,16 +549,16 @@ EOT
         end
       end
 
-      file.print "\n	/* パケットの終わりをチェック */\n"
+      file.print "\n	/* パケットの終わりをチェック (GenOpaqueMarshler0021) */\n"
       file.print "	SET_RPC_STATE( state_, RPCSTATE_CLIENT_RECV_EOP );\n"
       file.print "	if( (ercd_=cTDR_receiveEOP(false)) != E_OK )\n"  # b_continue = false
       file.print "		goto error_reset;\n"
 
     end # ! func_type.is_oneway?
 
-    # channel lock コード
+    # channel unlock コード
     file.print <<EOT
-	/* Channel Unlock */
+	/* Channel Unlock (GenOpaqueMarshler0022) */
 	SET_RPC_STATE( state_, RPCSTATE_CLIENT_RELEASE_SEM );
 	if( is_cLockChannel_joined() ){
 		if( (ercd_=cLockChannel_signal()) != E_OK )
@@ -562,7 +567,7 @@ EOT
 EOT
 
     file.print <<EOT
-	/* state_ is not used in normal case */
+	/* state_ is not used in normal case (GenOpaqueMarshler0023) */
   /* below is to avoid 'set but not used' warnning */
 	(void)state_;
 EOT
@@ -580,7 +585,7 @@ error_reset:
 EOT
     # send のメモリをデアロケート
     if func_type.has_send? then
-      file.print "	/* dealloc send parameter */\n"
+      file.print "	/* dealloc send parameter (GenOpaqueMarshler0024) */\n"
       file.print "	if( state_ < RPCSTATE_CLIENT_EXEC ){\n"
       dir = :SEND; nest = 2; dealloc_cp = "eClientEntry_#{func_name}"
       dealloc_for_params( params, file, nest, dir, dealloc_cp )
@@ -589,7 +594,7 @@ EOT
 
     # receive のメモリをデアロケート
     if func_type.has_receive? then
-      file.print( "	/* receive parameter */\n" )
+      file.print( "	/* receive parameter (GenOpaqueMarshler0025) */\n" )
       dir = :RECEIVE; nest = 1; dealloc_cp = "eClientEntry_#{func_name}"
       dealloc_for_params( params, file, nest, dir, dealloc_cp, true )
     end
@@ -601,7 +606,7 @@ EOT
 
     # channel lock コード
     file.print <<EOT
-	/* Channel Unlock */
+	/* Channel Unlock (GenOpaqueMarshler0026) */
 	if( is_cLockChannel_joined() )
 		cLockChannel_signal();
 
@@ -611,9 +616,9 @@ EOT
 
     if( b_ret_er != false )then
       # 呼び元に戻り値をリターン
-      file.print( "	return ERCD( E_RPC, MERCD( ercd_ ) );\n" )
+      file.print( "	return ERCD( E_RPC, MERCD( ercd_ ) ); /* (GenOpaqueMarshler0027) */\n" )
     else
-      file.print( "	return;\n" )
+      file.print( "	return;/* (GenOpaqueMarshler0028) */\n" )
     end
 
   end
@@ -625,7 +630,7 @@ EOT
 
     # func_id を得るコードを生成
     file.print <<EOT
-
+  /* (GenOpaqueMarshler0101) */
 	int16_t	func_id_;
 	ER		ercd_ = E_OK;
 	int16_t	state_;
@@ -652,6 +657,7 @@ EOT
 
     file.print <<EOT
 
+  /* (GenOpaqueMarshler0102) */
 #ifdef RPC_DEBUG
 	syslog(LOG_INFO, "Entering RPC service loop" );
 #endif
@@ -667,6 +673,7 @@ EOT
 #ifdef RPC_DEBUG
 	syslog(LOG_INFO, "unmarshaler task: func_id: %d", func_id_ );
 #endif
+  /* (GenOpaqueMarshler0103) */
 	switch( func_id_ ){
 EOT
 
@@ -690,6 +697,7 @@ EOT
     end
 
     file.print <<EOT
+  /* (GenOpaqueMarshler0104) */
 	default:
 		syslog(LOG_INFO, "unmarshaler task: ERROR: unknown func_id: %d", func_id_ );
 		ercd_ = E_ID;
@@ -715,7 +723,7 @@ EOT
     end
 
     # string.h の include (memset, strlen のため)
-    file.print "/* header file (strlen, memset) */\n"
+    file.print "/* header file (strlen, memset) (GenOpaqueMarshler0201) */\n"
     file.print "#include\t<string.h>\n\n"
 
     file.print "/* アンマーシャラ関数のプロトタイプ宣言 */\n"
@@ -736,7 +744,7 @@ EOT
       return
     end
 
-    file.print "\n/*** アンマーシャラ関数 ***/\n\n"
+    file.print "\n/*** アンマーシャラ関数 (GenOpaqueMarshler0301) ***/\n\n"
     @signature.get_function_head_array.each { |f|
       f_name = f.get_name
       f_type = f.get_declarator.get_type
@@ -756,6 +764,7 @@ EOT
       end
 
       file.print <<EOT
+/* (GenOpaqueMarshler0302)  */
 /*
  * name:    #{f_name}
  * func_id: #{id} 
@@ -806,7 +815,7 @@ EOT
       end
 
       # in 方向の入出力を入力
-      file.print "\n	/* 入力引数受取 */\n"
+      file.print "\n	/* 入力引数受取 (GenOpaqueMarshler0303) */\n"
       file.print "	SET_RPC_STATE( *state_, RPCSTATE_SERVER_RECV_BODY );\n"
       b_get = true    # unmarshal では get
       b_marshal  = false
@@ -816,7 +825,7 @@ EOT
 
 
       # パケットの受信完了
-      file.print "	/* パケット終わりをチェック */\n"
+      file.print "	/* パケット終わりをチェック (GenOpaqueMarshler0304) */\n"
       file.print "	SET_RPC_STATE( *state_, RPCSTATE_SERVER_RECV_EOP );\n"
       if ! f_type.is_oneway? then
         b_continue = "true"
@@ -831,7 +840,7 @@ EOT
       alloc_for_out_params( params, file, nest, dir, alloc_cp, alloc_cp_extra )
 
       # 対象関数を呼出す
-      file.print "	/* 対象関数の呼出し */\n"
+      file.print "	/* 対象関数の呼出し (GenOpaqueMarshler0305) */\n"
       file.print "	SET_RPC_STATE( *state_, RPCSTATE_SERVER_EXEC );\n"
       if b_void then
         file.print( "	cServerCall_#{f_name}(" )
@@ -855,7 +864,7 @@ EOT
       # oneway の場合出力、戻り値が無く、受取を待たない（非同期な呼出し）
       if ! f.is_oneway? then
 
-        file.print "\n	/* SOPの送出 */\n"
+        file.print "\n	/* SOPの送出 (GenOpaqueMarshler0306) */\n"
         file.print "	SET_RPC_STATE( *state_, RPCSTATE_SERVER_SEND_SOP );\n"
 
         file.print "	if( ( ercd_ = cTDR_sendSOP( false ) ) != E_OK )\n"
@@ -876,7 +885,7 @@ EOT
           end
           indent = "	" * indent_level
 
-          file.print "#{indent}/* 出力値の送出 */\n"
+          file.print "#{indent}/* 出力値の送出 (GenOpaqueMarshler0307) */\n"
           file.print "#{indent}SET_RPC_STATE( *state_, RPCSTATE_SERVER_SEND_BODY );\n"
           print_params( params, file, indent_level, b_marshal, b_get, true, "cServerCall", f_name )
           print_params( params, file, indent_level, b_marshal, b_get, false, "cServerCall", f_name )
@@ -893,7 +902,7 @@ EOT
           end
         end
 
-        file.print "	/* パケットの終わり（掃きだし） */\n"
+        file.print "	/* パケットの終わり（掃きだし） (GenOpaqueMarshler0308) */\n"
         file.print "	SET_RPC_STATE( *state_, RPCSTATE_SERVER_SEND_EOP );\n"
         file.print "	if( (ercd_=cTDR_sendEOP(false)) != E_OK )\n"  # b_continue = false
         file.print "		goto error_reset;\n"
@@ -906,7 +915,7 @@ error_reset:
 EOT
       # send のリセット用デアロケート
       if f_type.has_send? then
-        file.print "	/* dealloc send parameter */\n"
+        file.print "	/* dealloc send parameter (GenOpaqueMarshler0309) */\n"
         file.print "	if( *state_ < RPCSTATE_SERVER_EXEC ){\n"
         dir = :SEND; indent_level = 2; dealloc_cp = "cServerCall_#{f_name}"
         dealloc_for_params( params, file, indent_level, dir, dealloc_cp, true )
@@ -915,7 +924,7 @@ EOT
 
       # receive のメモリをデアロケート
       if f_type.has_receive? && b_ret_er then
-        file.print "	/* dealloc receive parameter */\n"
+        file.print "	/* dealloc receive parameter (GenOpaqueMarshler0310) */\n"
         file.print "	if( MERCD( retval_ ) != E_RPC ){\n"
         dir = :RECEIVE; indent_level = 2; dealloc_cp = "cServerCall_#{f_name}"
         dealloc_for_params( params, file, indent_level, dir, dealloc_cp )
@@ -1017,6 +1026,7 @@ EOT
 
         # size_is に max 指定がある場合、length が max を超えているかチェックするコードを生成
         if org_type.get_max != nil && string == nil then
+          file.print "#{indent}/* (GenOpaqueMarshler0401) */\n"
           file.print "#{indent}if( #{len} > #{type.get_max} ){\t/* GenOpaqueMarshaler max check 2 */\n"
           file.print "#{indent}	ercd_ = E_PAR;\n"
           file.print "#{indent}	goto error_reset;\n"
@@ -1024,12 +1034,13 @@ EOT
         end
 
         file.print <<EOT
+#{indent}/* (GenOpaqueMarshler0402) */
 #{indent}if((ercd_=#{alloc_cp}(sizeof(#{type.get_type.get_type_str}#{type.get_type.get_type_str_post})*#{len},(void **)&#{outer}#{name}#{outer2}#{alloc_cp_extra}))!=E_OK)\t/* GenOpaqueMarshaler 1 */
 #{indent}	goto error_reset;
 EOT
 
         if type.get_type.kind_of? PtrType then
-          file.print "#{indent}{\n"
+          file.print "#{indent}{  /* (GenOpaqueMarshler0403) */\n"
           file.print "#{indent}	#{loop_counter_type.get_type_str}  i__#{nest}, length__#{nest} = #{len};\n"
           file.print "#{indent}	for( i__#{nest} = 0; i__#{nest} < length__#{nest}; i__#{nest}++ ){\n"
           alloc_for_out_param( name, type.get_type, file, nest + 2, outer, "#{outer2}[i__#{nest}]", alloc_cp, alloc_cp_extra )
@@ -1039,6 +1050,7 @@ EOT
 
       else
         file.print <<EOT
+#{indent}/* (GenOpaqueMarshler0404) */
 #{indent}if((ercd_=#{alloc_cp}(sizeof(#{type.get_type.get_type_str}#{type.get_type.get_type_str_post}),(void **)&#{outer}#{name}#{outer2}#{alloc_cp_extra}))!=E_OK)\t/* GenOpaqueMarshaler 2 */
 #{indent}	goto error_reset;
 EOT

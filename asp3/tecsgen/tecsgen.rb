@@ -4,7 +4,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2019 by TOPPERS Project
+#   Copyright (C) 2008-2021 by TOPPERS Project TECS WG
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -40,6 +40,10 @@
 
 #= tecsgen  : TECS のジェネレータ
 #
+# TECS ジェネレータは TOPPERS プロジェクトの TECS WG により
+# 開発されています。TECS ジェネレータの開発に関わった/関わっている
+# 人は、以下の通りです。
+#
 #Authors::    石川　拓也(HRP2Plugin)
 #Authors::    原　　拓(動的結合仕様)
 #Authors::    河田　智明(NotifierPlugin)
@@ -53,8 +57,6 @@
 #Authors::    安積　卓也(ASP+TECS, EV3RT+TECS, mruby on TECS等実装)
 #  Authors list is in i-ro-ha order.
 #Version::   see version.rb
-$Copyright = "Copyright(c) 2008-2019, TOPPERS project. All rights reserved."
-$License   = "TOPPERS License"
 
 # This doesn't work as expected in exerb version (Ruby 1.8.7?)
 $tecsgen_base_path = File.dirname( File.expand_path __FILE__ )
@@ -532,6 +534,7 @@ class TECSGEN
     require_tecsgen_lib 'tecslib/plugin/SignaturePlugin.rb'
     require_tecsgen_lib 'tecslib/plugin/ThroughPlugin.rb'
     require_tecsgen_lib 'tecslib/plugin/DomainPlugin.rb'
+    require_tecsgen_lib 'tecslib/plugin/ClassPlugin.rb'
     require_tecsgen_lib 'tecslib/plugin/MultiPlugin.rb'
 
     # C 言語パーサ

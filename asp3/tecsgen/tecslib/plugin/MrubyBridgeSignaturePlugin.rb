@@ -33,7 +33,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: MrubyBridgeSignaturePlugin.rb 3077 2019-06-09 07:23:31Z okuma-top $
+#   $Id: MrubyBridgeSignaturePlugin.rb 3225 2021-09-26 05:08:38Z okuma-top $
 #
 
 # Todo:
@@ -291,12 +291,12 @@ class MrubyBridgeSignaturePlugin < SignaturePlugin
       when IntType, FloatType, BoolType
       else
         if @b_auto_exclude then
-          cdl_info( "MRI9999 $1: type $2 not allowed for struct member, $3 automatcally excluded",
+          cdl_info( "MRI9999 $1: type '$2' not allowed for struct member, '$3' automatcally excluded",
                     d.get_name, d.get_type.get_type_str + d.get_type.get_type_str_post, fh.get_name )
           @auto_exclude_list[ fh.get_name ] = fh
           return  # 登録しないように打ち切る
         else
-          cdl_error( "MRB1006 $1: type $2 not allowed for struct member", d.get_name, d.get_type.get_type_str + d.get_type.get_type_str_post )
+          cdl_error( "MRB1006 $1: type '$2' not allowed for struct member", d.get_name, d.get_type.get_type_str + d.get_type.get_type_str_post )
         end
       end
     }

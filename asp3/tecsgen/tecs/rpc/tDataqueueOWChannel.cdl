@@ -60,7 +60,8 @@ composite tDataqueueOWChannel {
 	};
 
 	cell  tDataqueue Dataqueue{
-		count = composite.queueSize;
+		// count = composite.queueSize;	// Gen1
+		dataCount = composite.queueSize;		// Gen3
 
 	};
 	cell  tEventflag Eventflag{

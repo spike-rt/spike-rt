@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2019 by TOPPERS Project
+#   Copyright (C) 2008-2020 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -121,8 +121,10 @@ end
 # celltype_private.h を生成
 
 class Namespace
-  @@domain_gen_factory_list = nil
+  @@domain_gen_factory_list = {}
+  @@class_gen_factory_list = {}
   def generate
+    dbgPrint "Namespace#generate: generating_region=#{$generating_region.get_name} namespace=#{@name} gen_dir=#{$gen}\n"
 
     begin
       # root namespace ならば makefile を出力する(全セルタイプに関わるものだけ)
@@ -135,23 +137,10 @@ class Namespace
           dbgPrint "only makefile_template #{@name}\n"
           return
         end
-        if instance_of? Region then
-          @@domain_gen_factory_list = {}   # create hash
-        end
       end
 
-      dbgPrint "generating region: #{$generating_region.get_name} namespace=#{@name} gen_dir=#{$gen}\n"
       # global_tecsgen.h (typedef, struct, const) の生成
       gen_global_header
-
-      if ( instance_of? Region ) && get_domain_type != nil then
-        # p "*******************  domain_type: #{get_domain_type.get_name}  ****************"
-        domain_type = get_domain_type
-        if @@domain_gen_factory_list[ domain_type ] == nil then
-          @@domain_gen_factory_list[ domain_type ] = self
-          domain_type.gen_factory
-        end
-      end
       
       # signature のコードを生成
       @signature_list.each { |s|
@@ -167,6 +156,22 @@ class Namespace
       @namespace_list.each { |n|
         n.generate
       }
+
+      # ドメインプラグインの gen_factory は、諸々のコードの出た後で呼び出す V1.8
+      if ( instance_of? Region ) 
+        if get_domain_type != nil then
+          if @@domain_gen_factory_list[ $generating_region ] == nil then
+             @@domain_gen_factory_list[ $generating_region ] = self
+            get_domain_type.gen_factory $generating_region
+          end
+        end
+        if get_class_type != nil then
+          if @@class_gen_factory_list[ $generating_region ] == nil then
+             @@class_gen_factory_list[ $generating_region ] = self
+            get_class_type.gen_factory $generating_region
+          end
+        end
+      end
 
     rescue => evar
       # もしスタックトレースが出るまでい時間がかかるようならば、次をコメントアウトしてみるべし
@@ -209,6 +214,7 @@ class Namespace
 ###  
   def gen_global_header
 
+    dbgPrint "gen_global_header region=#{@name} $generating_region=#{$generating_region.get_name}\n"
     # global_tecs.h の生成
     f = AppFile.open( "#{$gen}/global_tecsgen.#{$h_suffix}" )
 
@@ -316,7 +322,8 @@ EOT
   end
 
   def gen_makefile_template
-
+    dbgPrint ("gen_makefile_template: region=#{@name} $generating_region=#{$generating_region.get_name} $gen=#{$gen}\n")
+  
     return if $generate_no_template
 
     ### Makefile.templ の生成
@@ -560,7 +567,7 @@ EOT
 #
 #  TECS_COBJS                .o files of TECS
 #                            = $(TECSGEN_COBJS)+$(PLUGIN_COBJS)+$(CELLTYPE_COBJS)
-#                            = $(TECS_KERNEL_COBJS)+$(TECS_KERNEL_COBJS)+$(TECS_OUTOFDOMAIN_COBJS)
+#                            = $(TECS_KERNEL_COBJS)+$(TECS_USER_COBJS)+$(TECS_OUTOFDOMAIN_COBJS)
 #                            = $(TECSGEN_domain_COBJS)+$(PLUGIN_domain_COBJS)+$(CELLTYPE_domain_COBJS) for each domain
 #
 #  TECSGEN_COBJS             .o files of celltype_tecsgen.c
@@ -573,7 +580,7 @@ EOT
 #  PLUGIN_CELLTYPE_SRCS      .c files of plugin generated celltype.c (celltype code)
 #  PLUGIN_TECSGEN_SRCS       .c files of plugin generated celltype_tecsgen.c
 #
-# Variables for domain
+# Variables for domain (These are defined if domain is specified)
 #  TECS_DOMAINS             domain names
 #  TECS_KERNEL_COBJS        .o files of kernel domain (tecsgen, celltype, plugin)
 #  TECS_USER_COBJS          .o files of user domain (tecsgen, celltype, plugin)
@@ -638,19 +645,31 @@ EOT
     ### set domain variables ###
     domain_type = nil
     domain_regions = nil
-    DomainType.get_domain_regions.each{ |dt, regions|
-      # domain_type は一つのノードには、一つしかないので、このループは、必ず一回しか回らない
-        ###   mikan 複数のノードがあり、異なる domain_type が指定される可能性はある
-      domain_regions = regions
-      domain_type = dt
-    }
+    # print "name=#{@name} node_root=#{@node_root.get_name} generating_region=#{$generating_region.get_name}\n"
+    # DomainType.get_domain_regions($generating_region).each{ |dt, regions|
+    #   # domain_type は一つのノードには、一つしかないので、このループは、必ず一回しか回らない
+    #   ###   mikan linkUnit 内に複数のドメインがある場合、以下の理由で対応できない
+    #   ###   get_domain_regions の引数は node である必要があるが、$generating_region は linkUnit となる可能性がある
+    #   domain_regions = regions
+    #   domain_type = dt
+    # }
+    domain_regions = Celltype.get_domain_class_roots_total.keys
     if domain_regions == nil then
       # in case no 'domain' specified at region
-      domain_regions = [ Region.get_root ]
+      #@ domain_regions = [ Region.get_root ]
+      domain_regions = [ $generating_region ]
+    end
+    if $debug then
+      dbgPrint "domain_regions: "
+      domain_regions.each{ |dr|
+        print dr.get_name, " "
+      }
+      print "\n"
     end
 
     hasDomainProc = Proc.new{
-      if domain_regions.length > 1 || domain_regions[0] != Region.get_root then
+      #@ if domain_regions.length > 1 || domain_regions[0] != Region.get_root then
+      if domain_regions.length > 1 || domain_regions[0] != $generating_region then
         true
       else
         false
@@ -664,7 +683,11 @@ EOT
           dn = ""
         end
       else
-        dn = "_#{region.get_namespace_path.get_global_name}"
+        if hasDomainProc.call  then
+          dn = "_#{region.get_namespace_path.get_global_name}"
+        else
+          dn = ""   # 
+        end
       end
     }
 
@@ -673,11 +696,19 @@ EOT
 
     ### in case domain is used ###
     if hasDomainProc.call then
-
       f.print( "# TECS_DOMAINS: list of domain names (names of 'domain' spacified region)\n" )
       f.print( "TECS_DOMAINS = " )
       domain_regions.each{ |r|
-        if r.get_domain_type.get_option != "OutOfDomain" then
+        if r.get_domain_root.get_domain_type &&
+           r.get_domain_root.get_domain_type.get_option != "OutOfDomain" then
+          f.print( " #{r.get_namespace_path.get_global_name}" )
+        end
+      }
+      f.print( "\n" )
+      f.print( "TECS_CLASS = " )
+      domain_regions.each{ |r|
+        if r.get_class_root.get_class_type &&
+           r.get_class_root.get_class_type.get_option != "OutOfDomain" then
           f.print( " #{r.get_namespace_path.get_global_name}" )
         end
       }
@@ -686,7 +717,8 @@ EOT
       f.print( "# TECS_KERNEL_COBJS: objects belong to kernel domain\n" )
       f.print( "TECS_KERNEL_COBJS = \\\n" )
       domain_regions.each{ |r|
-        if r.get_domain_type.get_kind == :kernel then
+        if r.get_domain_root.get_domain_type &&
+           r.get_domain_root.get_domain_type.get_kind == :kernel then
           f.print( "	$(TECSGEN#{decideDomainNameProc.call r}_COBJS) \\\n" )
           f.print( "	$(PLUGIN#{decideDomainNameProc.call r}_COBJS) \\\n" )
           f.print( "	$(CELLTYPE#{decideDomainNameProc.call r}_COBJS) \\\n" )
@@ -697,7 +729,8 @@ EOT
       f.print( "# TECS_USER_COBJS: objects belong to user domain\n" )
       f.print( "TECS_USER_COBJS = \\\n" )
       domain_regions.each{ |r|
-        if r.get_domain_type.get_kind == :user then
+        if r.get_domain_root.get_domain_type &&
+           r.get_domain_root.get_domain_type.get_kind == :user then
           f.print( "	$(TECSGEN#{decideDomainNameProc.call r}_COBJS) \\\n" )
           f.print( "	$(PLUGIN#{decideDomainNameProc.call r}_COBJS) \\\n" )
           f.print( "	$(CELLTYPE#{decideDomainNameProc.call r}_COBJS) \\\n" )
@@ -708,14 +741,15 @@ EOT
       f.print( "# TECS_OUTOFDOMAIN_COBJS: objects belong to OutOfDomain\n" )
       f.print( "TECS_OUTOFDOMAIN_COBJS = \\\n" )
       domain_regions.each{ |r|
-        if r.get_domain_type.get_kind == :OutOfDomain then
+        if r.get_domain_root.get_domain_type &&
+           r.get_domain_root.get_domain_type.get_kind == :OutOfDomain then
           f.print( "	$(TECSGEN#{decideDomainNameProc.call r}_COBJS) \\\n" )
           f.print( "	$(PLUGIN#{decideDomainNameProc.call r}_COBJS) \\\n" )
           f.print( "	$(CELLTYPE#{decideDomainNameProc.call r}_COBJS) \\\n" )
         end
       }
       f.print( "# TECS_OUTOFDOMAIN_COBJS terminator\n\n" )
-      
+
       f.print( "# TECSGEN_COBJS: objects from sources which are automatically generated by tecsgen\n" )
       f.print( "TECSGEN_COBJS = \\\n" )
       domain_regions.each{ |r|
@@ -844,6 +878,15 @@ EOT
 
   end
 
+  # underscore prepended global name
+  def get_up_global_name
+    if is_root? then
+      ""
+    else
+      "_#{get_global_name}"
+    end
+  end
+
   #=== すべてのセルタイプの名前を出力
   #region:: Region:
   # gen_celltype_names とgen_celltype_names_domain の相違：
@@ -851,26 +894,36 @@ EOT
   #   または、region を含まないが、domain_roots が複数かつルートリージョンの場合、出力する．
   # それ以外は、gen_celltype_names の説明を参照
   def gen_celltype_names_domain( f, prepend, append, domain_type, region, b_plugin, b_inline_only = true )
-    dbgPrint "gen_celltype_names #{@name}\n"
+    dbgPrint "gen_celltype_names namespace=#{@name}\n"
 
     @celltype_list.each { |ct|
       next if ! ct.need_generate?
 #      next if b_inline_only == false && ct.is_all_entry_inline?
       next if b_inline_only == false && ct.is_all_entry_inline? && ! ct.is_active?
       if ( b_plugin && ct.get_plugin ) || ( ! b_plugin && ! ct.get_plugin ) then
-        regions = ct.get_domain_roots[ domain_type ]
-        if regions.include?( region ) then
-          # p "BBB celltype:#{ct.get_name} domain:#{domain_type} append:#{append}"
-          if region.is_root? then
+
+        # regions = ct.get_domain_roots[ domain_type ]
+        regions = ct.get_domain_class_roots2.keys
+        if $debug then
+          dbgPrint "gen_celltype_names_domain: region=#{region.get_name} domain_root=#{region.get_domain_root.get_name} domain_type=#{domain_type}\n"
+          dbgPrint "gen_celltype_names_domain:\n"
+          regions.each{|r| dbgPrint "    ct=#{ct.get_name} region=#{r.get_name} domain_root=#{r.get_domain_root.get_name}, "}
+          dbgPrint "\n"
+        end
+
+        # rdr = region.get_domain_root  # rdr = domain root region of generating region
+        rdr = region  # rdr = domain or class root, sub region
+        if regions.include?( rdr ) then
+          if rdr.is_root? then
             nsp = ""
           else
             nsp = "_#{region.get_namespace_path.get_global_name}"
           end
           f.print " #{prepend}#{ct.get_global_name}#{nsp}#{append}"
-        elsif region.is_root? then
+        elsif rdr.is_link_root? then
           # the case of domain_roots >= 2 && no cell in root region
           if regions.length > 1 then
-            f.print " #{prepend}#{ct.get_global_name}#{append}"
+            f.print " #{prepend}#{ct.get_global_name}#{rdr.get_up_global_name}#{append}"
           end
         end
       end
@@ -879,6 +932,7 @@ EOT
       ns.gen_celltype_names_domain( f, prepend, append, domain_type, region, b_plugin, b_inline_only )
     }
   end
+
   #== Namespace#すべてのセルタイプの名前を出力
   # セルタイプコードのための名前出力
   # gen_celltype_names_domain と gen_celltype_names_domain2 の相違
@@ -895,13 +949,16 @@ EOT
       next if b_inline_only == false && ct.is_all_entry_inline? && ! ct.is_active?
       if ( b_plugin && ct.get_plugin ) || ( ! b_plugin && ! ct.get_plugin ) then
         # p "BBB celltype:#{ct.get_name} domain:#{domain_type} append:#{append}"
-        regions = ct.get_domain_roots[ domain_type ]
-        if regions.include?( region ) && regions.length == 1 then
+        # regions = ct.get_domain_roots[ domain_type ]
+        regions = ct.get_domain_class_roots2
+        # rdr = region.get_domain_root  # rdr = domain root region of generating region
+        rdr = region
+        if regions.include?( rdr ) && regions.length == 1 then
           f.print " #{prepend}#{ct.get_global_name}#{append}"
-        elsif region.is_root? then
+        elsif rdr.is_link_root? then
           # the case of domain_roots >= 2 && no cell in root region
           if regions.length > 1 then
-            f.print " #{prepend}#{ct.get_global_name}#{append}"
+            f.print " #{prepend}#{ct.get_global_name}#{rdr.get_up_global_name}#{append}"
           end
         end
       end
@@ -912,8 +969,9 @@ EOT
   end
 
   #=== Namespace#すべてのシグニチャをたどる
-  def travers_all_signature # ブロック引数 { |signature|  }
-    proc = Proc.new    # このメソッドのブロック引数
+  def travers_all_signature &proc # ブロック引数 { |signature|  }
+    # Ruby3.0: obsolete
+    # proc = Proc.new    # このメソッドのブロック引数
     @signature_list.each{ |sig|
       proc.call sig
     }
@@ -931,8 +989,9 @@ EOT
   end
 
   #=== Namespace#すべてのセルタイプをたどる
-  def travers_all_celltype # ブロック引数 { |celltype|  }
-    proc = Proc.new    # このメソッドのブロック引数
+  def travers_all_celltype &proc # ブロック引数 { |celltype|  }
+    # Ruby3.0: obsolete
+    # proc = Proc.new    # このメソッドのブロック引数
     @celltype_list.each{ |ct|
       proc.call ct
     }
@@ -995,6 +1054,7 @@ class Signature
   end
 
   def generate_signature_header
+    dbgPrint "generate_signature_header signature=#{@name} $generating_region=#{$generating_region.get_name}\n"
     f = AppFile.open("#{$gen}/#{@global_name}_tecsgen.#{$h_suffix}")
 
     print_note f
@@ -1330,34 +1390,29 @@ class Celltype
   def generate_cell_code
     fs = { }
     f = nil
-    @domain_roots.each{ |domain_type_name, regions|
-      regions.each{ |r|
-        if r.is_root? then
-          nsp = ""
-        else
-          nsp = "_#{r.get_namespace_path.get_global_name}"
-        end
-        # p "celltype:#{@name} dn:#{domain_type_name} nsp:#{nsp}"
-        fs[r] = AppFile.open("#{$gen}/#{@global_name}#{nsp}_tecsgen.#{$c_suffix}")
-        if r.is_root? then
-          f = fs[r]
-        end
-      }
+    @domain_class_roots2.keys.each{ |r|
+      if r.is_root? then
+        nsp = ""
+      else
+        nsp = "_#{r.get_namespace_path.get_global_name}"
+      end
+      dbgPrint "celltype:#{@name} nsp:#{nsp} class_root=#{r.get_class_root.get_namespace_path.to_s} domain_root=#{r.get_domain_root.get_namespace_path.to_s}\n"
+      fs[r] = AppFile.open("#{$gen}/#{@global_name}#{nsp}_tecsgen.#{$c_suffix}")
+      if r.is_link_root? then
+        f = fs[r]
+      end
     }
 
     # in case that domain_roots does not include root region
     if f == nil then
-      regions = nil
-      @domain_roots.each{ |domain_type_name, regions_|
-        regions = regions_   # domain_type_name is unique
-      }
-      if regions.length > 1 then 
+      if @domain_class_roots2.keys.length > 1 then 
         # if domain_roots.length >= 2 && no cell in root region
         # shared code are placed in root region
-        f = AppFile.open("#{$gen}/#{@global_name}_tecsgen.#{$c_suffix}")
+        gn = @domain_class_roots2.keys[0].get_link_root.get_up_global_name
+        f = AppFile.open("#{$gen}/#{@global_name}#{gn}_tecsgen.#{$c_suffix}")
       else
         # shared code are placed in unique region
-        f = fs[ regions[0] ]
+        f = fs[ @domain_class_roots2.keys[0] ]
       end
     end
 
@@ -1406,7 +1461,6 @@ class Celltype
     if f then
       f.close
     end
-
   end
 
 #####  celltype header
@@ -2744,12 +2798,12 @@ EOT
         if ! p.is_skelton_useless? then
           # 標準形
           if inib_cb == :INIB && p.is_dynamic? && p.get_array_size != nil && $ram_initializer then
-            f.print( "    struct tag_#{p.get_signature.get_global_name}_VDES #{ptr}#{const2}*#{p.get_name;}_init_;\n" )
+            f.print( "    struct tag_#{p.get_signature.get_global_name}_VDES #{ptr}#{const2}*#{p.get_name;}_init_; /* TCP_1 */\n" )
           end
-          f.print( "    struct tag_#{p.get_signature.get_global_name}_VDES #{ptr}#{const}*#{p.get_name;}#{init};\n" )
+          f.print( "    struct tag_#{p.get_signature.get_global_name}_VDES #{ptr}#{const}*#{p.get_name;}#{init}; /* TCP_2 */\n" )
 #          f.print( "    struct tag_#{p.get_signature.get_global_name}_VDES #{ptr}*#{p.get_name;};\n" )
           if p.get_array_size == "[]" then
-            f.print( "    int_t n_#{p.get_name};\n" )
+            f.print( "    int_t n_#{p.get_name};  /* TCP_3 */\n" )
           end
         else
           # 最適化 skelton 関数を呼出さない(受け口関数を直接呼出す)
@@ -2757,11 +2811,11 @@ EOT
           if p.get_real_callee_cell then
             f.print( "    " )
             p.get_real_callee_cell.get_celltype.gen_ph_idx_type f
-            f.print( " #{ptr}#{p.get_name;};\n" )
+            f.print( " #{const} #{ptr}#{p.get_name;};  /* TCP_4 */\n" )
             # 相互参照に備えて、typedef した型を使わない
             # f.print( "    #{p.get_real_callee_cell.get_celltype.get_global_name}_IDX #{ptr}#{p.get_name;};\n" )
             if p.get_array_size == "[]" then
-              f.print( "    int_t n_#{p.get_name};\n" )
+              f.print( "    int_t n_#{p.get_name};  /* TCP_5 */\n" )
             end
           #else
           #  optional で未結合
@@ -3216,7 +3270,7 @@ EOT
     @ordered_cell_list.each{ |c|
       if c.is_generate? then                           # 生成対象か？
 
-        f = fs[ c.get_region.get_domain_root ]
+        f = fs[ c.get_domain_class_root ]
 
         # 結合のリスト (NamedList)
         jl = c.get_join_list
@@ -3310,7 +3364,7 @@ EOT
 
     @ordered_cell_list.each{ |c|
       if c.is_generate? then
-        f = fs[ c.get_region.get_domain_root ]
+        f = fs[ c.get_domain_class_root ]
 
         jl = c.get_join_list
         # ループを回す変数を jl から @port に変更
@@ -3480,7 +3534,7 @@ EOT
     @ordered_cell_list.each{ |c|
       next if  ! c.is_generate?
 
-      f = fs[ c.get_region.get_domain_root ]
+      f = fs[ c.get_domain_class_root ]
       name_array = get_name_array( c )
 
       ct = c.get_celltype
@@ -3612,7 +3666,7 @@ EOT
       @ordered_cell_list.each{ |c|
         next if ! c.is_generate?
 
-        f = fs[ c.get_region.get_domain_root ]
+        f = fs[ c.get_domain_class_root ]
 
         name_array = get_name_array( c )
 
@@ -3665,7 +3719,7 @@ EOT
         @ordered_cell_list.each{ |c|
           next if ! c.is_generate?
 
-          f = fs[ c.get_region.get_domain_root ]
+          f = fs[ c.get_domain_class_root ]
 
           name_array = get_name_array( c )
 
@@ -3716,7 +3770,7 @@ EOT
           @ordered_cell_list.each{ |c|
             next if ! c.is_generate?
 
-            f = fs[ c.get_region.get_domain_root ]
+            f = fs[ c.get_domain_class_root ]
 
             name_array = get_name_array( c )
             f.print "/* cell: #{name_array[2]}:  #{name_array[1]} id=#{c.get_id} */\n"
@@ -3735,7 +3789,7 @@ EOT
       if has_INIB? && ( $ram_initializer || ! has_CB? ) then
         f.print "/* ID to INIB table #_INTAB_# */\n"
         @ordered_cell_list.each{ |c|
-          if c.is_generate? && ( c.get_region.get_domain_root != Region.get_root ) then # 生成対象かつ、ルート以外か
+          if c.is_generate? && ( c.get_domain_class_root != Region.get_root ) then # 生成対象かつ、ルート以外か
             name_array = get_name_array( c )
             print_indent( f, indent + 1 )
             f.print "extern #{@global_name}_INIB  #{name_array[5]};\n"
@@ -3755,7 +3809,7 @@ EOT
       if has_CB? then
         f.print "/* ID to CB table #_CBTAB_# */\n"
         @ordered_cell_list.each{ |c|
-          if c.is_generate? && ( c.get_region.get_domain_root != Region.get_root ) then # 生成対象かつ、ルート以外か
+          if c.is_generate? && ( c.get_domain_class_root != Region.get_root ) then # 生成対象かつ、ルート以外か
             name_array = get_name_array( c )
             print_indent( f, indent + 1 )
             f.print "extern #{@global_name}_CB  #{name_array[2]};\n"
@@ -4064,7 +4118,7 @@ EOT
     end
   end
 
-  #=== セルの attribute の初期値を出力
+  #=== セルの attribute, var の初期値を出力
   #
   #f_get_str:: true の場合、文字列を返す、false の場合、ファイル f に出力する．
   # 文字列を返すとき、末尾に ',' は含まれない．
@@ -4231,34 +4285,37 @@ EOT
       end
 
     elsif type.kind_of?( StructType ) then
-      i = 0
-      decls = type.get_members_decl.get_items
-      if f_get_str then
-        str = "{ "
+      if init.instance_of?( C_EXP ) then
+        init_str = subst_name( init.get_c_exp_string, name_array )
       else
-        f.print "    " * indent
-        f.print( "{                                        /* #{identifier} */\n" )
-      end
-
-      decls.each{ |d|
-        # p "#{d.get_identifier}: #{init}"
-        next if ! init[i]
-
+        i = 0
+        decls = type.get_members_decl.get_items
         if f_get_str then
-          str += gen_cell_cb_init( f, cell, name_array, d.get_type, init[i], d.get_identifier, indent + 1, f_get_str )
-          str += ', '
+          str = "{ "
         else
-          gen_cell_cb_init( f, cell, name_array, d.get_type, init[i], d.get_identifier, indent + 1, f_get_str )
+          f.print "    " * indent
+          f.print( "{                                        /* #{identifier} */\n" )
         end
-        i += 1
-      }
-      if f_get_str then
-        str += "}"
-      else
-        f.print "    " * indent
-        f.print( "},\n" )
-      end
 
+        decls.each{ |d|
+          # p "#{d.get_identifier}: #{init}"
+          next if ! init[i]
+
+          if f_get_str then
+            str += gen_cell_cb_init( f, cell, name_array, d.get_type, init[i], d.get_identifier, indent + 1, f_get_str )
+            str += ', '
+          else
+            gen_cell_cb_init( f, cell, name_array, d.get_type, init[i], d.get_identifier, indent + 1, f_get_str )
+          end
+          i += 1
+        }
+        if f_get_str then
+          str += "}"
+        else
+          f.print "    " * indent
+          f.print( "},\n" )
+        end
+      end
     elsif type.kind_of?( PtrType ) then
 
       if init.instance_of?( Array ) then
@@ -4295,10 +4352,28 @@ EOT
     end
   end
 
+  #== Cell#get_cell_attr_var_init_str
+  def get_cell_attr_var_init_str cell, name_array, attr_var_name
+    decl = @name_list.get_item attr_var_name
+    if ! decl.kind_of? Decl then
+      raise "get_cell_attr_var_init_str: not Decl #{attr_var_name}. #{decl.class.name}"
+    end
+    j = cell.get_join_list.get_item( attr_var_name )
+    if j then
+      init = j.get_rhs
+    else
+      init = decl.get_initializer
+    end
+    indent = 0
+    f_get_str = true
+    f = nil
+    return gen_cell_cb_init( f, cell, name_array, decl.get_type, init, attr_var_name, indent, f_get_str )
+  end
+
   #== 関数テーブルの外部参照
   def gen_cell_extern_mt fs
     fs.each{ |r, f|
-      if ! r.is_root? then
+      if ! r.is_link_root? then
         @port.each{ |p|
           next if p.is_omit?
           if p.get_port_type == :ENTRY && ! p.is_VMT_useless? then
@@ -4321,7 +4396,7 @@ EOT
 
       next if ! c.is_generate?
 
-      f = fs[ c.get_region.get_domain_root ]
+      f = fs[ c.get_domain_class_root ]
 
       ct = c.get_celltype     # ct = self でも同じ
       jl = c.get_join_list
@@ -5253,13 +5328,13 @@ class AppFile
       end
       if b_identical == false then
         if $verbose then
-          print "#{name} updated\n"
+          print "#{name} changed\n"
           print "renaming '#{name}.tmp' => '#{name}'\n"
         end
         File.rename name+".tmp", name
       else
         if $verbose then
-          print "#{name} not updated\n"
+          print "#{name} not changed\n"
         end
         File.delete name+".tmp"
       end
@@ -5303,8 +5378,15 @@ class Region
 end
 
 class DomainType < Node
-  def gen_factory
+  def gen_factory node_root
     # p "DomainType: gen_factory"
-    @plugin.gen_factory
+    @plugin.gen_factory node_root
+  end
+end
+
+class ClassType < Node
+  def gen_factory node_root
+    # p "DomainType: gen_factory"
+    @plugin.gen_factory node_root
   end
 end

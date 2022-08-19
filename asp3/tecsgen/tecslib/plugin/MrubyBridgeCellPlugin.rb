@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2017 by TOPPERS Project
+#   Copyright (C) 2008-2021 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: MrubyBridgeCellPlugin.rb 3077 2019-06-09 07:23:31Z okuma-top $
+#   $Id: MrubyBridgeCellPlugin.rb 3225 2021-09-26 05:08:38Z okuma-top $
 #++
 
 #== celltype プラグインの共通の親クラス
@@ -241,6 +241,7 @@ EOT
       end
     }
   end
+
   #=== プラグイン引数 auto_exclude
   def set_auto_exclude rhs
     # print "MrubyBridgeCellPlugin: auto_exclude=#{rhs}\n"

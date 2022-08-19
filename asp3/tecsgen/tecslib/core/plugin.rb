@@ -180,16 +180,16 @@ class Plugin < Node
       arg.sub!( /\A\s*(?:\\\n)*\s*(.*)/, '\1')
 
       # 右辺文字列
-      if arg =~ /\A\\"(.*?)\\"\s*,/ then      # \"  \" で囲まれている場合
+      if arg =~ /\A\\"(.*?)\\"\s*,/ then      # \"  \" で囲まれている場合 (末尾に',' あり)
         rhs = $1
         remain = $'
-      elsif arg =~ /\A%(.*?)%\s*,/ then      # %   % で囲まれている場合
+      elsif arg =~ /\A%(.*?)%\s*,/ then      # %   % で囲まれている場合 (末尾に',' あり)
         rhs = $1
         remain = $'
-      elsif arg =~ /\A!(.*?)!\s*,/ then    # $   $ で囲まれている場合
+      elsif arg =~ /\A!(.*?)!\s*,/ then    # !  ! で囲まれている場合 (末尾に',' あり)
         rhs = $1
         remain = $'
-      elsif arg =~ /\A'(.*?)'\s*,/ then    # $   $ で囲まれている場合
+      elsif arg =~ /\A'(.*?)'\s*,/ then    # '  ' で囲まれている場合 (末尾に',' あり)
         rhs = $1
         remain = $'
       elsif  arg =~ /\A\\"(.*?)\\"\s*,/ then  # || にも [,$] にもできなかった
@@ -202,10 +202,10 @@ class Plugin < Node
       elsif arg =~ /\A%(.*?)%\s*\z/ then      # %   % で囲まれている場合
         rhs = $1
         remain = $'
-      elsif arg =~ /\A!(.*?)!\s*\z/ then    # $   $ で囲まれている場合
+      elsif arg =~ /\A!(.*?)!\s*\z/ then    # !  ! で囲まれている場合
         rhs = $1
         remain = $'
-      elsif arg =~ /\A'(.*?)'\s*\z/ then    # $   $ で囲まれている場合
+      elsif arg =~ /\A'(.*?)'\s*\z/ then    # '  ' で囲まれている場合
         rhs = $1
         remain = $'
       elsif  arg =~ /\A\\"(.*?)\\"\s*\z/ then  # || にも [,$] にもできなかった

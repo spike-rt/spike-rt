@@ -39,6 +39,8 @@
 
 class Expression < Node
 #  @elements   # array
+# @b_in_C:Bool : import_C 内の式
+# @b_checked:Bool : 式はチェックされている
 
   def initialize( elements, locale = nil )
     super()
@@ -47,6 +49,8 @@ class Expression < Node
     end
 
     @elements = elements
+    @b_in_C = Generator.parsing_C?
+    @b_checked = false
   end
 
   def print
@@ -91,6 +95,7 @@ class Expression < Node
 
   def eval_const( name_list, name_list2 = nil )
     val = elements_eval_const( @elements, name_list, name_list2, 0 )
+    @b_checked = true
     if val.kind_of? IntegerVal then
       return val.to_i
     elsif val.kind_of? FloatVal then
@@ -348,7 +353,6 @@ class Expression < Node
 
   MAX_NEST_LEVEL = 64    # 簡易のループ検出（参照のネストを 64 まで許可する）
   def elements_eval_const( elements, name_list, name_list2 = nil, nest = nil )
-
     case elements[0]
     when :IDENTIFIER
       nsp = elements[1]
@@ -489,17 +493,21 @@ class Expression < Node
       cdl_error( "E1006 cannot evaluate \'->\' operator"  )
       return nil
     when :OP_SIZEOF_EXPR
-      if Generator.parsing_C? then
-        cdl_info( "I9999 cannot evaluate \'sizeof\' operator. this might causes later error."  )
-      else
-        cdl_error( "E1007 cannot evaluate \'sizeof\' operator"  )
+      if ! @b_checked then
+        if @b_in_C then
+          cdl_info( "I9999 cannot evaluate \'sizeof\' operator. this might causes later error."  )
+        else
+          cdl_error( "E1007 cannot evaluate \'sizeof\' operator"  )
+        end
       end
       return nil
     when :OP_SIZEOF_TYPE
-      if Generator.parsing_C? then
-        cdl_info( "I9999 cannot evaluate \'sizeof\' operator. this might causes later error."  )
-      else
-        cdl_error( "E1008 cannot evaluate \'sizeof\' operator"  )
+      if ! @b_checked then
+        if @b_in_C then
+          cdl_info( "I9999 cannot evaluate \'sizeof\' operator. this might causes later error."  )
+        else
+          cdl_error( "E1008 cannot evaluate \'sizeof\' operator"  )
+        end
       end
       return nil
     when :OP_U_AMP

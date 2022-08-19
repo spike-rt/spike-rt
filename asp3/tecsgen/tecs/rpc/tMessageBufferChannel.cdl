@@ -34,7 +34,7 @@
  *   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *   の責任を負わない．
  *  
- *   $Id: tMessageBufferChannel.cdl 2952 2018-05-07 10:19:07Z okuma-top $
+ *   $Id: tMessageBufferChannel.cdl 3140 2020-03-29 09:21:42Z okuma-top $
  */
 
 composite tMessagebufferChannel {
@@ -57,7 +57,8 @@ composite tMessagebufferChannel {
     };
     cell tSemaphore Semaphore{
         attribute = C_EXP("TA_NULL");
-        initialCount = 0;
+        // count = 0;			// Gen1
+        initialCount = 0;		// Gen3
     };
 
     //cell  tTDR TDR {

@@ -836,10 +836,15 @@ class Type
 #{indent}cell nTECSInfo::t#{type_name}Info #{get_ID_str}TypeInfo{
 #{indent}    name           = "#{get_type_str}#{get_type_str_post}";
 #{indent}    typeKind       = TECSTypeKind_#{type_name};
+EOT
+    if type_name != "FuncType" then
+      f.print <<EOT
 #{indent}    size           = C_EXP( "sizeof(#{get_type_str}#{get_type_str_post})" );
 #{indent}    b_const        = #{is_const?};
 #{indent}    b_volatile     = #{is_volatile?};
 EOT
+    end
+
     if self.kind_of? PtrType then
       f.print "#{indent}    cTypeInfo        = #{get_referto.get_ID_str}TypeInfo.eTypeInfo;\n"
     elsif self.kind_of? ArrayType then
@@ -870,11 +875,20 @@ EOT
     if kind_of? PtrType then
       str = get_referto.get_ID_str + "_Ptr_"
     elsif kind_of? ArrayType then
-      str = get_type.get_ID_str + "_Array" + get_subscript.eval_const( nil ).to_s + "_"
+      if get_subscript then
+        str = get_type.get_ID_str + "_Array" + get_subscript.eval_const( nil ).to_s + "_"
+      else
+        str = get_type.get_ID_str + "_Array" + "_"
+      end
     elsif kind_of? StructType then
       str = "struct #{@tag}"
     elsif kind_of? DescriptorType then
       str = "Descriptor_of_" + get_signature.get_global_name.to_s
+    elsif kind_of? FuncType then
+      str = "function_" + get_type.get_ID_str
+      get_paramlist.get_items.each{ |param|
+        str += "__" + param.get_declarator.get_type.get_ID_str
+      }
     else
       str = get_type_str + get_type_str_post
     end

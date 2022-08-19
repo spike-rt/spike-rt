@@ -46,6 +46,7 @@ module PluginModule
   # 後ろのコードの出力順の指定 (数字が少ないほどプライオリティは高い)
   MULTI_PLUGIN_POST_CODE_PRIORITY     = 00000
   DOMAIN_PLUGIN_POST_CODE_PRIORITY    = 10000
+  CLASS_PLUGIN_POST_CODE_PRIORITY     = 10000
   THROUGH_PLUGIN_POST_CODE_PRIORITY   = 20000
   CELLTYPE_PLUGIN_POST_CODE_PRIORITY  = 30000
   COMPOSITE_PLUGIN_POST_CODE_PRIORITY = 40000
@@ -237,6 +238,8 @@ module PluginModule
       return MULTI_PLUGIN_POST_CODE_PRIORITY
     elsif plClass <= DomainPlugin then
       return DOMAIN_PLUGIN_POST_CODE_PRIORITY
+    elsif plClass <= ClassPlugin then
+      return CLASS_PLUGIN_POST_CODE_PRIORITY
     elsif plClass <= ThroughPlugin then
       return THROUGH_PLUGIN_POST_CODE_PRIORITY
     elsif plClass <= CompositePlugin then

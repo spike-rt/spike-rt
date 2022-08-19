@@ -33,6 +33,11 @@
  *  @(#) $Id: mrubyVMs.cdl 2708 2017-11-05 12:12:30Z okuma-top $
  */
 
+ /*
+  * POSIX 向き mruby VM
+  * RTOS 向きのものは tMruby.cdl を使用してください。
+  */
+
 import( <posix.cdl> );
 
 /*

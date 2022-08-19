@@ -67,7 +67,6 @@ class TOOL_INFO
     @@tool_info[name] = val
 
     # __tool_info__( "tecsgen" ): validate & reflect immediately
-    p "tool_info: tecsgen #{name}"
     if name == :tecsgen then
       set_tecsgen_tool_info
     end
