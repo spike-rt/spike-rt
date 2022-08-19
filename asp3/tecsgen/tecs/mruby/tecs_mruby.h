@@ -36,7 +36,9 @@
 #ifndef tecs_mruby_h__
 #define tecs_mruby_h__
 
+// もし mruby 関連のヘッダ取り込みでエラーが出るようなら仮の定義で TECS ジェネレータを通す
 #ifndef TECSGEN
+// #if 1   // テスト中
 
 // tecsgen doesn't include actual mruby.h
 #include "mruby.h"

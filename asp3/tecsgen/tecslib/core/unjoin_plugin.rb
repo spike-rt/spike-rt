@@ -148,6 +148,7 @@ end
 
 class DomainType < Node
   def unjoin_plugin
+    # p "unjoin_plugin ############"
     @plugin = nil
   end
 end

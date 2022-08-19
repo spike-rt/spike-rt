@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2017 by TOPPERS Project
+#   Copyright (C) 2008-2021 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -236,10 +236,20 @@ class NamedList
   def add_item( item )
 
     if item then
+      dbgPrint "add_item: name=#{item.get_name}   #{item.locale_str}\n"
       assert_name item
       name = item.get_name
       prev = @names[name]
       if prev then
+=begin
+        print "add_item: length=#{@names.length} length2=#{@items.length}\n"
+        @names.each{|nm,obj|
+          print "  name=#{nm}\n"
+        }
+        @items.each{|item|
+          print "  item=#{item.get_name}   #{item.locale_str}\n"
+        }
+=end
         Generator.error( "S2001 \'$1\' duplicate $2" , name, @type )
         prev_locale = prev.get_locale
         puts "previous: #{prev_locale[0]}: line #{prev_locale[1]} \'#{name}\' defined here"
@@ -415,6 +425,11 @@ class FuncHead <BDNode
     return @declarator.get_name
   end
 
+  #=== FuncHead# 関数型を返す
+  def get_type
+    return @declarator.get_type
+  end
+
   #=== FuncHead# 関数の戻り値の型を返す
   # types.rb に定義されている型
   # 関数ヘッダの定義として不完全な場合 nil を返す
@@ -525,7 +540,12 @@ class Decl < BDNode
       if @kind == :ATTRIBUTE then
         cdl_error( "S2004 $1: array subscript must be specified or omit" , @identifier )
       elsif @kind == :VAR || @kind == :MEMBER then
-        cdl_error( "S2005 $1: array subscript must be specified" , @identifier )
+        # p "Decl: #{@type.class.name}"
+        if @type.instance_of?( CArrayType ) && @kind == :MEMBER then
+          cdl_info( "I9999 $1: array without subscript might not be handled" , @identifier )
+        else
+          cdl_error( "S2005 $1: array subscript must be specified" , @identifier )
+        end
       end
     end
 

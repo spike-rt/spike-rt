@@ -67,7 +67,7 @@
 
 #include <t_syslog.h>
 
-void mrb_init_mrb(CELLCB *p_cellcb, mrb_state *mrb);
+static void mrb_init_run(CELLCB *p_cellcb, mrb_state *mrb);
 /* 受け口関数 #_TEPF_# */
 /* #[<ENTRY_PORT>]# eMrubyBody
  * entry port: eMrubyBody
@@ -125,13 +125,23 @@ eMrubyBody_main(CELLIDX idx)
 #endif
 }
 
-
+static mrb_value
+mrb_run(mrb_state *mrb, const struct RProc *proc, mrb_value self)
+{
+  syslog( LOG_NOTCE, "nMruby_tMruby.c: mrb_run: argc=%d",mrb->c->ci->argc);
+  if (mrb->c->ci->argc < 0) {
+    return mrb_vm_run(mrb, proc, self, 3); /* receiver, args and block) */
+  }
+  else {
+    return mrb_vm_run(mrb, proc, self, mrb->c->ci->argc + 2); /* argc + 2 (receiver and block) */
+  }
+}
 /* #[<POSTAMBLE>]#
  *   これより下に非受け口関数を書きます
  * #[</POSTAMBLE>]#*/
 
-void
-mrb_init_mrb(CELLCB	*p_cellcb, mrb_state *mrb)
+static void
+mrb_init_run(CELLCB	*p_cellcb, mrb_state *mrb)
 {
   mrb_irep *irep = mrb_read_irep(mrb, ATTR_irep);
   

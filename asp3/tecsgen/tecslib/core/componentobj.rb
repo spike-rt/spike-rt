@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2019 by TOPPERS Project
+#   Copyright (C) 2008-2021 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -234,11 +234,12 @@ class Signature < NSBDNode  # < Nestable
   #block:: ブロックを引数に取る
   # ブロックは2つの引数を受け取る  Decl, ParamDecl     ( Decl: 関数ヘッダ )
   # Port クラスにも each_param がある（同じ働き）
-  def each_param # ブロック引数 { |func_decl, param_decl| }
+  def each_param &pr # ブロック引数 { |func_decl, param_decl| }
     fha = get_function_head_array                       # 呼び口または受け口のシグニチャの関数配列
     return if fha == nil                                # nil なら文法エラーで有効値が設定されなかった
 
-    pr = Proc.new   # このメソッドのブロック引数を pr に代入
+    # obsolete Ruby 3.0 では使えなくなった
+    # pr = Proc.new   # このメソッドのブロック引数を pr に代入
     fha.each{ |fh|  # fh: FuncHead                      # 関数配列中の各関数頭部
       fd = fh.get_declarator                            # fd: Decl  (関数頭部からDeclarotorを得る)
       if fd.is_function? then                           # fd が関数でなければ、すでにエラー
@@ -360,6 +361,13 @@ end
   #== Signature# 引数で参照されている Descriptor 型のリストを
   #RETURN:: Hash { Signature => ParamDecl }:  複数の ParamDecl から参照されている場合、最後のものしか返さない
   def get_descriptor_list
+    # print "Signature#get_descriptor_list #{@name}\n"
+    # 本来 Signature.set_descriptor_list の呼出しで @descriptor_list が設定されるのだが、
+    # post_code.cdl (ジェネレータ生成) で生成、または import されたシグニチャには設定されない。
+    # 読み出し時に、オンデマンドで設定する。
+    if @descriptor_list == nil then
+      set_descriptor_list
+    end
     @descriptor_list
   end
 
@@ -548,12 +556,13 @@ class Celltype < NSBDNode # < Nestable
 # @ct_factory_list::    Factory[] :    celltype factory
 # @cell_list:: Cell[] : 定義のみ (V1.0.0.2 以降)
 # @ordered_cell_list:: Cell[] : ID 順に順序付けされたセルリスト、最適化以降有効 (リンク単位ごとに生成されなおす)
+# @b_reuse:: bool :  reuse 指定されて import された(template 不要)
 # @singleton:: bool
 # @idx_is_id:: bool
 # @idx_is_id_act:: bool: actual value
 # @b_need_ptab:: bool: true if having cells in multi-domain
 # @active:: bool
-# @b_reuse:: bool :  reuse 指定されて import された(template 不要)
+# @pseudo_active:: bool  @pseudo_active が true の場合 @active も true
 # @generate:: [ Symbol, String, Plugin ]  = [ PluginName, option, Plugin ] Plugin は生成後に追加される
 # @generate_list:: [ [ Symbol, String, Plugin ], ... ]   generate 文で追加された generate
 #
@@ -584,6 +593,12 @@ class Celltype < NSBDNode # < Nestable
 # @included_header:: Hash :  include されたヘッダファイル
 # @domain_roots::Hash { DomainTypeName(Symbol) => [ Region ] }  ドメインタイプ名と Region の配列 (optimize.rb で設定)
 #                                               ルートリージョンはドメイン名が　nil
+# @domain_class_roots::Hash { Region(domain_root) => { Region(class_root) => [ cell ] }
+#                           @domain_class_roots[ domain_root ][ class_root ] = [ cell ]
+# @domain_class_roots2::Hash { Region(sub_region:domain_or_class_root) => [ cell ] } 
+#                            @domain_class_roots2[ sub_region(domain_or_class_root) ] = [ cell ]
+#                            sub_region: クラスルートまたはドメインルートの、いずれか末端側のリージョン
+# @@domain_class_roots::Hash { sub_region => [ celltype ] }   # { region => celltype }
 
   include PluginModule
   include CelltypePluginModule
@@ -627,6 +642,7 @@ class Celltype < NSBDNode # < Nestable
     @cell_list = []
     @singleton = false
     @active = false
+    @pseudo_active = false
     @generate = nil
     @generate_list = []
 
@@ -687,9 +703,29 @@ class Celltype < NSBDNode # < Nestable
   end
 
   #== Celltype#ドメインルートを返す
+  # @domain_roots はオプティマイズで設定される.
+  # このためコード生成以降有効である.
+  # 
   # @domain_roots の説明を参照
   def get_domain_roots
     @domain_roots
+  end
+  # @domain_class_roots の説明を参照
+  # @domain_class_roots はオプティマイズで設定される.
+  # このためコード生成以降有効である.
+  def get_domain_class_roots
+    @domain_class_roots
+  end
+  # @domain_class_roots2 の説明を参照
+  # @domain_class_roots2 はオプティマイズで設定される.
+  # このためコード生成以降有効である.
+  def get_domain_class_roots2
+    @domain_class_roots2
+  end
+  # @domain_class_roots_total はオプティマイズで設定される.
+  # このためコード生成以降有効である.
+  def self.get_domain_class_roots_total
+    @@domain_class_roots
   end
 
   # Celltype# end_of_parse
@@ -832,7 +868,6 @@ class Celltype < NSBDNode # < Nestable
           if par.get_allocator then
             cp_name = :"#{port.get_name}_#{fd.get_name}_#{par.get_name}"     # アロケータ呼び口の名前
             #           ポート名          関数名         パラメータ名
-            # alloc_sig_path = [ par.get_allocator.get_name ]  # mikan Namespace アロケータ呼び口のシグニチャ #1
             alloc_sig_path = par.get_allocator.get_namespace_path
             array_size = port.get_array_size            # 呼び口または受け口配列のサイズ
             created_port = Port.new( cp_name, alloc_sig_path, :CALL, array_size ) # 呼び口を生成
@@ -903,6 +938,9 @@ class Celltype < NSBDNode # < Nestable
         @b_need_ptab = true
       when :ACTIVE
         @active = true
+      when :PSEUDO_ACTIVE
+        @active = true
+        @pseudo_active = true
       when :GENERATE
         if @generate then
           cdl_error( "S1014 generate specifier duplicate"  )
@@ -1224,7 +1262,6 @@ class Celltype < NSBDNode # < Nestable
       d = region.distance( c.get_region )
       #debug
       dbgPrint "distance #{d} from #{region.get_name} to #{c.get_name} in #{c.get_region.get_name}\n"
-      # print "DOMAIN: distance #{d} from #{region.get_name} to #{c.get_name} in #{c.get_region.get_name}\n"
       if d != nil then
         if d < dist then
           cell = c
@@ -1232,6 +1269,11 @@ class Celltype < NSBDNode # < Nestable
         end
       end
     }
+    if cell then
+      dbgPrint "distance found:#{cell.get_name} in #{cell.get_region.get_name}\n"
+    else
+      dbgPrint "distance not found\n"
+    end
     return cell
   end
 
@@ -1317,6 +1359,12 @@ class Celltype < NSBDNode # < Nestable
   # 受け口が無い場合、すべての受け口が inline とはしない
   def is_all_entry_inline?
     @n_entry_port == @n_entry_port_inline && @n_entry_port > 0
+  end
+
+  #=== Celltype# セルタイプコード (celltype.c) を持つか
+  #false の場合、celltype_inline.h しか持たない
+  def has_celltype_code?
+    ! (is_all_entry_inline? && ! is_active?)
   end
 
   #=== Celltype.get_celltype_list
@@ -1409,10 +1457,14 @@ class Cell < NSBDNode # < Nestable
 # ID のためのインスタンス変数（optimize.rb にて設定）
 # @id:: Integer : コード生成直前に設定  (プロトタイプ宣言の場合は -1 のまま放置)
 # @id_specified::Integer : 指定された id
+#
+# restrict のためのインスタンス変数
 # @restrict_list::{ entry_name => { func_name, [ region_path_str, ... ] } }
 # @restrict_list2::{ entry_name => { func_name, [ domain_root_region, ... ] } }
 # @b_restrict_referenced::Bool: restrict_list が参照れた
-
+#
+# 受け口 through のためのインスタンス変数
+# @ep_through_list [ [ep_name, PluginName, "option"], ... ]
 =begin
 # Cell クラスは、以下のものを扱う
 # 1)普通のセル
@@ -1498,6 +1550,7 @@ class Cell < NSBDNode # < Nestable
     @restrict_list2 = {}
     @b_restrict_referenced = false
     @b_post_code_generated = false
+    @ep_through_list = []
 
     @cell_list = {}
     @cell_list2 = []
@@ -1942,6 +1995,15 @@ class Cell < NSBDNode # < Nestable
         s[1].each{ |re|
           add_restrict re[0], re[1], re[2]
         }
+      when :THROUGH       # [through(ThroughPlugin,"option")]
+        ep_name    = s[1].to_sym
+        pluginName = s[2]
+        option     = CDLString.remove_dquote s[3].to_s
+        dbgPrint( "through: celltype=#{@celltype.get_name} ep_name=#{ep_name}\n" )
+        if @celltype.find( ep_name ) == nil then
+          cdl_error( "S9999 '$1' entry port not exist", ep_name )
+        end
+        @ep_through_list << [ ep_name, pluginName, option ]      # [ ep_name, pluginName, "option" ]
       else
           cdl_error( "S1039 \'$1\': unknown specifier for cell" , s[0] )
       end
@@ -2016,6 +2078,17 @@ class Cell < NSBDNode # < Nestable
     @compositecelltypejoin_list.add_item join
   end
 
+  # mikan 以下のコードが数か所ある。
+  # compositecelltypejoin_list が大昔の仕様によいようになっている
+  def get_compositecelltypejoin_by_cell_elem_name cell_elem_name
+    @compositecelltypejoin_list.get_items.each { |cj|
+      if cj.get_cell_elem_name == cell_elem_name then
+        return cj
+      end
+    }
+    return nil
+  end
+
   #=== Cell# cell を composite セルタイプのセル用に clone する
   #name::        string : 親 cell の名前  (cell tComposite cell1 での cell1)
   #global_name:: string : 親 cell の global_name 
@@ -2072,9 +2145,9 @@ class Cell < NSBDNode # < Nestable
 
     # join_list : NamedList の clone を作る
     if @celltype then
-      dbgPrint "set_cloned: #{@celltype.get_name} #{@name} #{region.get_name}\n"
+      dbgPrint "set_cloned: celltype=#{@celltype.get_name} name=#{@name} global_name=#{global_name} region=#{region.get_name}\n"
     end
-    @join_list = @join_list.clone_for_composite( parent_ct_name, name, locale )
+    @join_list = @join_list.clone_for_composite( parent_ct_name, global_name, locale )
     @referenced_port_list = {}
 
     @alloc_list = []
@@ -2142,6 +2215,21 @@ class Cell < NSBDNode # < Nestable
 
   def get_region
     @region
+  end
+
+  def get_domain_class_root
+    dr = @region.get_domain_root
+    cr = @region.get_class_root
+    if dr.is_sub_region_of? cr then
+      return dr
+    else
+      return cr
+    end
+  end
+  
+  def get_ep_through_list
+    dbgPrint( "Cell#get_ep_through_list: name=#{@name} len=#{@ep_through_list.length}\n")
+    @ep_through_list
   end
 
   def self.get_current
@@ -2470,7 +2558,7 @@ class Cell < NSBDNode # < Nestable
 
               if found == false then
                 cdl_error( "S1041 \'$1_$2_$3\': not joined. cannot create internal join for relay allocator" , ai2[3], ai2[4], ai2[5] )
-                print( "      In cell #{get_name}\n" )
+                # print( "      In cell #{get_name}\n" )
                 # join が未結合であることのエラーは二度でる (S1043)
               end
               next    # 打ち切る
@@ -2484,7 +2572,7 @@ class Cell < NSBDNode # < Nestable
               @compositecelltypejoin_list.get_items.each{ |cj|
                 # 属性名と composite の export する名前は一致するか
                 if p.get_name == cj.get_cell_elem_name then
-                  print "export : #{p.get_name}\n"
+                  # print "export : #{p.get_name}\n"
                   b_export = true    # 属性は export されているので、とりあえず未初期化とはしない
                   break
                 end
@@ -2969,6 +3057,7 @@ class Cell < NSBDNode # < Nestable
 
   #=== Cell# Join の definition の設定とチェック
   # STAGE: S
+  # 結合の意味チェック
   def set_definition_join
     return if @celltype == nil    # 既にエラー：打ち切る
     return if @b_defined == false # プロトタイプ宣言のみ
@@ -3133,8 +3222,9 @@ class Cell < NSBDNode # < Nestable
   end
 
   #=== Cell#get_callable_regions( entry_name, func_name )
-  # func_name=nil の場合、entry_name の可否をチェック数る
+  # func_name=nil の場合、entry_name の可否をチェックする
   # nil が返る場合、制限されていないことを意味する
+  # 返された、受け口、受け口関数へ
   def get_restricted_regions( entry_name, func_name )
     # p "get_restricted_regions #{@name}"
     @b_restrict_referenced = true
@@ -3435,7 +3525,7 @@ class CompositeCelltype < NSBDNode # < Nestable
   #   composite.eEnt => cell2.eEnt; (セル外)
   # の構文要素の出現に対して呼び出される
   def new_join( export_name, internal_cell_name,
-		 internal_cell_elem_name, type )
+		            internal_cell_elem_name, type )
 
     dbgPrint "new_join: #{export_name} #{internal_cell_name} #{internal_cell_elem_name}\n"
 
@@ -3548,6 +3638,7 @@ class CompositeCelltype < NSBDNode # < Nestable
     elsif obj.instance_of?( Port ) && obj.get_port_type == :CALL && @export_name_list.get_item( export_name ) then
       # 既に存在する。追加しない。新仕様では、@export_name_list に同じ名前が含まれることがある。
     else
+      # print "Composite:new_join: #{join.get_name} len=#{@export_name_list.get_items.length}\n"
       @export_name_list.add_item( join )
     end
 
@@ -4513,12 +4604,13 @@ end
   #block:: ブロックを引数として取る(ruby の文法で書かない)
   #  ブロックは3つの引数を受け取る(Port, Decl,      ParamDecl)    Decl: 関数ヘッダ
   # Signature クラスにも each_param がある（同じ働き）
-  def each_param # ブロック引数{  |port, func_decl, param_decl| }
+  def each_param &pr # ブロック引数{  |port, func_decl, param_decl| }
     return if @signature == nil                         # signature 未定義（既にエラー）
     fha = @signature.get_function_head_array            # 呼び口または受け口のシグニチャの関数配列
     return if fha == nil                                # nil なら文法エラーで有効値が設定されなかった
 
-    pr = Proc.new   # このメソッドのブロック引数を pr に代入
+    # obsolete Ruby 3.0 では使用できない
+    # pr = Proc.new   # このメソッドのブロック引数を pr に代入
     port = self
     fha.each{ |fh|  # fh: FuncHead                      # 関数配列中の各関数頭部
       fd = fh.get_declarator                            # fd: Decl  (関数頭部からDeclarotorを得る)
@@ -4652,6 +4744,7 @@ class Namespace < NSBDNode
 
   def initialize( name )
 
+    dbgPrint "Namespace: initialize name=#{name} sp=#{@@namespace_sp} **\n"
     super()
     @name = name
 
@@ -4667,6 +4760,7 @@ class Namespace < NSBDNode
       if ns.kind_of? Namespace then
         dbgPrint "namespace: re-appear #{@name}\n"
         # 登録済み namespace の再登録
+        set_owner @@namespace_stack[ @@namespace_sp ]
         ns.push ns
         return
       elsif ns then
@@ -4677,7 +4771,9 @@ class Namespace < NSBDNode
       dbgPrint "namespace: 1st-appear #{@name}\n"
     end
 
+    dbgPrint "Namespace: initialize name=#{name} sp=#{@@namespace_sp}\n"
     if @@namespace_sp >= 0 then   # root は除外
+      dbgPrint "Namespace: initialize2 name=#{name} sp=#{@@namespace_sp}\n"
       @@namespace_stack[@@namespace_sp].new_namespace( self )
     end
     push self
@@ -5195,11 +5291,13 @@ end
 
 
 class Join < BDNode
-# @name:: string
+# 結合の左辺
+# @name:: string : 属性名 or 呼び口名
 # @subscript:: nil: not array, -1: subscript not specified, >=0: array_subscript
-# @rhs:: Expression | initializer ( array of Expression | initializer (Expression | C_EXP) )
 # @definition:: Port, Decl(attribute or var)
 #
+# 結合の右辺
+# @rhs:: Expression | initializer ( array of Expression | initializer (Expression | C_EXP) )
 # available if definition is Port
 # @cell_name:: string : 右辺のセルの名前
 # @cell:: Cell  : 右辺のセル
@@ -5211,9 +5309,11 @@ class Join < BDNode
 # @rhs_subscript:: nil : not array, >=0: 右辺の添数
 #
 
-# @through_list::  @cp_through_list + @region_through_list
+# @through_list::  @cp_through_list + @region_through_list + @ep_through_list
 #  以下の構造を持つ（@cp_through_list の構造は共通）
 # @cp_through_list::  呼び口に指定された through
+#   [ [plugin_name, cell_name, plugin_arg], [plugin_name2, cell_name2, plugin_arg], ... ]
+# @ep_through_list::  受け口に指定された through
 #   [ [plugin_name, cell_name, plugin_arg], [plugin_name2, cell_name2, plugin_arg], ... ]
 # @region_through_list::  region に指定された through
 #   [ [plugin_name, cell_name, plugin_arg, region], [plugin_name2, cell_name2, plugin_arg, region2], ... ]
@@ -5266,6 +5366,7 @@ class Join < BDNode
 
     @through_list = []
     @cp_through_list = []
+    @ep_through_list = []
     @region_through_list = []
     @through_generated_list = []
     @region_through_generated_list = []
@@ -5326,6 +5427,7 @@ class Join < BDNode
   #=== Join# 呼び口の初期化チェック
   def check_call_port_init
     ### Port
+    dbgPrint( "Join#check_call_port_init:cell.call=#{@owner.get_name}.#{@name}\n")
 
     # 左辺は受け口か（受け口を初期化しようとしている）？
     if @definition.get_port_type == :ENTRY then
@@ -5358,7 +5460,6 @@ class Join < BDNode
 #    end
 
     # mikan Expression の get_type で型導出させる方がスマート
-    # mikan '=' の左辺が配列かどうか未チェック
     #(1) '=' の右辺は "Cell.ePort" の形式か？
     #     演算子は "."  かつ "." の左辺が :IDENTIFIER
     #     "." の右辺はチェック不要 (synatax 的に :IDENTIFIER)
@@ -5368,6 +5469,7 @@ class Join < BDNode
     #(5) "ePort" は "Cell" の celltype 内に存在するか？
     #(6) "ePort" は entry port か？
     #(7) signature は一致するか
+    #(8) 右辺の配列(受け口配列)
 
     # 右辺がない（以前の段階でエラー）
     return unless @rhs
@@ -5375,7 +5477,7 @@ class Join < BDNode
     # cCall = composite.cCall; のチェック．この形式は属性用
     # 呼び口を export するには cCall => composite.cCall; の形式を用いる
     if @rhs.instance_of?( Array ) == true && @rhs[0] == :COMPOSITE then
-      cdl_error( "S1107 to export port, use \'cCall => composite.cCall\'"  )
+      cdl_error( "S1107 to export port '$1', use \'cCall => composite.cCall\'", @name  )
       return
     elsif ! @rhs.instance_of?( Expression ) then
       raise "Unknown bug. specify -t to find problem in source"
@@ -5395,7 +5497,6 @@ class Join < BDNode
     # composite の定義外なら false が返る
     object = CompositeCelltype.find( @cell_name )
     if object == false then
-#     mikan 左辺が namespace に対応していないため。 path にして find
       # p nsp.get_path_str, nsp.get_path
       object = Namespace.find( nsp )    #1
       in_composite = false
@@ -5426,7 +5527,7 @@ class Join < BDNode
           cdl_error( "S1112 \'$1\' not entry port" , @port_name )
         elsif @definition.get_signature != object2.get_signature then # (7)
           cdl_error( "S1113 \'$1\' signature mismatch" , @port_name )
-        elsif object2.get_array_size then
+        elsif object2.get_array_size then                             # (8)
           # 受け口配列
 
           unless @rhs_subscript then
@@ -5472,7 +5573,20 @@ class Join < BDNode
         #  celltype == nil (すでにエラー)
       end  # end of celltyep チェック
 
-
+      if ! @owner.get_plugin.kind_of?( ThroughPlugin ) then
+        # 受け口の through を設定
+        dbgPrint( "ep_through_list: cell=#{object.get_name} len=#{object.get_ep_through_list.length}\n")
+        object.get_ep_through_list.each{ |ent|
+          dbgPrint( "Join name=#{@name} port_name=#{@port.get_name} ep_through=#{ent[0]}\n")
+          if ent[0] == @port.get_name then
+            plugin_name = ent[1].to_s
+            cell_name = :"#{ent[1].to_s}_"
+            plugin_arg = ent[2]
+            print( "ep_through: plugin_name=#{plugin_name}\n")
+            @ep_through_list << [ plugin_name, cell_name, plugin_arg ]
+          end
+        }
+      end
       check_region( object )
 
     end  # end of cell (object) チェック
@@ -5565,7 +5679,6 @@ class Join < BDNode
         b_to_through = false
       end
 
-
       # 呼び側について呼び元のレベルから兄弟レベルまで（out_through をチェックおよび挿入）
       i = len1 -1
       if b_to_through then
@@ -5579,11 +5692,17 @@ class Join < BDNode
         dbgPrint "going out from #{f1[i].get_name} level=#{i}\n"
         region_count = f1[i].next_out_through_count
         out_through_list = f1[i].get_out_through_list   # [ plugin_name, plugin_arg ]
-        domain = f1[i].get_domain_type
-        if domain then
-          domain_through = f1[i].get_domain_type.add_through_plugin( self, f1[i], f1[i-1], :OUT_THROUGH )
+        domain_type = f1[i].get_domain_type
+        class_type = f1[i].get_class_type
+        if domain_type then
+          domain_through = domain_type.add_through_plugin( self, f1[i], f1[i-1], :OUT_THROUGH )
           if domain_through == nil then
-            cdl_error( "S9999 $1: going out from regin '$2' not permitted by domain '$3'" , @name, f1[i].get_name, f1[i].get_domain_type.get_name )
+            cdl_error( "S9999 $1: going out from regin '$2' not permitted by domain '$3'" , @name, f1[i].get_name, domain_type.get_name )
+          end
+        elsif class_type then
+          class_through = class_type.add_through_plugin( self, f1[i], f1[i-1], :OUT_THROUGH )
+          if class_through == nil then
+            cdl_error( "S9999 $1: going out from regin '$2' not permitted by class '$3'" , @name, f1[i].get_name, class_type.get_name )
           end
         elsif out_through_list.length == 0 then
           cdl_error( "S1118 $1: going out from region \'$2\' not permitted" , @name, f1[i].get_name )
@@ -5598,6 +5717,10 @@ class Join < BDNode
         }
         if domain_through && domain_through.length > 0 then
           through = [ domain_through[0], :"Join_domain_out_through_", domain_through[1], f1[i], f1[i-1], :OUT_THROUGH, region_count ]
+          @region_through_list << through
+        end
+        if class_through && class_through.length > 0 then
+          through = [ class_through[0], :"Join_class_out_through_", class_through[1], f1[i], f1[i-1], :OUT_THROUGH, region_count ]
           @region_through_list << through
         end
         i -= 1
@@ -5618,9 +5741,10 @@ class Join < BDNode
             found = 1
           end
         }
-        domain = f1[sibling_level].get_domain_type
-        if domain then
-          domain_through = f1[sibling_level].get_domain_type.add_through_plugin( self, f1[sibling_level], f2[sibling_level], :TO_THROUGH )
+        domain_type = f1[sibling_level].get_domain_type
+        class_type = f1[sibling_level].get_class_type
+        if domain_type then
+          domain_through = domain_type.add_through_plugin( self, f1[sibling_level], f2[sibling_level], :TO_THROUGH )
           if domain_through == nil then
             cdl_error( "S9999 $1: going from regin '$2' not permitted by domain'$3'" , @name, f1[sibling_level].get_name, f2[sibling_level].get_domain_type.get_name )
           end
@@ -5628,7 +5752,31 @@ class Join < BDNode
             through = [ domain_through[0], :"Join_domain_to_through_", domain_through[1], f1[sibling_level], f2[sibling_level], :TO_THROUGH, region_count ]
             @region_through_list << through
           end
-        elsif found == 0 then
+          found = 1     # ２重エラー抑制のため、いずれにせよ found とする
+        elsif class_type then
+          class_through = class_type.add_through_plugin( self, f1[sibling_level], f2[sibling_level], :TO_THROUGH )
+          if class_through == nil then
+            cdl_error( "S9999 $1: going from regin '$2' not permitted by class'$3'" , @name, f1[sibling_level].get_name, f2[sibling_level].get_class_type.get_name )
+          end
+          if class_through && class_through.length > 0 then
+            through = [ class_through[0], :"Join_class_to_through_", class_through[1], f1[sibling_level], f2[sibling_level], :TO_THROUGH, region_count ]
+            @region_through_list << through
+          end
+          found = 1     # ２重エラー抑制のため、いずれにせよ found とする
+        end
+        region_count = f2[i].next_from_through_count( f1[sibling_level].get_name )   # form_through の region カウント
+        f2[sibling_level].get_from_through_list.each { |t|
+          if t[0][0] == f1[sibling_level].get_name then   # region 名が一致するか ?
+            if t[1] then    # plugin_name が指定されていなければ登録しない
+              plugin_arg = CDLString.remove_dquote t[2]
+              through = [ t[1], :"Join_from_through__", plugin_arg, f1[sibling_level], f2[sibling_level], :FROM_THROUGH, region_count ]
+              @region_through_list << through
+            end
+          found = 1
+          end
+        }
+        
+        if found == 0 then
           cdl_error( "S1119 $1: going from region \'$2\' to \'$3\' not permitted" , @name, f1[sibling_level].get_name, f2[sibling_level].get_name )
         end
       end
@@ -5643,15 +5791,26 @@ class Join < BDNode
         dbgPrint "going in to #{f2[i].get_name} level=#{i}\n"
         region_count = f2[i].next_in_through_count
         in_through_list = f2[i].get_in_through_list   # [ plugin_name, plugin_arg ]
-        domain = f2[i].get_domain_type
-        if domain then
-          domain_through = f2[i].get_domain_type.add_through_plugin( self, f2[i-1], f2[i], :IN_THROUGH )
+        domain_type = f2[i].get_domain_type
+        class_type = f2[i].get_class_type
+        if domain_type then
+          domain_through = domain_type.add_through_plugin( self, f2[i-1], f2[i], :IN_THROUGH )
           if domain_through == nil then
             cdl_error( "S9999 $1: going in from regin '$2' to '$3' not permitted by domain '$4'",
-                        @name, f2[i-1].get_name, f2[i].get_name, f2[i].get_domain_type.get_name )
+                        @name, f2[i-1].get_name, f2[i].get_name, domain_type.get_name )
           end
           if domain_through && domain_through.length > 0 then
             through = [ domain_through[0], :"Join_domain_in_through_", domain_through[1], f2[i-1], f2[i], :IN_THROUGH, region_count ]
+            @region_through_list << through
+          end
+        elsif class_type then
+          class_through = class_type.add_through_plugin( self, f2[i-1], f2[i], :IN_THROUGH )
+          if class_through == nil then
+            cdl_error( "S9999 $1: going in from regin '$2' to '$3' not permitted by class '$4'",
+                        @name, f2[i-1].get_name, f2[i].get_name, class_type.get_name )
+          end
+          if class_through && class_through.length > 0 then
+            through = [ class_through[0], :"Join_class_in_through_", class_through[1], f2[i-1], f2[i], :IN_THROUGH, region_count ]
             @region_through_list << through
           end
         elsif in_through_list.length == 0 then
@@ -5666,7 +5825,6 @@ class Join < BDNode
         }
         i += 1
       end
-
     end
   end
 
@@ -5751,7 +5909,7 @@ class Join < BDNode
       end
     end
 
-    @through_list = @cp_through_list + @region_through_list
+    @through_list = @cp_through_list + @region_through_list + @ep_through_list
       # 後から @cp_through_list と @region_through_list に分けたため、このような実装になった
 
     if @through_list then           # nil when the join is not Port
@@ -5760,6 +5918,8 @@ class Join < BDNode
       len = 0
     end
     cp_len = @cp_through_list.length
+    rgn_len = @region_through_list.length
+    # ep_len = @ep_through_list.length       # 使わない
 
     if @owner.is_in_composite? && len > 0 then
       cdl_error( "S1177 cannot specify 'through' in composite in current version" )
@@ -5807,7 +5967,19 @@ class Join < BDNode
         end
       end
 
-      if i >= cp_len then
+      if i < cp_len then
+        prev_region = @owner.get_region     # 呼び元セルのリージョン
+      elsif i < (cp_len+rgn_len) then
+        prev_region = @through_list[i][3]   # region 間プラグイン
+      else
+        if rgn_len > 0 then
+          prev_region = @through_list[cp_len+rgn_len-1][3]   # reion 間のプラグインの一番後ろ
+        else
+          prev_region = @owner.get_region
+        end
+      end
+
+      if cp_len <= i && i < (cp_len+rgn_len) then
         # region_through_list 部分
         # region から @cell_name.@port_name への through がないか探す
         # rp = @through_list[i][3].find_cell_port_through_plugin( @cell_name, @port_name ) #762
@@ -5824,15 +5996,15 @@ class Join < BDNode
       if rp == nil then
         plClass = load_plugin( plugin_name, ThroughPlugin )
         if( plClass ) then
-          gen_through_cell_code_and_parse( plugin_name, i, next_cell, next_port_name, next_port_subscript, plClass )
+          gen_through_cell_code_and_parse( plugin_name, i, prev_region, next_cell, next_port_name, next_port_subscript, plClass )
         end
       else
         # 見つかったものを共用する
         @through_generated_list[ i ] = rp
       end
 
-      if i >= cp_len then
-        # @through_generated_list のうち @region_through_listに対応する部分
+      if cp_len <= i && i < (cp_len+rgn_len) then
+          # @through_generated_list のうち @region_through_listに対応する部分
         @region_through_generated_list[ i - cp_len ] = @through_generated_list[ i ]
         if rp == nil then
           # 生成したものを region(@through_list[i][3]) のリストに追加
@@ -5843,8 +6015,6 @@ class Join < BDNode
 
       if i == 0 then
         # 最も呼び口側のセルは、CDL 上の結合がないため、参照されたことにならない
-        # mikan namespace 対応
-        # cell = Namespace.find( [ @through_generated_list[0].get_cell_name] )    #1
         if @through_generated_list[0] == nil then
           return  # plugin_object の生成に失敗している
         end
@@ -5856,7 +6026,6 @@ class Join < BDNode
 
       i -= 1
     end
-
   end
 
   @@through_count = { }
@@ -5871,15 +6040,16 @@ class Join < BDNode
   end
 
   #=== Join# through プラグインを呼び出して CDL 生成させるとともに、import する
-  def gen_through_cell_code_and_parse( plugin_name, i, next_cell, next_port_name, next_port_subscript, plClass )
+  def gen_through_cell_code_and_parse( plugin_name, i, prev_region, next_cell, next_port_name, next_port_subscript, plClass )
 
     through = @through_list[ i ]
     plugin_name           = through[ 0 ]
     generating_cell_name  = :"#{through[ 1 ]}_#{get_through_count through[ 1 ]}"
     plugin_arg            = through[ 2 ]
+    @@start_region        = prev_region
     if through[ 3 ] then
       # region 間の through の場合
-      @@start_region      = through[ 3 ]
+      # @@start_region      = through[ 3 ]
       if next_cell.get_region.equal? @@start_region then
         @@end_region      = @@start_region
       else
@@ -5889,7 +6059,7 @@ class Join < BDNode
       @@region_count      = through[ 6 ]
     else
       # 呼び口の through の場合
-      @@start_region      = @owner.get_region    # 呼び口側セルの region
+      # @@start_region      = @owner.get_region    # 呼び口側セルの region
       @@end_region        = next_cell.get_region # 次のセルの region
       @@through_type      = :THROUGH             # 呼び口の through 指定
       @@region_count      = 0
@@ -5967,9 +6137,7 @@ class Join < BDNode
   def get_rhs_cell
     # through 指定あり？
     if @through_list[0] then
-      # mikan through で生成したものが root namespace 限定
       if @through_generated_list[0] then
-        # cell = Namespace.find( [ "::", @through_generated_list[0].get_cell_name.to_sym ] )    #1
         cell = Namespace.find( @through_generated_list[0].get_cell_namespace_path )    #1
         # cell が nil になるのはプラグインの get_cell_namespace_path が正しくないか、
         # プラグイン生成コードがエラーになっている。
@@ -5994,10 +6162,7 @@ class Join < BDNode
   def get_rhs_cell2
     # through 指定あり？
     if @through_list[0] then
-      # mikan through で生成したものが root namespace 限定
-      # cell = Namespace.find( [ "::", @through_generated_list[0].get_cell_name ] )
       if @through_generated_list[0] then
-        # cell = Namespace.find( [ @through_generated_list[0].get_cell_name ] )    #1
         cell = Namespace.find( @through_generated_list[0].get_cell_namespace_path )    #1
       else
         cell = @cell            # generate に失敗している
@@ -6027,8 +6192,6 @@ class Join < BDNode
     # through 指定あり？
     if @through_list[0] then
       if @through_generated_list[0] then
-        # mikan through で生成したものが root namespace 限定
-        # cell = Namespace.find( [ "::", @through_generated_list[0].get_cell_name.to_sym ] )    #1
         cell = Namespace.find( @through_generated_list[0].get_cell_namespace_path )    #1
         if cell then
           return cell.get_region
@@ -6067,9 +6230,6 @@ class Join < BDNode
 
     # through 指定あり？
     if @through_list[0] then
-
-      # mikan through で生成したものが root namespace 限定
-      # cell = Namespace.find( [ "::", @through_generated_list[0].get_cell_name.to_sym ] )    #1
       cell = Namespace.find( @through_generated_list[0].get_cell_namespace_path )    #1
 
       # through で挿入されたセルで、実際に接続されるセル（compositeの場合内部の)の受け口の C 言語名前
@@ -6772,42 +6932,50 @@ end
 #
 # region の domain を記憶するクラス
 class DomainType < Node
-#@name::Symbol : ドメインタイプの名前 ex) HRP2
+#@name::Symbol : ドメインタイプの名前 ex) HRP2, HRP
 #@region::Region
 #@plugin_name::Symbol : ex) HRP2Plugin
-#@option::String : ex) "trusted", "nontrusted"
+#@option::String : ex) (HRP2) "trusted", "nontrusted", (HRP3) :kernel, :user, :OutOfDomain
 #@plugin::DomainPlugin の子クラス
+#@node_root::Region : node_root となるリージョン
 
   include PluginModule
 
   # ドメインに属する region の Hash
   # domain 指定が一度も行われない場合、このリストは空である
   # ルートリージョンは option = "OutOfDomain" で登録される (domain 指定が無ければ登録されない)
-  @@domain_regions = { }  # { :domain_type => [ region, ... ] }
+  @@domain_regions = { }  # { node_root => { :domain_type => [ region, ... ] } }
 
-  def initialize( region, name, option )
+  def initialize( region, name, option, node_root )
     super()
     @name = name
     @plugin_name = (name.to_s + "Plugin").to_sym
-    plClass = load_plugin( @plugin_name, DomainPlugin )
+    @pluginClass = load_plugin( @plugin_name, DomainPlugin )
     @region = region
     @option = option
+    @plugin = nil
+    @node_root = node_root
 
-    if @@domain_regions[ name ] then
-      if ! @@domain_regions[ name ].include?( region ) then
-        @@domain_regions[ name ] << region
+    if ! @@domain_regions[ node_root ] then
+      @@domain_regions[ node_root ] = {}
+    end
+    if @@domain_regions[ node_root ][ name ] then
+      if ! @@domain_regions[ node_root ][ name ].include?( region ) then
+        @@domain_regions[ node_root ][ name ] << region
       end
     else
-      @@domain_regions[ name ] = [ region ]
+      @@domain_regions[ node_root ][ name ] = [ region ]
     end
   end
 
   def create_domain_plugin
     if ! @plugin then
-      pluginClass = Object.const_get @plugin_name
-      return if pluginClass == nil
-      @plugin = pluginClass.new( @region, @name, @option )
+      # pluginClass = Object.const_get @plugin_name  # not incompatible with MultiPlugin
+      dbgPrint "create_domain_plugin: plugin_name=#{@plugin_name} class=#{@pluginClass.name} region=#{@region.get_name} option=#{@option}\n"
+      return if @pluginClass == nil
+      @plugin = @pluginClass.new( @region, @name, @option )
       @plugin.set_locale @locale
+      # p "*** plugin_name=#{@plugin_name} plugin=#{@plugin} DomainType=#{self}"
     end
   end
 
@@ -6827,12 +6995,16 @@ class DomainType < Node
 
   #== DomainType リージョンの Hash を得る
   # @@domain_regions の説明参照
-  def self.get_domain_regions
-    return @@domain_regions
+  def self.get_domain_regions node_root
+    if ! @@domain_regions[ node_root ] then
+      return {}
+    else
+      return @@domain_regions[ node_root ]
+    end
   end
 
-  def get_regions
-    return @@domain_regions[ @name ]
+  def get_regions node_root
+    return @@domain_regions[ node_root ][ @name ]
   end
 
   def get_option
@@ -6842,12 +7014,125 @@ class DomainType < Node
   #== DomainType#ドメイン種別を得る
   #return::Symbol :kernel, :user, :OutOfDomain
   def get_kind
-    @plugin.get_kind
+    dbgPrint "DomainType#get_kind plugin_name=#{@plugin_name} plugin=#{@plugin} DomainType=#{self}\n"
+    if @plugin then
+      @plugin.get_kind
+    else
+      # domain 指定されていないケース
+      :OutOfDomain
+    end
   end
 
   def show_tree( indent )
     (indent+1).times { print( "  " ) }
     puts "domain: name=#{@name} plugin=#{@plugin_name} option=#{@option}"
+  end
+end
+
+#== ClassType
+#
+# region の class を記憶するクラス
+class ClassType < Node
+#@name::Symbol : クラスタイプの名前 ex) FMP, HRMP
+#@region::Region
+#@plugin_name::Symbol : ex) FMPPlugin
+#@option::String : クラス名 | :global (OutOfClass)
+#@plugin::ClassPlugin の子クラス
+#@node_root::Region : node_root となるリージョン
+
+  include PluginModule
+
+  # ドメインに属する region の Hash
+  # class 指定が一度も行われない場合、このリストは空である
+  # ルートリージョンは option = "OutOfClass" で登録される (class 指定が無ければ登録されない)
+  @@class_regions = { }  # {:node_root => { :class_type => [ region, ... ] } }
+
+  def initialize( region, name, option, node_root )
+    super()
+    dbgPrint "ClassType.new: region=#{region.get_name} class_name=#{name} option=#{option} node_root=#{node_root.get_name}\n"
+    @name = name
+    @plugin_name = (name.to_s + "Plugin").to_sym
+    @pluginClass = load_plugin( @plugin_name, ClassPlugin )
+    @region = region
+    @option = option
+    @node_root = node_root
+
+    if @@class_regions[ node_root ] == nil then
+      @@class_regions[ node_root ] = {}
+    end
+
+    if @@class_regions[ node_root ][ name ] then
+      if ! @@class_regions[ node_root ][ name ].include?( region ) then
+        @@class_regions[ node_root ][ name ] << region
+      end
+    else
+      @@class_regions[ node_root ][ name ] = [ region ]
+    end
+  end
+
+  def create_class_plugin
+    if ! @plugin then
+      dbgPrint "create_class_plugin region=#{@region.get_name} name=#{@name} option=#{@option}\n"
+      # pluginClass = Object.const_get @plugin_name  # not incompatible with MultiPlugin
+      return if @pluginClass == nil
+      @plugin = @pluginClass.new( @region, @name, @option )
+      @plugin.set_locale @locale
+    end
+  end
+
+  def add_through_plugin( join, from_region, to_region, through_type )
+    # print( "CLASS: add_through_plugin: from=#{from_region.get_name}#{join.get_owner.get_name}.#{join.get_name} to=#{to_region}#{join.get_cell.get_name}.#{join.get_port_name} through_type=#{through_type}\n" )
+    return @plugin.add_through_plugin( join, from_region, to_region, through_type )
+  end
+
+  def joinable?( from_region, to_region, through_type )
+    dbgPrint( "ClassType.joinable?: from_region=#{from_region.get_name} to_region=#{to_region} through_type=#{through_type}\n" )
+    return @plugin.joinable?( from_region, to_region, through_type )
+  end
+
+  def check_class( class_name )
+    dbgPrint "ClassType#check_class class_name=#{class_name}\n"
+    if @plugin == nil || @plugin.check_class( class_name )== false then
+      cdl_error( "S9999 '$1': invalide class name", class_name)
+    end
+  end
+
+  def get_name
+    @name
+  end
+
+  def get_plugin
+    @plugin
+  end
+
+  #== ClassType リージョンの Hash を得る
+  # @@class_regions の説明参照
+  def self.get_class_regions node_root
+    if @@class_regions[node_root] then
+      return @@class_regions[node_root]
+    else
+      return {}
+    end
+  end
+
+  def get_regions node_root
+    return @@class_regions[ node_root ][ @name ]
+  end
+
+  def get_option
+    dbgPrint "ClassType: get_option: #{@option}\n"
+    return @option
+  end
+
+  #== ClassType#ドメイン種別を得る
+  def get_kind
+    dbgPrint "ClassType#get_kind plugin_name=#{@plugin_name} plugin=#{@plugin} DomainType=#{self}\n"
+    @plugin.get_kind
+  end
+
+  def show_tree( indent )
+    (indent+1).times { print( "  " ) }
+    puts "class: name=#{@name} plugin=#{@plugin_name} option=#{@option}"
   end
 end
 
@@ -6864,31 +7149,38 @@ class Region < Namespace
 # @in_through_list:: [ [ plugin_name, plugin_arg ], ... ] : plungin_name = nil の時 in 禁止
 # @out_through_list:: [ [ plugin_name, plugin_arg ], ... ] : plungin_name = nil の時 out 禁止
 # @to_through_list:: [ [ dst_region, plugin_name, plugin_arg ], ... ]
+# @from_through_list:: [ [ src_region, plugin_name, plugin_arg ], ... ]
 # @cell_port_throug_plugin_list:: { "#{cell_name}.#{port_name}" => through_generated_list の要素 }
 #    この region から cell_name.port_name への through プラグインで生成されたオブジェクト
-# @region_type::Symbol : :NODE, :LINKUNIT, :DOMAIN, :CLASS
-# @region_type_param::Symbol : domain, class の名前. node, linkunit では nil
+# @region_type::Symbol|Nil : :NODE, :LINKUNIT, :DOMAIN, :CLASS
+# @region_type_param::Symbol|Nil : domain, class の名前. node, linkunit では nil
 # @link_root:: Region : linkUnit の根っことなる region (node, linkunit が指定された region)
+# @node_root:: Region : node の根っことなる region (node が指定された region)
 # @family_line:: [ @region_root, ...,@region_me ]  家系
 # @in_through_count:: Integer :  n 番目の in_through 結合 (n>=0)
 # @out_through_count:: Integer : n 番目の out_through 結合 (n>=0)
 # @to_through_count:: { :RegionName => Integer }: RegionName への n 番目の to_through 結合 (n>=0)
+# @from_through_count:: { :RegionName => Integer }: RegionName への n 番目の from_through 結合 (n>=0)
 # @domain_type::DomainType : domain 指定されていない場合、nil
 # @domain_root::Region : domain 指定されていなる Region (root の場合 nil)
+# @class_type::ClassType : class 指定されていない場合、nil
+# @class_root::Region : class 指定されていなる Region (root の場合 nil)
 
   @@in_through_list  = []
   @@out_through_list = []
   @@to_through_list  = []
+  @@from_through_list  = []
   @@region_type = nil
   @@region_type_param = nil
   @@domain_name = nil
   @@domain_option = nil    # Token が入る
+  @@class_name = nil
+  @@class_option = nil    # Token が入る
 
   @@link_roots = []
+  @@node_roots = []
 
   def initialize( name )
-    # mikan name の Namespace 修飾
-    # object = Namespace.find( [ name ] )   # 親まで捜しにいく
     if name != "::" then
       object = Namespace.get_current.find( name )    #1
     else
@@ -6900,30 +7192,49 @@ class Region < Namespace
     @in_through_list    = @@in_through_list
     @out_through_list   = @@out_through_list
     @to_through_list    = @@to_through_list
+    @from_through_list  = @@from_through_list
     @region_type        = @@region_type
     @region_type_param  = @@region_type_param
-
-    if @@domain_name then
-      dbgPrint "Region=#{name} domain_type=#{@@domain_name} option=#{@@domain_option}\n"
-      domain_option = CDLString.remove_dquote @@domain_option.to_s
-      @domain_type = DomainType.new( self, @@domain_name, domain_option )
-      @@domain_name       = nil
-      @@domain_option     = nil
-    else
-      @domain_type = nil
-    end
 
     @@in_through_list   = []
     @@out_through_list  = []
     @@to_through_list   = []
+    @@from_through_list   = []
     @@region_type       = nil
     @@region_type_param = nil
 
     @in_through_count = -1
     @out_through_count = -1
     @to_through_count = {}
+    @from_through_count = {}
 
     super( name )
+    set_region_roots
+
+    if @@domain_name then
+      dbgPrint "Region=#{name} domain_type=#{@@domain_name} option=#{@@domain_option}\n"
+      domain_option = CDLString.remove_dquote @@domain_option.to_s
+      @domain_type = DomainType.new( self, @@domain_name, domain_option, @node_root )
+      @@domain_name       = nil
+      @@domain_option     = nil
+    else
+      @domain_type = nil
+    end
+
+    if @@class_name then
+      dbgPrint "Region=#{name} class_type=#{@@class_name} option=#{@@class_option}\n"
+      if @@class_option.kind_of? Token then
+        class_option = CDLString.remove_dquote @@class_option.to_s
+      else
+        class_option = @@class_option  # :global
+      end
+      @class_type = ClassType.new( self, @@class_name, class_option, @node_root )
+      @@class_name       = nil
+      @@class_option     = nil
+    else
+      @class_type = nil
+    end
+  
     if object then
 
       if object.instance_of?( Region ) then
@@ -6944,7 +7255,7 @@ class Region < Namespace
 
         # 再出現時に specifier が指定されているか？
         if( @in_through_list.length != 0 || @out_through_list.length != 0 || @to_through_list.length != 0 ||
-            @region_type != nil || @domain_type != nil )then
+          @from_through_list.length != 0 || @region_type != nil || @domain_type != nil || @class_type != nil )then
           cdl_error( "S1140 $1: region specifier must place at first appearence" , name )
         end
         return
@@ -6961,6 +7272,10 @@ class Region < Namespace
       dbgPrint "Region.new: #{@name}\n"
       set_region_family_line
 
+      if @region_type == :NODE then
+        dbgPrint "new Node: #{@name}\n"
+        @@node_roots << self
+      end
       if @region_type == :NODE || @region_type == :LINKUNIT then
         dbgPrint "new LinkRoot: #{@name}\n"
         @@link_roots << self
@@ -6978,6 +7293,7 @@ class Region < Namespace
 
   def self.end_of_parse
     Namespace.get_current.create_domain_plugin
+    Namespace.get_current.create_class_plugin
     Namespace.get_current.end_of_parse
   end
 
@@ -6994,6 +7310,11 @@ class Region < Namespace
     @@to_through_list  << [ dst_region, plugin_name, plugin_arg ]
   end
 
+  def self.new_from_through( src_region, plugin_name, plugin_arg )
+    # p "New to_through #{dst_region}"
+    @@from_through_list  << [ src_region, plugin_name, plugin_arg ]
+  end
+
   def self.set_type( type, param = nil )
     if @@region_type then
       Generator.error( "S1178 $1 region type specifier duplicate, previous $2", type, @@region_type )
@@ -7004,10 +7325,22 @@ class Region < Namespace
 
   def self.set_domain( name, option )
     if @@domain_name then
-      Generator.error( "S9999 $1 domain specifier duplicate, previous $2", type, @@region_type )
+      Generator.error( "S9999 $1 domain specifier duplicate, previous $2", name, @@domain_name )
+    elsif @@class_name then
+      Generator.error( "S9999 $1 domain & class specifier are incompatible $2", name, @@class_name )
     end
     @@domain_name = name
     @@domain_option = option
+  end
+
+  def self.set_class( name, option )
+    if @@class_name then
+      Generator.error( "S9999 $1 class specifier duplicate, previous $2", name, @@class_name )
+    elsif @@domain_name then
+      Generator.error( "S9999 $1 class & domain specifier are incompatible $2", name, @@domain_name )
+    end
+    @@class_name = name
+    @@class_option = option
   end
 
   #== Region ルートリージョンを得る
@@ -7016,21 +7349,28 @@ class Region < Namespace
     Namespace.get_root
   end
 
-  def set_region_family_line
-
-    dbgPrint  "set_region_family_line: Region: #{@name}  \n"
+  def set_region_roots
     # root namespace (root region) の region type は :NODE
-    if @name == "::" then
-      @region_type = :NODE
+    # if @name == "::" then
+    #   @region_type = :NODE
+    # end
+    dbgPrint "Region#set_region_roots name=#{@name}\n"
+    if @region_type == :NODE then
+      @node_root = self
+    else
+      @node_root = @owner.get_node_root
     end
-
     if @region_type == :NODE || @region_type == :LINKUNIT then
       @link_root = self
     else
       @link_root = @owner.get_link_root
     end
+  end
 
-    if @domain_type != nil || @owner == nil then
+  def set_region_family_line
+    dbgPrint  "set_region_family_line: Region: #{@name}  \n"
+      #---- Domain ----
+    if @domain_type != nil || @owner == nil || @region_type == :NODE then
       @domain_root = self
     else
       @domain_root = @owner.get_domain_root
@@ -7042,47 +7382,30 @@ class Region < Namespace
       @owner.set_domain_type @domain_type
     end
 
+    #---- Class ----
+    if @class_type != nil || @owner == nil || @region_type == :NODE then
+      @class_root = self
+    else
+      @class_root = @owner.get_class_root
+    end
+
+    if @class_type then
+      # ルートリージョンが最初から @class_type 設定されることはないの
+      # で @owner == nil を調べる必要はない
+      @owner.set_class_type @class_type
+    end
+    
+    #---- Faily Line ----
     if @owner then
       @family_line = ( @owner.get_family_line.dup ) << self
     else
       @family_line = [ self ]    # root region
     end
-
-=begin
-    @family_line = []
-    @link_root = nil
-
-    # @family_line を作成する
-    # @link_root もみつける
-    # (上位にたどっていって Region で node または linkunit のいずれか先に見つかったものが @link_root となる)
-    # root namespace は Region かつ node なので必ず @link_root は見つかる
-    # mikan: self が node, linkUnit の場合、ここで期待したとおりに設定されないため、Region#initialize で再設定
-    obj = self
-    while 1
-      if obj.instance_of? Region then
-        @family_line << obj
-        if @link_root == nil then
-          if obj.get_region_type == :NODE || obj.get_region_type == :LINKUNIT then
-            @link_root = obj
-          end
-        end
-      else
-        # さもなければ Namespace
-        # namespace の下に region がある場合
-      end
-
-      # root namespace にたどり着けば終り
-      break if obj.get_name == "::"
-
-      obj = obj.get_owner
-    end
-    # print "#{@name}: linkRoot: #{@link_root.get_name}  (this can be wrong if #{@name} is node or linkunit, and corret later\n"
-    @family_line.reverse!
-=end
-
   end
 
   #== Region#ドメインを設定する
+  #ドメインタイプが指定されたリージョンの親リージョンにドメインタイプを設定する
+  # 親リージョンは、既にドメインタイプが指定されていなければ、OutOfDomain とする
   def set_domain_type domain_type
     if @region_type == :NODE then
       if @domain_type then
@@ -7090,12 +7413,35 @@ class Region < Namespace
           cdl_error( "S9999 '$1' node root cannot belong to both $2 and $3", @name, @domain_type.get_name, domain_type.get_name )
         end
       else
-        @domain_type = DomainType.new( self, domain_type.get_name, "OutOfDomain" )
+        @domain_type = DomainType.new( self, domain_type.get_name, "OutOfDomain", @node_root )
         @domain_type.create_domain_plugin
       end
     elsif @domain_type == nil then
       @owner.set_domain_type domain_type
     end
+  end
+
+  #== Region#クラスを設定する
+  #クラスが指定されたリージョンの親リージョンにクラスを設定する
+  # 親リージョンは、既にクラスが指定されていなければ、OutOfClass とする
+  def set_class_type class_type
+    if @region_type == :NODE then
+      if @class_type then
+        if @class_type.get_name != class_type.get_name then
+          cdl_error( "S9999 '$1' node root cannot belong to both $2 and $3",
+                      @name, @class_type.get_name, class_type.get_name )
+        end
+      else
+        @class_type = ClassType.new( self, class_type.get_name, :root, @node_root )
+        @class_type.create_class_plugin
+      end
+    elsif @class_type == nil then
+      @owner.set_class_type class_type
+    end
+  end
+
+  def self.get_node_roots
+    @@node_roots
   end
 
   def self.get_link_roots
@@ -7118,10 +7464,20 @@ class Region < Namespace
     @to_through_list
   end
 
+  def get_from_through_list
+    @from_through_list
+  end
+
+  def get_node_root
+    @node_root
+  end
+
   def get_link_root
     @link_root
   end
 
+  #== REgion# DomainType を返す
+  # Region がドメインルートでない場合 nil を返す
   def get_domain_type
     @domain_type
   end
@@ -7134,6 +7490,16 @@ class Region < Namespace
     @domain_root
   end
 
+  #== REgion# ClassType を返す
+  # Region がクラスルートでない場合 nil を返す
+  def get_class_type
+    @class_type
+  end
+
+  def get_class_root
+    @class_root
+  end
+  
   def get_path_string
     pstring = ""
     delim = ""
@@ -7153,9 +7519,9 @@ class Region < Namespace
     @name
   end
 
-  #== Region# ルートリージョン
+  #== Region.ルートリージョン
   # ルートリージョンは、namespace のルートと同じインスタンス
-  def selfget_root
+  def self.get_root
     Namespace.get_root
   end
 
@@ -7172,6 +7538,14 @@ class Region < Namespace
       @to_through_count[ symRegionName ] = 0
     else
       @to_through_count[ symRegionName ] += 1
+    end
+  end
+
+  def next_from_through_count( symRegionName )
+    if @from_through_count[ symRegionName ] == nil then
+      @from_through_count[ symRegionName ] = 0
+    else
+      @from_through_count[ symRegionName ] += 1
     end
   end
 
@@ -7212,8 +7586,14 @@ class Region < Namespace
     end
   end
 
+  def create_class_plugin
+    if @class_type then
+      @class_type.create_class_plugin
+    end
+  end
+
   #=== Region# to_region への距離（unreachable な場合 nil)
-  # mikan Cell#check_region とRegion へたどり着くまでための処理に共通性が高い
+  # mikan Cell#check_region とRegion へたどり着くまでの処理に共通性が高い
   # region#distance は require で用いられる
   def distance( to_region )
 
@@ -7249,15 +7629,22 @@ class Region < Namespace
       while i >= sibling_level
         dbgPrint "going out from #{f1[i].get_name} level=#{i}\n"
         # print "DOMAIN: going out from #{f1[i].get_name} level=#{i}\n"
-        domain = f1[i].get_domain_type
-        domain_ok = false
-        if domain then
-          if ! f1[i].get_domain_type.joinable?( f1[i], f1[i-1], :OUT_THROUGH ) then
+        domain_type = f1[i].get_domain_type
+        class_type = f1[i].get_class_type
+        dbgPrint "distance: region=#{f1[i].get_name} domain_type=#{domain_type} class_type=#{class_type}"
+        join_ok = false
+        if domain_type then
+          if ! domain_type.joinable?( f1[i], f1[i-1], :OUT_THROUGH ) then
             return nil
           end
-          domain_ok = true
+          join_ok = true
+        elsif class_type then
+          if ! class_type.joinable?( f1[i], f1[i-1], :OUT_THROUGH ) then
+            return nil
+          end
+          join_ok = true
         end
-        if ! domain_ok then
+        if ! join_ok then
           out_through_list = f1[i].get_out_through_list   # [ plugin_name, plugin_arg ]
           if out_through_list.length == 0 then
             return nil
@@ -7271,18 +7658,29 @@ class Region < Namespace
       if f1[sibling_level] && f2[sibling_level] then
         dbgPrint "going from #{f1[sibling_level].get_name} to #{f2[sibling_level].get_name}\n"
         # print "DOMAIN: going from #{f1[sibling_level].get_name} to #{f2[sibling_level].get_name}\n"
-        domain = f1[sibling_level].get_domain_type
-        domain_ok = false
-        if domain then
-          if ! f1[i].get_domain_type.joinable?( f1[i], f1[i-1], :TO_THROUGH ) then
+        domain_type = f1[sibling_level].get_domain_type
+        class_type = f1[sibling_level].get_class_type
+        join_ok = false
+        if domain_type then
+          if ! domain_type.joinable?( f1[i], f1[i-1], :TO_THROUGH ) then
             return nil
           end
-          domain_ok = true
+          join_ok = true
+        elsif class_type then
+          if ! class_type.joinable?( f1[i], f1[i-1], :TO_THROUGH ) then
+            return nil
+          end
+          join_ok = true
         end
-        if ! domain_ok then
+        if ! join_ok then
           found = 0
           f1[sibling_level].get_to_through_list.each { |t|
             if t[0][0] == f2[sibling_level].get_name then   # region 名が一致するか ?
+              found = 1
+            end
+          }
+          f2[sibling_level].get_from_through_list.each { |t|
+            if t[0][0] == f1[sibling_level].get_name then   # region 名が一致するか ?
               found = 1
             end
           }
@@ -7298,15 +7696,21 @@ class Region < Namespace
       while i < len2
         dbgPrint "going in to #{f2[i].get_name} level=#{i}\n"
         # print "DOMAIN: going in to #{f2[i].get_name} level=#{i}\n"
-        domain = f2[i].get_domain_type
-        domain_ok = false
-        if domain then
-          if ! f2[i].get_domain_type.joinable?( f2[i-1], f2[i], :IN_THROUGH ) then
+        domain_type = f2[i].get_domain_type
+        class_type = f2[i].get_class_type
+        join_ok = false
+        if domain_type then
+          if ! domain_type.joinable?( f2[i-1], f2[i], :IN_THROUGH ) then
             return nil
           end
-          domain_ok = true
+          join_ok = true
+        elsif class_type then
+          if ! class_type.joinable?( f2[i-1], f2[i], :IN_THROUGH ) then
+            return nil
+          end
+          join_ok = true
         end
-        if ! domain_ok then
+        if ! join_ok then
           in_through_list = f2[i].get_in_through_list   # [ plugin_name, plugin_arg ]
           if in_through_list.length == 0 then
             return nil
@@ -7318,8 +7722,36 @@ class Region < Namespace
     end
 
     dbgPrint "dsitance=#{dist} from #{r1.get_name} to #{r2.get_name}\n"
+    # print "dsitance=#{dist} from #{r1.get_name} to #{r2.get_name}\n"
 
     return dist
+  end
+
+  # Regin# self は、region の子リージョンか？
+  def is_sub_region_of? region
+    while region != self
+      if region.is_root? then
+        return true
+      end
+      region = region.get_owner
+    end
+    return false
+  end
+
+  def is_node_root?
+    @@node_roots.include? self
+  end
+
+  def is_link_root?
+    @@link_roots.include? self
+  end
+
+  def is_class_root?
+    @region_type == :NODE
+  end
+
+  def is_domain_root?
+    @region_type == :NODE
   end
 
   def show_tree( indent )
@@ -7328,9 +7760,11 @@ class Region < Namespace
     puts "path: #{get_path_string}"
     (indent+1).times { print( "  " ) }
     puts "namespace: #{@namespace ? @namespace.get_name : "nil"}  owner: #{@owner.class}.#{@owner ? @owner.get_name : "nil"}"
-    if @domain
-      @domain.show_tree( indent+1 )
+    if @domain_type
+      @domain_type.show_tree( indent+1 )
     end
+    (indent+1).times { print( "  " ) }
+    puts "domain_root=#{@domain_root.get_name} class_root=#{@class_root.get_name}"
   end
 end
 
@@ -7598,9 +8032,11 @@ class Import_C < Node
 #define __builtin_va_list va_list
 #endif
 
+#if 0
 #ifndef __asm__
 #define __asm__(x)
 #endif
+#endif /* 0 */
 
 #ifndef restrict
 #define restrict
@@ -7782,7 +8218,7 @@ class Generate < Node
       cdl_error( "S9999 generate: '$1' neither signature, celltype nor cell", object_nsp )
       return
     else
-      cdl_error( "S9999 generate: '$1' not found", object_nsp )
+      cdl_error( "S9999 generate: signature '$1' not found", object_nsp )
     end
   end
 end

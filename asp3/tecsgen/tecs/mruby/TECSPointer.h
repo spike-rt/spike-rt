@@ -38,7 +38,9 @@
 #ifndef TECSPointer_h__
 #define TECSPointer_h__
 
+// もし mruby 関連のヘッダ取り込みでエラーが出るようなら仮の定義で TECS ジェネレータを通す
 #ifndef TECSGEN
+// #if 1
 
 #include <string.h>
 #include <stdint.h>

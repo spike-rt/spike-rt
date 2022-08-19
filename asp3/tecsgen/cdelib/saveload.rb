@@ -183,7 +183,6 @@ module TECSCDE
 =end
         }
 
-        set_location_from_tecsgen_old
         #------ validate and set location info from __tool_info( "tecscde" ) ------#
         # begin
         if validate || $b_force_apply_tool_info
@@ -460,7 +459,6 @@ module TECSCDE
 
     end
 
-
     #=== TECSModel#validate
     # validate JSON format data in __tool_info__( "tecscde" )
     def validate
@@ -725,142 +723,6 @@ EOT
         index += 1
       }
       f.print "\n    ]\n"
-    end
-
-    #----- old syntax for location information -----#
-    # load code is still used for old data.
-
-    #=== TECSModel#set_location_from_tecsgen
-    # get location information from cde file and apply it to TmCell & TmJoin
-    def set_location_from_tecsgen_old
-      # set cell location
-      @tecsgen.get_cell_location_list.each{ |cl|
-        cell_nspath, x, y, w, h, port_location_list = cl.get_location
-        # p "set_location_from_tecsgen", cell_nspath, x, y, w, h, port_location_list
-        cell = @cell_hash[ cell_nspath.to_s.to_sym ]
-        if cell then
-          # p "apply location: #{cell.get_name}"
-          cell.set_geometry( x, y, w, h )
-        end
-      }
-
-      # set join location
-      @tecsgen.get_join_location_list.each{ |jl|
-        cp_cell_nspath, cp_name, ep_cell_nspath, ep_name, bar_list = jl.get_location
-        cp_subscript = nil   # kari
-        ep_subscript = nil
-        # p "set_location_from_tecsgen, #{cp_cell_nspath}, #{cp_name}, #{ep_cell_nspath}, #{ep_name}, #{bar_list}"
-        cp_cell = @cell_hash[ cp_cell_nspath.to_s.to_sym ]
-        ep_cell = @cell_hash[ ep_cell_nspath.to_s.to_sym ]
-        # check existance of cells
-        if cp_cell != nil && ep_cell != nil then
-          cport = cp_cell.get_cports[ cp_name.to_sym ]
-          eport = ep_cell.get_eports[ ep_name.to_sym ]
-           # p "1 #{cp_name} #{ep_name} #{cport} #{eport}"
-
-          # check existance of cport & eport and direction of bar & edge (must be in right angle)
-          # mikan necessary more than 2 bars
-          if cport != nil && eport != nil && eport.include?( cport.get_join( cp_subscript ) ) && bar_list.length >= 2 then
-            # p "2"
-            b_vertical = TECSModel.is_vertical?( cport.get_edge_side )
-            bar_type = bar_list[0][0]
-            if ( b_vertical  && bar_type == :HBar ) || (! b_vertical && bar_type == :VBar ) then
-              # p "3"
-              len = bar_list.length
-              # bar_list: [ [:HBar, pos]
-              normal_pos = bar_list[len-1][1].eval_const(nil)
-              tan_pos = bar_list[len-2][1].eval_const(nil)
-              # p "normal_pos=#{normal_pos}, eport_normal=#{eport.get_position_in_normal_dir}"
-              # p "tan_pos=#{tan_pos}, eport_tan=#{eport.get_position_in_tangential_dir}"
-              # check if normal_pos & tan_pos can be evaluated and the position of bars goal
-              if normal_pos != nil && tan_pos != nil &&
-                  ( (normal_pos - eport.get_position_in_normal_dir).abs <= MAX_ERROR_IN_NOR ) &&
-                  ( (tan_pos - eport.get_position_in_tangential_dir).abs <= MAX_ERROR_IN_TAN ) then
-                # p "4"
-                bars = []
-                bar_list.each{ |bar_info|
-                  # bar_list: array of [ IDENTIFER, position ] => bars ( array of HBar or VBar )
-                  pos = bar_info[1].eval_const nil
-                  if pos != nil && bar_info[0] == :HBar then
-                    bar = HBar.new( pos, cport.get_join )
-                    bars << bar
-                  elsif pos != nil && bar_info[0] == :VBar then
-                    bar = VBar.new( pos, cport.get_join )
-                    bars << bar
-                  else
-                    bars = []
-                    break
-                  end
-                }
-                # mikan length more than 2
-                len = bars.length
-                if len >= 2 then
-                  bars[ len - 1 ].set_position eport.get_position_in_normal_dir
-                  bars[ len - 2 ].set_position eport.get_position_in_tangential_dir
-                  # p "bar changed for #{cp_cell_nspath}.#{cport.get_name}"
-                  cport.get_join.change_bars bars
-                end
-              end
-            end
-          end
-        end
-      }
-    end
-
-    def save_old_info f
-      f.print "//////////  TECSCDE  ///////////\n"
-      f.print "\n"
-      f.print "/*************************************************\n"
-      f.print " *             LOCATION INFORMATION              *\n"
-      f.print " *   location information is used by tecscde     *\n"
-      f.print " *  please don't touch if you are not familiar   *\n"
-      f.print " ************************************************/\n"
-      f.print "__location_information__ {\n"
-
-      @cell_list.each{ |cell|
-        x, y, w, h = cell.get_geometry
-        f.print( "    __cell__  #{cell.get_name}( #{x}, #{y}, #{w}, #{h} ) {\n" )
-        cell.get_cports.each{ |name, cport|
-          if cport.is_array?
-            cport.get_ports.each{ |cp|
-              f.print "        #{cp.get_name}( #{cp.get_subscript}, #{cp.get_edge_side_name}, #{cp.get_offset} )\n"
-            }
-          else
-            f.print "        #{cport.get_name}( #{cport.get_edge_side_name}, #{cport.get_offset} )\n"
-          end
-        }
-        cell.get_eports.each{ |name, eport|
-          if eport.is_array?
-            eport.get_ports.each{ |ep|
-              f.print "        #{ep.get_name}( #{ep.get_subscript}, #{ep.get_edge_side_name}, #{ep.get_offset} )\n"
-            }
-          else
-            f.print "        #{eport.get_name}( #{eport.get_edge_side_name}, #{eport.get_offset} )\n"
-          end
-        }
-        f.print( "    }\n" )
-      }
-      @join_list.each{ |join|
-        cport, eport, bars = join.get_ports_bars
-        if cport.get_subscript then
-          cp_subsc = "[ #{cport.get_subscript} ]"
-        else
-          cp_subsc = ""
-        end
-        if eport.get_subscript then
-          ep_subsc = "[ #{eport.get_subscript} ]"
-        else
-          ep_subsc = ""
-        end
-
-        f.print( "    __join__( #{cport.get_cell.get_name}.#{cport.get_name}#{cp_subsc} => #{eport.get_cell.get_name}.#{eport.get_name}#{ep_subsc} ){\n" )
-        bars.each{ |bar|
-          f.print( "        #{(bar.instance_of? HBar) ? "HBar" : "VBar"}( #{bar.get_position} )\n")
-        }
-        f.print( "    }\n" )
-      }
-      f.print( "} //__location_information\n" )
-
     end
 
     #=== TECSModel#get_edge_side_val

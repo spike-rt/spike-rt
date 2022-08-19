@@ -802,8 +802,9 @@ EOT
       end
     end
 
-    def each  #proc
-      proc = Proc.new
+    def each &proc #proc
+      # Ruby3.0: obsolete
+      # proc = Proc.new
       @hilite_objs.each{ |obj|
         proc.call obj
       }

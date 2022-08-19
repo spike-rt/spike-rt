@@ -124,8 +124,16 @@ module CType
 #      cdl_warning( "W9999 $1 & $2 incompatible (\'long double\' is not supported.). Treated as $3." , self.get_type_str, another.get_type_str, self.get_type_str )
       self.to_long      
       return self
+    elsif self.instance_of?( CVoidType ) then
+      if another.is_const? then
+        @b_const = true
+      end
+      if another.is_volatile? then
+        @b_volatile = true
+      end
+      return self
     else
-      raise "merge: unknown type"
+      raise "merge: unknown type #{self.class.name}"
     end
   end
 
@@ -147,6 +155,34 @@ class CDefinedType < DefinedType
 
   def initialize( type_name )
     super( type_name )
+    # サイズが明瞭の C 言語の型について、TECS CDL の組込み型と同等に扱う
+    case type_name
+    when :int8_t
+      @type = IntType.new( 8 )
+    when :int16_t
+      @type = IntType.new( 16 )
+    when :int32_t
+      @type = IntType.new( 32 )
+    when :int64_t
+      @type = IntType.new( 64 )
+    when :int128_t
+      @type = IntType.new( 128 )
+    when :uint8_t
+      @type = IntType.new( 8 )
+      @type.set_sign( :UNSIGNED, true )
+    when :uint16_t
+      @type = IntType.new( 16 )
+      @type.set_sign( :UNSIGNED, true )
+    when :uint32_t
+      @type = IntType.new( 32 )
+      @type.set_sign( :UNSIGNED, true )
+    when :uint64_t
+      @type = IntType.new( 64 )
+      @type.set_sign( :UNSIGNED, true )
+    when :uint128_t
+      @type = IntType.new( 128 )
+      @type.set_sign( :UNSIGNED, true )
+    end
   end
 end
 

@@ -47,6 +47,7 @@ const int8_t TECSTypeKind_StructType  = 7;
 const int8_t TECSTypeKind_EnumType    = 8;
 const int8_t TECSTypeKind_VoidType    = 9;
 const int8_t TECSTypeKind_DescriptorType = 10;
+const int8_t TECSTypeKind_FuncType    = 11;
 
 /* Parameter Direction */
 const int8_t PARAM_DIR_IN         = 1;
@@ -556,8 +557,9 @@ namespace nTECSInfo {
             bool_t   b_volatile;
         };
         entry sTypeInfo eTypeInfo;
-        [ref_desc]
+        [ref_desc, optional]
             call sVarDeclInfo cVarDeclInfo[];
+            /* import_C から来る struct の中には不完全型 (メンバー未定義) が含まれる */
     };
     celltype tPtrTypeInfo {
         attr {
@@ -615,6 +617,13 @@ namespace nTECSInfo {
         FACTORY {
             write( "$ct_global$_factory.h", "#include \"include_all_signature_header.h\"" );
         };
+    };
+    celltype tFuncTypeInfo {
+        attr {
+            char_t   *name;
+            int8_t   typeKind;
+        };
+        entry sTypeInfo eTypeInfo;
     };
 };
 

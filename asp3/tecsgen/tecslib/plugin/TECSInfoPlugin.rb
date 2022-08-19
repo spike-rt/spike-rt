@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: TECSInfoPlugin.rb 3077 2019-06-09 07:23:31Z okuma-top $
+#   $Id: TECSInfoPlugin.rb 3159 2020-07-05 10:25:24Z okuma-top $
 #++
 
 #== CelltypePlugin for tTECSInfo
@@ -282,7 +282,8 @@ EOT
   end
 
   def self.get_post_code_priority
-    p "#{self.name} get_post_code_priority"
-    return PluginModule::SIGNATURE_PLUGIN_POST_CODE_PRIORITY + 1000
+    prio = PluginModule::SIGNATURE_PLUGIN_POST_CODE_PRIORITY + 1000
+    dbgPrint "TECSInfoPlugin: get_post_code_priority: #{prio}\n"
+    return prio
   end
 end

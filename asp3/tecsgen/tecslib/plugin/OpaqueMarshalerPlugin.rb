@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: OpaqueMarshalerPlugin.rb 2952 2018-05-07 10:19:07Z okuma-top $
+#   $Id: OpaqueMarshalerPlugin.rb 3159 2020-07-05 10:25:24Z okuma-top $
 #++
 
 #== OpaqueMarshaler
@@ -66,7 +66,7 @@ class OpaqueMarshalerPlugin < SignaturePlugin
       necessity = "Unnecessary"
     end
 
-    print "OpaqueMarshalerPlugin: signature=#{signature.get_namespace_path}, PPAllocator=#{necessity}\n"
+    dbgPrint "OpaqueMarshalerPlugin: signature=#{signature.get_namespace_path}, PPAllocator=#{necessity}\n"
   end
 
   def gen_cdl_file file

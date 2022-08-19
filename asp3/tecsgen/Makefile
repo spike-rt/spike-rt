@@ -93,10 +93,10 @@ real_clean : clean
 	rm -f $(EXERB_EXE)
 
 $(GEN_TAB) : $(BNF)
-	racc -O -v $(BNF)
+	racc -v $(BNF)
 
 $(C_TAB) : $(C_PARSER)
-	racc -O -v $(C_PARSER)
+	racc -v $(C_PARSER)
 
 yydebug : $(GEN_TAB_DEB)
 

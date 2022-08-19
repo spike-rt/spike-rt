@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: GenParamCopy.rb 2952 2018-05-07 10:19:07Z okuma-top $
+#   $Id: GenParamCopy.rb 3176 2020-10-25 08:07:05Z okuma-top $
 #++
 
 #= ParamCopy
@@ -56,6 +56,7 @@ module  GenParamCopy
       else        
         size_str = subsc.to_str( name_list, outer, outer2 )
         file.print <<EOT
+/* (GenParamCopy0001) */
 #{indent}if((ercd_=#{alloc_cp}(sizeof(#{type.get_type.get_type_str}#{type.get_type.get_type_str_post})*(#{size_str}),(void **)&#{outer}#{name}#{outer2}#{alloc_cp_extra}))!=E_OK)\t/* GenParamCopy 1 */
 #{indent}	goto error_reset;
 EOT
@@ -124,10 +125,14 @@ EOT
 
       if( b_get )then
         file.print indent
+        file.print "/* (GenParamCopy0101) */\n"
+        file.print indent
         file.print "if( ( ercd_ = cTDR_get#{type_str}( &(#{outer}#{name}#{outer2}) ) ) != E_OK )\t/* GenParamCopy 2 */\n"
         file.print indent
         file.print "	goto error_reset;\n"
       else
+        file.print indent
+        file.print "/* (GenParamCopy0102) */\n"
         file.print indent
         file.print "if( ( ercd_ = cTDR_put#{type_str}( #{outer}#{name}#{outer2} ) ) != E_OK )\t/* GenParamCopy 3 */\n"
         file.print indent
@@ -141,7 +146,7 @@ EOT
         nest = print_nullable_pre( name, type, file, nest, dir, outer, outer2, b_marshal, b_get )
         indent = "\t" * nest
         loop_counter_type = IntType.new(32)   # mikan 型を size_is, count_is の引数の型とする
-        file.print "#{indent}{\t/* GenParamCopy 4 */\n"
+        file.print "#{indent}{\t/* GenParamCopy0103 */\n"
         file.print "#{indent}	#{loop_counter_type.get_type_str}  i__#{nest}, length__#{nest};\n"
 
         if size || count then
@@ -155,12 +160,12 @@ EOT
             # size_is は必須. count_is はオプション
             count_str = size_str
           end
-          file.print "#{indent}	length__#{nest} = #{count_str};\t/* GenParamCopy 5 */\n"
+          file.print "#{indent}	length__#{nest} = #{count_str};\t/* GenParamCopy0104 */\n"
 
           # size_is に max 指定がある場合、length が max を超えているかチェックするコードを生成
               # alloc_cp == nil のとき dir は INOUT, OUT のはず (条件が冗長)。試験が終わっているので、次回見直し時に外す
           if b_get && type.get_max != nil && ! ( ( dir == :INOUT || dir == :OUT ) && alloc_cp == nil ) then
-            file.print "#{indent}	if( length__#{nest} > #{type.get_max.to_s} ){\t/* GenParamCopy max check 1 */\n"
+            file.print "#{indent}	if( length__#{nest} > #{type.get_max.to_s} ){\t/* GenParamCopy0105 max check 1 */\n"
             file.print "#{indent}		ercd_ = E_PAR;\n"
             file.print "#{indent}		goto error_reset;\n"
             file.print "#{indent}	}\n"
@@ -179,10 +184,10 @@ EOT
           if ! b_get then
             if  string.instance_of? Expression then
               len = string.to_str( name_list, outer, outer2 )
-              file.print "#{indent}	length__#{nest} = STRNLEN#{b_size}(#{outer}#{name}#{outer2},(#{len}-1))+1;\t/* GenParamCopy 6 */\n"
+              file.print "#{indent}	length__#{nest} = STRNLEN#{b_size}(#{outer}#{name}#{outer2},(#{len}-1))+1;\t/* GenParamCopy0106 */\n"
               file.print "#{indent}	if( length__#{nest} < #{len})\tlength__#{nest} += 1;\n"
             else
-              file.print "#{indent}	length__#{nest} = STRLEN#{b_size}(#{outer}#{name}#{outer2})+1;\t/* GenParamCopy 7 */\n"
+              file.print "#{indent}	length__#{nest} = STRLEN#{b_size}(#{outer}#{name}#{outer2})+1;\t/* GenParamCopy0107 */\n"
             end
             size_str = "length__#{nest}"     # string の場合、strnlen 以上の領域を確保しない
           else
@@ -202,12 +207,14 @@ EOT
 
         if b_get && ( dir == :IN || dir == :INOUT || dir == :SEND || dir == :RECEIVE ) && alloc_cp then
           file.print <<EOT
+#{indent} /* (GenParamCopy0108) */
 #{indent}	if((ercd_=#{alloc_cp}(sizeof(#{type.get_type.get_type_str}#{type.get_type.get_type_str_post})*(#{size_str}),(void **)&#{outer}#{name}#{outer2}#{alloc_cp_extra}))!=E_OK)\t/* GenParamCopy 8 */
 #{indent}		goto error_reset;
 EOT
           if ( dir == :SEND || dir == :RECEIVE ) && type.get_type.has_pointer? then
             # send, receive の場合は、エラーリセットに備え NULL にする
             file.print <<EOT
+#{indent} /* (GenParamCopy0109) */
 #{indent}	memset( (void *)#{outer}#{name}#{outer2}#{alloc_cp_extra}, 0, sizeof(#{type.get_type.get_type_str}#{type.get_type.get_type_str_post})*(#{size_str}) );   /* GenParamCopy Alloc2 */
 EOT
           end
@@ -229,12 +236,14 @@ EOT
         # allocate memory for getting value
         if b_get && ( dir == :IN || dir == :INOUT || dir == :SEND || dir == :RECEIVE ) && alloc_cp then
           file.print <<EOT
+#{indent} /* (GenParamCopy0110) */
 #{indent}if((ercd_=#{alloc_cp}(sizeof(#{type.get_type.get_type_str}#{type.get_type.get_type_str_post}),(void **)&#{outer}#{name}#{outer2}#{alloc_cp_extra}))!=E_OK)\t/* GenParamCopy 10 */
 #{indent}	 goto error_reset;
 EOT
           if ( dir == :SEND || dir == :RECEIVE ) && type.get_type.has_pointer? then
             # send, receive の場合は、エラーリセットに備え NULL にする
             file.print <<EOT
+#{indent} /* (GenParamCopy0111) */
 #{indent}memset( (void *)#{outer}#{name}#{outer2}#{alloc_cp_extra}, 0, sizeof(#{type.get_type.get_type_str}#{type.get_type.get_type_str_post}) );   /* GenParamCopy Alloc3 */
 EOT
           end
@@ -269,7 +278,7 @@ EOT
         size_str = subsc.to_str( name_list, outer, outer2 )
 
         loop_counter_type = IntType.new(32)   # mikan 型を size_is, count_is の引数の型とする
-        file.print "#{indent}{\t/* GenParamCopy 11 */\n"
+        file.print "#{indent}{  /* (GenParamCopy0112) */\n"
         file.print "#{indent}	#{loop_counter_type.get_type_str}  i__#{nest}, length__#{nest} = #{size_str};\n"
 
         file.print "#{indent}	for( i__#{nest} = 0; i__#{nest} < length__#{nest}; i__#{nest}++ ){\n"
@@ -287,9 +296,9 @@ EOT
       if dir == :OUT then  # OUT の場合 print_out_nullable で NULL かどうかの情報を渡す
         # 'null or not' is sent in the function 'print_out_nullable'
         if b_get then
-          file.print "#{indent}if( #{outer}#{name}#{outer2} ){\t/* GenParamCopy Null 10 */\n"
+          file.print "#{indent}if( #{outer}#{name}#{outer2} ){\t/* (GenParamCopy0201) Null */\n"
         else
-          file.print "#{indent}if( ! b_#{name}_null_ ){\t/* GenParamCopy Null 11 */\n"
+          file.print "#{indent}if( ! b_#{name}_null_ ){\t/* (GenParamCopy0202) Null */\n"
         end
         nest += 1
       else # dir = :IN, :INOUT, :SEND, :RECEIVE
@@ -297,6 +306,7 @@ EOT
           file.print "#{indent}{\n"
           if ! ( dir == :INOUT && b_marshal == true ) then
             file.print <<EOT
+#{indent} /* (GenParamCopy0203) */
 #{indent}	int8_t  b_null_;
 #{indent}	if((ercd_=cTDR_getInt8( &b_null_ )) != E_OK )\t/* GenParamCopy Null 20 */
 #{indent}		 goto error_reset;
@@ -304,6 +314,7 @@ EOT
 EOT
           else # dir = :INOUT, b_marshal = true, b_get = true の場合、NULL かどうかの情報を渡さない
             file.print <<EOT
+#{indent} /* (GenParamCopy0204) */
 #{indent}	int8_t  b_null_ = (#{outer}#{name}#{outer2} == NULL);\t/* GenParamCopy Null 21 */
 #{indent}	if( ! b_null_ ){
 EOT
@@ -317,6 +328,7 @@ EOT
           if ! ( dir == :INOUT && b_marshal == false ) then
             # dir = :INOUT, b_marshal = false, b_get = false の場合
             file.print <<EOT
+#{indent} /* (GenParamCopy0205) */
 #{indent}	if((ercd_=cTDR_putInt8( b_null_ )) != E_OK )\t/* GenParamCopy Null 32 */
 #{indent}		 goto error_reset;
 EOT
@@ -338,7 +350,7 @@ EOT
       if dir == :OUT then  # OUT の場合 print_out_nullable で NULL かどうかの情報を渡す
         nest -= 1
         indent = "	" * nest
-        file.print "#{indent}}  /* ! b_#{name}_null_   GenParamCopy Null 50 */\n"
+        file.print "#{indent}}  /* ! b_#{name}_null_   (GenParamCopy0301) Null */\n"
       else # ( dir == :IN || dir == :INOUT || dir == :SEND || dir == :RECEIVE )
         nest -= 2
         indent = "	" * nest
@@ -346,17 +358,17 @@ EOT
           if ! ( dir == :INOUT && b_marshal == true ) then
             file.print <<EOT
 
-#{indent}	} else { /* null  GenParamCopy Null 51 */
+#{indent}	} else { /* null  (GenParamCopy0302) Null */
 #{indent}		#{outer}#{name}#{outer2} = NULL;
 #{indent}	}  /* ! b_null_ */
 EOT
           else # dir = :INOUT, b_marshal = true   # inout の out 方向
-            file.print "#{indent}	}  /* ! b_null_  GenParamCopy Null 52 */\n"
+            file.print "#{indent}	}  /* ! b_null_  (GenParamCopy0303) Null */\n"
           end
         else
-          file.print "#{indent}	}\t/* GenParamCopy Null 53 */\n"
+          file.print "#{indent}	}\t/* (GenParamCopy0304) Null */\n"
         end
-        file.print "#{indent}}\t/* GenParamCopy Null 54 */\n"
+        file.print "#{indent}}\t/* (GenParamCopy0305) Null */\n"
       end
     end
     return nest

@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2014 by TOPPERS Project
+#   Copyright (C) 2008-2020 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: OpaqueRPCPlugin.rb 2952 2018-05-07 10:19:07Z okuma-top $
+#   $Id: OpaqueRPCPlugin.rb 3140 2020-03-29 09:21:42Z okuma-top $
 #++
 
 # 以下を仮定（制限事項）
@@ -304,10 +304,10 @@ EOT
 
 #{nest_str}  //  Unmarshaler Task
 #{nest_str}  cell #{@taskCelltype} #{@serverChannelCell}_Task {
-#{nest_str}    cBody         = #{@serverChannelCell}_TaskMain.eMain;
+#{nest_str}    cTaskBody         = #{@serverChannelCell}_TaskMain.eMain;
 #{nest_str}    priority      = #{@taskPriority};
 #{nest_str}    stackSize     = #{@stackSize};
-#{nest_str}    taskAttribute = C_EXP( "TA_ACT" );  /* mikan : marshaler task starts at beginning */
+#{nest_str}    attribute     = C_EXP( "TA_ACT" );  /* mikan : marshaler task starts at beginning */
 #{nest_str}  };
 EOT
     @end_region.gen_region_str_post file

@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2014 by TOPPERS Project
+#   Copyright (C) 2019-2021 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -34,17 +34,16 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: DomainPlugin.rb 3159 2020-07-05 10:25:24Z okuma-top $
+#   $Id: ClassPlugin.rb 3211 2021-03-21 00:45:09Z okuma-top $
 #++
 
 #== ドメインプラグインの親クラス
-class DomainPlugin < Plugin
+class ClassPlugin < Plugin
 
-  #== domain 指定されたリージョンが定義された
-  # region で domain 指定があった
-  #domain_type_name::Symbol : domain 指定子の第一引数
-  #option::String : domain 指定子の第二引数
-  def initialize( region, domain_type_name, option )
+  #== class 指定されたリージョンが定義された
+  # region で class 指定があった
+  #option::String : class 指定子の第二引数 (クラス名)
+  def initialize( region, name, option )
     super()
   end
 
@@ -78,14 +77,18 @@ class DomainPlugin < Plugin
     return false
   end
 
+  def check_class class_name
+    return false
+  end
+
   #== ドメイン種別を返す
-  #return::Symbol :kernel, :user, :OutOfDomain
-  def get_kind
+  #return::Symbol 
+  def get_class_name
     :kernel
   end
 
   #== factory 生成
-  # DomainPlugin の factory は特定のファイルへの出力が想定されていない
+  # ClassPlugin の factory は特定のファイルへの出力が想定されていない
   def gen_factory node_root
   end
 end

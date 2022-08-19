@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2018 by TOPPERS Project
+#   Copyright (C) 2008-2021 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -19,9 +19,9 @@
 #       用できない形で再配布する場合には，次のいずれかの条件を満たすこ
 #       と．
 #     (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
-#         作権表示，この利用条件および下記の無保証規定を掲載すること．
+#     作権表示，この利用条件および下記の無保証規定を掲載すること．
 #     (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
-#         報告すること．
+#     報告すること．
 #   (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
 #       害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
 #       また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
@@ -49,162 +49,162 @@ all: component_description
 # 式の result は、すべて配列で第一要素が識別シンボル、第二要素以下が引数
 
 primary_expression
-        : namespace_identifier
-		{ result = [ :IDENTIFIER, val[0] ] }     #1ok
-        | TRUE
-		{ result = [ :BOOL_CONSTANT, true ] }
-        | FALSE
-		{ result = [ :BOOL_CONSTANT, false ] }
-        | INTEGER_CONSTANT
-		{ result = [ :INTEGER_CONSTANT, val[0] ] }
-        | FLOATING_CONSTANT
-		{ result = [ :FLOATING_CONSTANT, val[0] ] }
-        | OCTAL_CONSTANT
-		{ result = [ :OCTAL_CONSTANT, val[0] ] }
-        | HEX_CONSTANT
-		{ result = [ :HEX_CONSTANT, val[0] ] }
-        | CHARACTER_LITERAL
-		{ result = [ :CHARACTER_LITERAL, val[0] ] }
-        | string_literal_list
-		{ result = [ :STRING_LITERAL_LIST, val[0] ] }
-        | '(' expression ')'
-		{ result = [ :PARENTHESES, val[1].get_elements ] }
+    : namespace_identifier
+        { result = [ :IDENTIFIER, val[0] ] }     #1ok
+    | TRUE
+        { result = [ :BOOL_CONSTANT, true ] }
+    | FALSE
+        { result = [ :BOOL_CONSTANT, false ] }
+    | INTEGER_CONSTANT
+        { result = [ :INTEGER_CONSTANT, val[0] ] }
+    | FLOATING_CONSTANT
+        { result = [ :FLOATING_CONSTANT, val[0] ] }
+    | OCTAL_CONSTANT
+        { result = [ :OCTAL_CONSTANT, val[0] ] }
+    | HEX_CONSTANT
+        { result = [ :HEX_CONSTANT, val[0] ] }
+    | CHARACTER_LITERAL
+        { result = [ :CHARACTER_LITERAL, val[0] ] }
+    | string_literal_list
+        { result = [ :STRING_LITERAL_LIST, val[0] ] }
+    | '(' expression ')'
+        { result = [ :PARENTHESES, val[1].get_elements ] }
 
 string_literal_list
-        : STRING_LITERAL
-        | string_literal_list STRING_LITERAL
-		{
-			# 連接した文字列を1つの文字列にまとめる
-			str = "\"" + val[0].val.gsub( /\"(.*)\"/, "\\1" ) + val[1].val.gsub( /\"(.*)\"/, "\\1" ) + "\""
-			result = Token.new( str, val[0].file, val[0].lineno, val[0].col )
-		}
+    : STRING_LITERAL
+    | string_literal_list STRING_LITERAL
+        {
+            # 連接した文字列を1つの文字列にまとめる
+            str = "\"" + val[0].val.gsub( /\"(.*)\"/, "\\1" ) + val[1].val.gsub( /\"(.*)\"/, "\\1" ) + "\""
+            result = Token.new( str, val[0].file, val[0].lineno, val[0].col )
+        }
 
 # 関数呼び出しと後置インクリメント、デクリメント演算子がない
 postfix_expression
-        : primary_expression
-        | postfix_expression '[' expression ']'
-		{ result = [ :OP_SUBSC, val[0], val[2] ] }
-        | postfix_expression '.' IDENTIFIER
-		{ result = [ :OP_DOT, val[0], val[2] ] }
-        | postfix_expression '->' IDENTIFIER
-		{ result = [ :OP_REF, val[0], val[2] ] }
+    : primary_expression
+    | postfix_expression '[' expression ']'
+        { result = [ :OP_SUBSC, val[0], val[2] ] }
+    | postfix_expression '.' IDENTIFIER
+        { result = [ :OP_DOT, val[0], val[2] ] }
+    | postfix_expression '->' IDENTIFIER
+        { result = [ :OP_REF, val[0], val[2] ] }
 
 # 前置インクリメント、デクリメント演算子がない
 unary_expression
-        : postfix_expression
-        | unary_operator cast_expression
-		{ result = [ val[0], val[1] ] }
-        | SIZEOF unary_expression
-		{ result = [ :OP_SIZEOF_EXPR, val[1] ] }
-        | SIZEOF '(' type_name ')'
-		{ result = [ :OP_SIZEOF_TYPE, val[1] ] }
+    : postfix_expression
+    | unary_operator cast_expression
+        { result = [ val[0], val[1] ] }
+    | SIZEOF unary_expression
+        { result = [ :OP_SIZEOF_EXPR, val[1] ] }
+    | SIZEOF '(' type_name ')'
+        { result = [ :OP_SIZEOF_TYPE, val[1] ] }
 
 unary_operator
-        : '&'	{ result = :OP_U_AMP }
-        | '*'	{ result = :OP_U_ASTER }
-        | '+'	{ result = :OP_U_PLUS }
-        | '-'	{ result = :OP_U_MINUS }
-        | '~'	{ result = :OP_U_TILDE }
-        | '!'	{ result = :OP_U_EXCLAM }
+    : '&'    { result = :OP_U_AMP }
+    | '*'    { result = :OP_U_ASTER }
+    | '+'    { result = :OP_U_PLUS }
+    | '-'    { result = :OP_U_MINUS }
+    | '~'    { result = :OP_U_TILDE }
+    | '!'    { result = :OP_U_EXCLAM }
 
 cast_expression
-        : unary_expression
-        | '(' type_name ')' cast_expression
-		{  result = [ :CAST, val[1], val[3] ] }
+    : unary_expression
+    | '(' type_name ')' cast_expression
+        {  result = [ :CAST, val[1], val[3] ] }
 
 multiplicative_expression
-        : cast_expression
-        | multiplicative_expression '*' cast_expression
-		{ result = [ :OP_MULT, val[0], val[2] ]  }
-        | multiplicative_expression '/' cast_expression
-		{ result = [ :OP_DIV, val[0], val[2] ]  }
-        | multiplicative_expression '%' cast_expression
-		{ result = [ :OP_REMAIN, val[0], val[2] ]  }
+    : cast_expression
+    | multiplicative_expression '*' cast_expression
+        { result = [ :OP_MULT, val[0], val[2] ]  }
+    | multiplicative_expression '/' cast_expression
+        { result = [ :OP_DIV, val[0], val[2] ]  }
+    | multiplicative_expression '%' cast_expression
+        { result = [ :OP_REMAIN, val[0], val[2] ]  }
 
 additive_expression
-        : multiplicative_expression
-        | additive_expression '+' multiplicative_expression
-		{ result = [ :OP_ADD, val[0], val[2] ]  }
-        | additive_expression '-' multiplicative_expression
-		{ result = [ :OP_SUB, val[0], val[2] ]  }
+    : multiplicative_expression
+    | additive_expression '+' multiplicative_expression
+        { result = [ :OP_ADD, val[0], val[2] ]  }
+    | additive_expression '-' multiplicative_expression
+        { result = [ :OP_SUB, val[0], val[2] ]  }
 
 shift_expression
-        : additive_expression
-        | shift_expression '<<' additive_expression
-		{ result = [ :OP_LSFT, val[0], val[2] ]  }
-        | shift_expression '>>' additive_expression
-		{ result = [ :OP_RSFT, val[0], val[2] ]  }
+    : additive_expression
+    | shift_expression '<<' additive_expression
+        { result = [ :OP_LSFT, val[0], val[2] ]  }
+    | shift_expression '>>' additive_expression
+        { result = [ :OP_RSFT, val[0], val[2] ]  }
 
 relational_expression
-        : shift_expression
-        | relational_expression '<' shift_expression
-		{ result = [ :OP_LT, val[0], val[2] ]  }
-        | relational_expression '>' shift_expression
-		{ result = [ :OP_GT, val[0], val[2] ]  }
-        | relational_expression '<=' shift_expression
-		{ result = [ :OP_LE, val[0], val[2] ]  }
-        | relational_expression '>=' shift_expression
-		{ result = [ :OP_GE, val[0], val[2] ]  }
+    : shift_expression
+    | relational_expression '<' shift_expression
+        { result = [ :OP_LT, val[0], val[2] ]  }
+    | relational_expression '>' shift_expression
+        { result = [ :OP_GT, val[0], val[2] ]  }
+    | relational_expression '<=' shift_expression
+        { result = [ :OP_LE, val[0], val[2] ]  }
+    | relational_expression '>=' shift_expression
+        { result = [ :OP_GE, val[0], val[2] ]  }
 
 equality_expression
-        : relational_expression
-        | equality_expression '==' relational_expression
-		{ result = [ :OP_EQ, val[0], val[2] ]  }
-        | equality_expression '!=' relational_expression
-		{ result = [ :OP_NE, val[0], val[2] ]  }
+    : relational_expression
+    | equality_expression '==' relational_expression
+        { result = [ :OP_EQ, val[0], val[2] ]  }
+    | equality_expression '!=' relational_expression
+        { result = [ :OP_NE, val[0], val[2] ]  }
 
 and_expression
-        : equality_expression
-        | and_expression '&' equality_expression
-		{ result = [ :OP_AND, val[0], val[2] ]  }
+    : equality_expression
+    | and_expression '&' equality_expression
+        { result = [ :OP_AND, val[0], val[2] ]  }
 
 exclusive_or_expression
-        : and_expression
-        | exclusive_or_expression '^' and_expression
-		{ result = [ :OP_EOR, val[0], val[2] ]  }
+    : and_expression
+    | exclusive_or_expression '^' and_expression
+        { result = [ :OP_EOR, val[0], val[2] ]  }
 
 inclusive_or_expression
-        : exclusive_or_expression
-        | inclusive_or_expression '|' exclusive_or_expression
-		{ result = [ :OP_OR, val[0], val[2] ]  }
+    : exclusive_or_expression
+    | inclusive_or_expression '|' exclusive_or_expression
+        { result = [ :OP_OR, val[0], val[2] ]  }
 
 logical_and_expression
-        : inclusive_or_expression
-        | logical_and_expression '&&' inclusive_or_expression
-		{ result = [ :OP_LAND, val[0], val[2] ]  }
+    : inclusive_or_expression
+    | logical_and_expression '&&' inclusive_or_expression
+        { result = [ :OP_LAND, val[0], val[2] ]  }
 
 logical_or_expression
-        : logical_and_expression
-        | logical_or_expression '||' logical_and_expression
-		{ result = [ :OP_LOR, val[0], val[2] ]  }
+    : logical_and_expression
+    | logical_or_expression '||' logical_and_expression
+        { result = [ :OP_LOR, val[0], val[2] ]  }
 
 conditional_expression
-        : logical_or_expression
-        | logical_or_expression '?' expression ':' conditional_expression
-		{ result = [ :OP_CEX, val[0], val[2].get_elements, val[4] ]  }
+    : logical_or_expression
+    | logical_or_expression '?' expression ':' conditional_expression
+        { result = [ :OP_CEX, val[0], val[2].get_elements, val[4] ]  }
 
 
 # コンマ演算子が使えない
 expression
-        : conditional_expression
-		{
-			result = Expression.new( val[0] )
-			# result.print
-		}
+    : conditional_expression
+        {
+            result = Expression.new( val[0] )
+            # result.print
+        }
 
 constant_expression
-        : conditional_expression
-		{
-			result = Expression.new( val[0] )
-			# result.print
+    : conditional_expression
+        {
+            result = Expression.new( val[0] )
+            # result.print
 
-			# res = result.eval_const( nil )
-			# if res then
-			#   puts "val: #{res}"
-			# else
-			#   puts "val: nil"
-			# end
-		}
+            # res = result.eval_const( nil )
+            # if res then
+            #   puts "val: #{res}"
+            # else
+            #   puts "val: nil"
+            # end
+        }
 
 
 
@@ -215,13 +215,13 @@ constant_expression
 # declarationはセルの属性で使われる
 # K&Rとの違い: storage classが指定できない、型が省略できない
 declaration
-        : type_specifier_qualifier_list init_declarator_list ';'
-		{
-			val[1].each { |i|	# i: Decl
-				i.set_type( val[0] )
-			}
-			result = val[1]
-		}
+    : type_specifier_qualifier_list init_declarator_list ';'
+        {
+            val[1].each { |i|    # i: Decl
+                i.set_type( val[0] )
+            }
+            result = val[1]
+        }
 
 # declaration_specifiersは関数のパラメータで使われるが、
 # type_specifier_qualifier_listで十分かもしれない
@@ -230,477 +230,477 @@ declaration
 # const と volatile が同居することはないので、繰返し指定できないようにした
 # type_specifier も繰返し指定できる必要はない (singed など単独で型にはならない)
 declaration_specifiers
-        : type_specifier
-        | type_qualifier type_specifier
-		{
-			val[1].set_qualifier( val[0] )
-			result = val[1]
-		}
+    : type_specifier
+    | type_qualifier type_specifier
+        {
+            val[1].set_qualifier( val[0] )
+            result = val[1]
+        }
 
 init_declarator_list
-        : init_declarator
-		{ result = [val[0]] }
-        | init_declarator_list ',' init_declarator
-		{ result << val[2] }
+    : init_declarator
+        { result = [val[0]] }
+    | init_declarator_list ',' init_declarator
+        { result << val[2] }
 
 init_declarator
-        : declarator
-        | declarator '=' initializer
-		{ val[0].set_initializer( val[2] ) }
+    : declarator
+    | declarator '=' initializer
+        { val[0].set_initializer( val[2] ) }
 
 # INT8から下はK&Rにない
 # Oyama
 # signed, unsigned は単独で型にならないので、構文要素として分離
 type_specifier
-        : VOID	{ result = VoidType.new }
-        | FLOAT32_T	{ result = FloatType.new(32) }
-        | DOUBLE64_T	{ result = FloatType.new(64) }
-        | struct_specifier
-        | enum_specifier
-        | TYPE_NAME	{ result = DefinedType.new( val[0].val ) }
-#        | IDENTIFIER	{ result = DefinedType.new( val[0].val ) }   # reduce/reduce conflict が起こってしまう
-        | sign_int_type
-        | char_type
-        | BOOL_T	{ result = BoolType.new }
-#        | BOOL	{
-#			Generator.warning( "W5001 bool: obsolete type. use bool_t"  )
-#			result = BoolType.new
-#		}
-        | FLOAT	{
-			Generator.warning( "W5002 float: obsolete type. use float32_t"  )
-			result = FloatType.new(32)
-		}
-        | DOUBLE {
-			Generator.warning( "W5003 double: obsolete type. use double64_t"  )
-			result = FloatType.new(64)
-		}
-        | DESCRIPTOR '(' namespace_identifier ')' {          # namespace_identifier: signature name
-			result = DescriptorType.new( val[2] )
-		}
+    : VOID    { result = VoidType.new }
+    | FLOAT32_T    { result = FloatType.new(32) }
+    | DOUBLE64_T    { result = FloatType.new(64) }
+    | struct_specifier
+    | enum_specifier
+    | TYPE_NAME    { result = DefinedType.new( val[0].val ) }
+#    | IDENTIFIER    { result = DefinedType.new( val[0].val ) }   # reduce/reduce conflict が起こってしまう
+    | sign_int_type
+    | char_type
+    | BOOL_T    { result = BoolType.new }
+#    | BOOL    {
+#            Generator.warning( "W5001 bool: obsolete type. use bool_t"  )
+#            result = BoolType.new
+#        }
+    | FLOAT    {
+            Generator.warning( "W5002 float: obsolete type. use float32_t"  )
+            result = FloatType.new(32)
+        }
+    | DOUBLE {
+            Generator.warning( "W5003 double: obsolete type. use double64_t"  )
+            result = FloatType.new(64)
+        }
+    | DESCRIPTOR '(' namespace_identifier ')' {      # namespace_identifier: signature name
+            result = DescriptorType.new( val[2] )
+        }
 
 char_type
-        : CHAR_T	{ result = IntType.new( -1 ) }
-        | SCHAR_T
-		{
-			result = IntType.new( -1 )
-			result.set_sign( :SIGNED, true )
-		}
-        | UCHAR_T
-		{
-			result = IntType.new( -1 )
-			result.set_sign( :UNSIGNED, true )
-		}
+    : CHAR_T    { result = IntType.new( -1 ) }
+    | SCHAR_T
+        {
+            result = IntType.new( -1 )
+            result.set_sign( :SIGNED, true )
+        }
+    | UCHAR_T
+        {
+            result = IntType.new( -1 )
+            result.set_sign( :UNSIGNED, true )
+        }
 
 int_type
-        : CHAR	{
-			# Generator.warning( "W5004 char: obsolete type. use char_t"  )
-			result = IntType.new( -11 )
-		}
-        | SHORT	{ result = IntType.new( -2 ) }
-        | INT		{ result = IntType.new( -3 ) }
-        | LONG	{ result = IntType.new( -4 ) }
-#        | INTPTR	{ result = IntType.new( -5 ) }
-#        | INT8	{
-#			Generator.warning( "W5005 int8: obsolete. use int8_t"  )
-#			result = IntType.new(  8 )
-#		}
-#        | INT16	{
-#			Generator.warning( "W5006 int16: obsolete. use int16_t"  )
-#			result = IntType.new( 16 )
-#		}
-#        | INT32	{
-#			Generator.warning( "W5007 int32: obsolete. use int32_t"  )
-#			result = IntType.new( 32 )
-#		}
-#        | INT64
-#		{
-#			Generator.warning( "W5008 int64: obsolete. use int64_t"  )
-#			result = IntType.new( 64 )
-#		}
-#        | INT128
-#		{
-#			Generator.warning( "W5009 int64: obsolete. use int64_t"  )
-#			result = IntType.new( 128 )
-#		}
-        | INT8_T	{ result = IntType.new( 8 ) }
-        | INT16_T	{ result = IntType.new( 16 ) }
-        | INT32_T	{ result = IntType.new( 32 ) }
-        | INT64_T	{ result = IntType.new( 64 ) }
-        | INT128_T	{ result = IntType.new( 128 ) }
-        | UINT8_T
-		{
-			result = IntType.new( 8 )
-			result.set_sign( :UNSIGNED, true )
-		}
-        | UINT16_T
-		{
-			result = IntType.new( 16 )
-			result.set_sign( :UNSIGNED, true )
-		}
-        | UINT32_T
-		{
-			result = IntType.new( 32 )
-			result.set_sign( :UNSIGNED, true )
-		}
-        | UINT64_T
-		{
-			result = IntType.new( 64 )
-			result.set_sign( :UNSIGNED, true )
-		}
-        | UINT128_T
-		{
-			result = IntType.new( 128 )
-			result.set_sign( :UNSIGNED, true )
-		}
+    : CHAR    {
+            # Generator.warning( "W5004 char: obsolete type. use char_t"  )
+            result = IntType.new( -11 )
+        }
+    | SHORT    { result = IntType.new( -2 ) }
+    | INT        { result = IntType.new( -3 ) }
+    | LONG    { result = IntType.new( -4 ) }
+#    | INTPTR    { result = IntType.new( -5 ) }
+#    | INT8    {
+#            Generator.warning( "W5005 int8: obsolete. use int8_t"  )
+#            result = IntType.new(  8 )
+#        }
+#    | INT16    {
+#            Generator.warning( "W5006 int16: obsolete. use int16_t"  )
+#            result = IntType.new( 16 )
+#        }
+#    | INT32    {
+#            Generator.warning( "W5007 int32: obsolete. use int32_t"  )
+#            result = IntType.new( 32 )
+#        }
+#    | INT64
+#        {
+#            Generator.warning( "W5008 int64: obsolete. use int64_t"  )
+#            result = IntType.new( 64 )
+#        }
+#    | INT128
+#        {
+#            Generator.warning( "W5009 int64: obsolete. use int64_t"  )
+#            result = IntType.new( 128 )
+#        }
+    | INT8_T    { result = IntType.new( 8 ) }
+    | INT16_T    { result = IntType.new( 16 ) }
+    | INT32_T    { result = IntType.new( 32 ) }
+    | INT64_T    { result = IntType.new( 64 ) }
+    | INT128_T    { result = IntType.new( 128 ) }
+    | UINT8_T
+        {
+            result = IntType.new( 8 )
+            result.set_sign( :UNSIGNED, true )
+        }
+    | UINT16_T
+        {
+            result = IntType.new( 16 )
+            result.set_sign( :UNSIGNED, true )
+        }
+    | UINT32_T
+        {
+            result = IntType.new( 32 )
+            result.set_sign( :UNSIGNED, true )
+        }
+    | UINT64_T
+        {
+            result = IntType.new( 64 )
+            result.set_sign( :UNSIGNED, true )
+        }
+    | UINT128_T
+        {
+            result = IntType.new( 128 )
+            result.set_sign( :UNSIGNED, true )
+        }
 
 sign    # TECS では signed, unsigned 単独では型にできない
-        : SIGNED	{ result = :SIGNED }
-        | UNSIGNED	{ result = :UNSIGNED }
+    : SIGNED    { result = :SIGNED }
+    | UNSIGNED    { result = :UNSIGNED }
 
 # result[0] :CHAR などのトークン、result[1] :CONST, :VOLATILE など
 sign_int_type
-        : sign int_type
-		{
-			val[1].set_sign( val[0] )
-			result = val[1]
-		}
-        | int_type
+    : sign int_type
+        {
+            val[1].set_sign( val[0] )
+            result = val[1]
+        }
+    | int_type
 
 # K&Rのstruct_or_union_specifierに相当するが、unionは使えない
-struct_specifier		# mikan
-        : STRUCT struct_tag '{'
-		{ StructType.set_define( true )  }
-	   struct_declaration_list '}'
-		{
-			StructType.end_of_parse
-			result = val[1]
-		}
-        | STRUCT
-		{
-			# tag が無い場合、内部名を与える
-			result = StructType.new( :"TAG__#{@@no_struct_tag_num}__" )
-			@@no_struct_tag_num += 1
-			StructType.set_define( true )
-		}
-	   '{' struct_declaration_list '}'
-		{
-			StructType.end_of_parse
-			result = val[1]
-		}
-        | STRUCT struct_tag   # mikan struct_tag は namespace 対応が必要
-		{
-			StructType.set_define( false )
-			StructType.end_of_parse
-			result = val[1]
-		}
+struct_specifier        # mikan
+    : STRUCT struct_tag '{'
+        { StructType.set_define( true )  }
+       struct_declaration_list '}'
+        {
+            StructType.end_of_parse
+            result = val[1]
+        }
+    | STRUCT
+        {
+            # tag が無い場合、内部名を与える
+            result = StructType.new( :"TAG__#{@@no_struct_tag_num}__" )
+            @@no_struct_tag_num += 1
+            StructType.set_define( true )
+        }
+       '{' struct_declaration_list '}'
+        {
+            StructType.end_of_parse
+            result = val[1]
+        }
+    | STRUCT struct_tag   # mikan struct_tag は namespace 対応が必要
+        {
+            StructType.set_define( false )
+            StructType.end_of_parse
+            result = val[1]
+        }
 
 struct_declaration_list
-        : struct_declaration
-        | struct_declaration_list struct_declaration
+    : struct_declaration
+    | struct_declaration_list struct_declaration
 
 struct_tag:
-	IDENTIFIER
-		{ result = StructType.new( val[0].val ) }
+    IDENTIFIER
+        { result = StructType.new( val[0].val ) }
 
 # ポインタ修飾子を追加
 struct_declaration
-        :                                type_specifier_qualifier_list struct_declarator_list ';'
-		{
-			val[1].each { |i|	# i: Decl
-				i.set_type( val[0] )
-				i.set_kind( :MEMBER )
-				i.check
-				StructType.new_member( i )
-			}
-			result = val[1]
-		}
-        | spec_L pointer_specifier_list spec_R type_specifier_qualifier_list struct_declarator_list ';'
-		{
-			val[4].each { |i|	# i: Decl
-				i.set_type( val[3] )
-				i.set_kind( :MEMBER )
-  				i.set_specifier_list val[1]
-				i.check
-				StructType.new_member( i )
-			}
-			result = val[4]
-		}
+    :                type_specifier_qualifier_list struct_declarator_list ';'
+        {
+            val[1].each { |i|    # i: Decl
+                i.set_type( val[0] )
+                i.set_kind( :MEMBER )
+                i.check
+                StructType.new_member( i )
+            }
+            result = val[1]
+        }
+    | spec_L pointer_specifier_list spec_R type_specifier_qualifier_list struct_declarator_list ';'
+        {
+            val[4].each { |i|    # i: Decl
+                i.set_type( val[3] )
+                i.set_kind( :MEMBER )
+                  i.set_specifier_list val[1]
+                i.check
+                StructType.new_member( i )
+            }
+            result = val[4]
+        }
 
 pointer_specifier_list
-        : pointer_specifier                               { result = [ val[0] ] }
-        | pointer_specifier_list ',' pointer_specifier    { result <<  val[2] }
+    : pointer_specifier                   { result = [ val[0] ] }
+    | pointer_specifier_list ',' pointer_specifier    { result <<  val[2] }
 
 pointer_specifier
-        : STRING				{ result = [:STRING,-1] }
-        | STRING   '(' expression ')'	{ result = [:STRING,val[2]] }
-        | SIZE_IS  '(' expression ')'	{ result = [:SIZE_IS,val[2]] }
-        | COUNT_IS '(' expression ')'	{ result = [:COUNT_IS,val[2]] }
+    : STRING                { result = [:STRING,-1] }
+    | STRING   '(' expression ')'    { result = [:STRING,val[2]] }
+    | SIZE_IS  '(' expression ')'    { result = [:SIZE_IS,val[2]] }
+    | COUNT_IS '(' expression ')'    { result = [:COUNT_IS,val[2]] }
 
 
 # K&Rのspecifier_qualifier_listと同じ
 # 名前がまぎらわしかったのでtype_を付けた
 type_specifier_qualifier_list
 # Oyama type_specifier を繰り返して指定することはなくなった (sign_int_type としたため）
-#        : type_specifier type_specifier_qualifier_list
-        : type_specifier
-        | type_qualifier type_specifier_qualifier_list
-		{
-			val[1].set_qualifier( val[0] )
-			result = val[1]
-		}
+#    : type_specifier type_specifier_qualifier_list
+    : type_specifier
+    | type_qualifier type_specifier_qualifier_list
+        {
+            val[1].set_qualifier( val[0] )
+            result = val[1]
+        }
 # mikan Oyama type_qualifier だけでは型指定にならない : 構文エラーとするより、意味エラーとした方が親切
-#        | type_qualifier
+#    | type_qualifier
 
 
 struct_declarator_list
-        : struct_declarator
-		{ result = [ val[0] ] }
-        | struct_declarator_list ',' struct_declarator
-		{ result << val[2] }
+    : struct_declarator
+        { result = [ val[0] ] }
+    | struct_declarator_list ',' struct_declarator
+        { result << val[2] }
 
 # ビットフィールドは使えない
 struct_declarator
-        : declarator
+    : declarator
 
 # enumの種類を追加
-enum_specifier		# mikan
-        : enum_type            '{' enumerator_list '}'
-        | enum_type IDENTIFIER '{' enumerator_list '}'
-        | enum_type IDENTIFIER
+enum_specifier        # mikan
+    : enum_type        '{' enumerator_list '}'
+    | enum_type IDENTIFIER '{' enumerator_list '}'
+    | enum_type IDENTIFIER
 
 enum_type
-        : ENUM	{ result = EnumType.new( -1 ) }
-        | ENUM8	{ result = EnumType.new( 8 ) }
-        | ENUM16	{ result = EnumType.new( 16 ) }
-        | ENUM32	{ result = EnumType.new( 32 ) }
-        | ENUM64	{ result = EnumType.new( 64 ) }
-        | ENUM128	{ result = EnumType.new( 128 ) }
+    : ENUM    { result = EnumType.new( -1 ) }
+    | ENUM8    { result = EnumType.new( 8 ) }
+    | ENUM16    { result = EnumType.new( 16 ) }
+    | ENUM32    { result = EnumType.new( 32 ) }
+    | ENUM64    { result = EnumType.new( 64 ) }
+    | ENUM128    { result = EnumType.new( 128 ) }
 
 enumerator_list
-        : enumerator
-        | enumerator_list ',' enumerator
+    : enumerator
+    | enumerator_list ',' enumerator
 
 enumerator
-        : IDENTIFIER
-        | IDENTIFIER '=' constant_expression
+    : IDENTIFIER
+    | IDENTIFIER '=' constant_expression
 
 type_qualifier
-        : CONST	{ result = :CONST }
-        | VOLATILE	{ result = :VOLATILE }
+    : CONST    { result = :CONST }
+    | VOLATILE    { result = :VOLATILE }
 
 declarator
-        : pointer direct_declarator
-		{
-			val[1].set_type( val[0] )
-			result = val[1]
-		}
-        | direct_declarator
+    : pointer direct_declarator
+        {
+            val[1].set_type( val[0] )
+            result = val[1]
+        }
+    | direct_declarator
 
-direct_declarator		# mikan
-        : IDENTIFIER
-		{ result = Decl.new( val[0].val ) }
-        | '(' declarator ')'
-		{ result = val[1] }
-        | direct_declarator '[' constant_expression ']'
-		{
-			val[0].set_type( ArrayType.new( val[2] ) )
-			result = val[0]
-		}
-        | direct_declarator '[' ']'
-		{
-			val[0].set_type( ArrayType.new )
-			result = val[0]
-		}
-        | direct_declarator '(' parameter_type_list ')'
-		{
-			val[0].set_type( FuncType.new( val[2] ) )
-			result = val[0]
-		}
-#        | direct_declarator '(' identifier_list ')'  # これは何のために必要？ 060211
-        | direct_declarator '(' ')'
-		{
-			Generator.warning( "W5010 need 'void' for no parameter"  )
-			val[0].set_type( FuncType.new )
-			result = val[0]
-		}
+direct_declarator        # mikan
+    : IDENTIFIER            # 関数名、変数名、型名
+        { result = Decl.new( val[0].val ) }
+    | '(' declarator ')'
+        { result = val[1] }
+    | direct_declarator '[' constant_expression ']'
+        {
+            val[0].set_type( ArrayType.new( val[2] ) )
+            result = val[0]
+        }
+    | direct_declarator '[' ']'
+        {
+            val[0].set_type( ArrayType.new )
+            result = val[0]
+        }
+    | direct_declarator '(' parameter_type_list ')'
+        {
+            val[0].set_type( FuncType.new( val[2] ) )
+            result = val[0]
+        }
+#    | direct_declarator '(' identifier_list ')'  # これは何のために必要？ 060211
+    | direct_declarator '(' ')'
+        {
+            Generator.warning( "W5010 need 'void' for no parameter"  )
+            val[0].set_type( FuncType.new )
+            result = val[0]
+        }
 
 pointer
-        : '*'
-		{ result = PtrType.new }
-        | '*' type_qualifier
-		{
-			result = PtrType.new
-			result.set_qualifier( val[1] )
-		}
-        | '*' pointer
-		{
-			val[1].set_type(PtrType.new)
-			result = val[1]
-		}
-        | '*' type_qualifier pointer
-		{
-			ptrtype = PtrType.new
-			ptrtype.set_qualifier( val[1] )
-			val[2].set_type( ptrtype )
-			result = val[2]
-		}
+    : '*'
+        { result = PtrType.new }
+    | '*' type_qualifier
+        {
+            result = PtrType.new
+            result.set_qualifier( val[1] )
+        }
+    | '*' pointer
+        {
+            val[1].set_type(PtrType.new)
+            result = val[1]
+        }
+    | '*' type_qualifier pointer
+        {
+            ptrtype = PtrType.new
+            ptrtype.set_qualifier( val[1] )
+            val[2].set_type( ptrtype )
+            result = val[2]
+        }
 
 
 parameter_type_list
-        : parameter_list
-        | parameter_list ',' '...'
-		# mikan 可変長パラメータ
+    : parameter_list
+    | parameter_list ',' '...'
+        # mikan 可変長パラメータ
 
 parameter_list
-        : parameter_declaration
-		{ result = ParamList.new( val[0] ) }
-        | parameter_list ',' parameter_declaration
-		{
-			val[0].add_param( val[2] )
-			# result = val[0] 不要
-		}
+    : parameter_declaration
+        { result = ParamList.new( val[0] ) }
+    | parameter_list ',' parameter_declaration
+        {
+            val[0].add_param( val[2] )
+            # result = val[0] 不要
+        }
 
 
 # パラメータ修飾子を追加
 parameter_declaration
-#        : spec_L parameter_specifier_list spec_R declaration_specifiers declarator
-        : parameter_specifier_list_bracket declaration_specifiers  declarator
-		{
-			val[2].set_kind( :PARAMETER )
-			paramdecl = ParamDecl.new( val[2], val[1], val[0] )
-			val[2].check
-			result = paramdecl
-		}
+#    : spec_L parameter_specifier_list spec_R declaration_specifiers declarator
+    : parameter_specifier_list_bracket declaration_specifiers  declarator
+        {
+            val[2].set_kind( :PARAMETER )
+            paramdecl = ParamDecl.new( val[2], val[1], val[0] )
+            val[2].check
+            result = paramdecl
+        }
 
-	# 以下はエラーとする
-        | declaration_specifiers declarator # parameter_specifier なしは扱わない
-		{
-			Generator.error( "G1001 need specifier for \'$1\'" , val[1].get_name )
-			result = nil
-		}
-        | declaration_specifiers	# 仮引数なしは、とりあえず扱わない 060210
-		{
-			unless val[0].instance_of?( VoidType ) then
-				Generator.error( "G1002 need parameter name"  )
-			end
-			result = nil
-		}
-#        | '[' parameter_specifier_list ']' declaration_specifiers # 同 060210
-        | parameter_specifier_list_bracket declaration_specifiers # 同 060210
-		{
-			unless val[1].instance_of?( VoidType ) then
-				Generator.error( "G1003 need parameter name"  )
-			end
-			result = nil
-		}
+    # 以下はエラーとする
+    | declaration_specifiers declarator # parameter_specifier なしは扱わない
+        {
+            Generator.error( "G1001 need specifier for \'$1\'" , val[1].get_name )
+            result = nil
+        }
+    | declaration_specifiers    # 仮引数なしは、とりあえず扱わない 060210
+        {
+            unless val[0].instance_of?( VoidType ) then
+                Generator.error( "G1002 need parameter name"  )
+            end
+            result = nil
+        }
+#    | '[' parameter_specifier_list ']' declaration_specifiers # 同 060210
+    | parameter_specifier_list_bracket declaration_specifiers # 同 060210
+        {
+            unless val[1].instance_of?( VoidType ) then
+                Generator.error( "G1003 need parameter name"  )
+            end
+            result = nil
+        }
 
 parameter_specifier_list_bracket
-        :  spec_L parameter_specifier_list spec_R { result = val[1] }
-#        :  '[' parameter_specifier_list  ']'  { result = val[1] }
+    :  spec_L parameter_specifier_list spec_R { result = val[1] }
+#    :  '[' parameter_specifier_list  ']'  { result = val[1] }
 
 parameter_specifier_list
-        : parameter_specifier	{ result = val[0] }
-        | parameter_specifier_list ',' parameter_specifier
-		{ result = result + val[2] }
+    : parameter_specifier    { result = val[0] }
+    | parameter_specifier_list ',' parameter_specifier
+        { result = result + val[2] }
 
 parameter_specifier
-        : IN					{ result = [ [:IN]  ] }
-        | OUT					{ result = [ [:OUT] ] }
-        | INOUT					{ result = [ [:INOUT] ] }
-        | SEND     '(' namespace_identifier ')'	{ result = [ [:SEND,   val[2]] ] }   #1ok allocator
-        | RECEIVE  '(' namespace_identifier ')'	{ result = [ [:RECEIVE,val[2]] ] }   #1ok allocator
-        | STRING				{ result = [ [:STRING,nil] ] }
-        | STRING   '(' expression ')'	{ result = [ [:STRING,  val[2]] ] }
-        | SIZE_IS  '(' expression ')'	{ result = [ [:SIZE_IS, val[2]] ] }
-        | SIZE_IS  '(' expression ',' constant_expression ')'
-		{
-			result = [ [:SIZE_IS,val[2]], [:MAX_IS, val[4]] ]
-		}
-        | COUNT_IS '(' expression ')'	{ result = [ [:COUNT_IS,val[2]] ] }
-        | NULLABLE		{ result = [ [:NULLABLE] ] }
+    : IN                    { result = [ [:IN]  ] }
+    | OUT                    { result = [ [:OUT] ] }
+    | INOUT                    { result = [ [:INOUT] ] }
+    | SEND     '(' namespace_identifier ')'    { result = [ [:SEND,   val[2]] ] }   #1ok allocator
+    | RECEIVE  '(' namespace_identifier ')'    { result = [ [:RECEIVE,val[2]] ] }   #1ok allocator
+    | STRING                { result = [ [:STRING,nil] ] }
+    | STRING   '(' expression ')'    { result = [ [:STRING,  val[2]] ] }
+    | SIZE_IS  '(' expression ')'    { result = [ [:SIZE_IS, val[2]] ] }
+    | SIZE_IS  '(' expression ',' constant_expression ')'
+        {
+            result = [ [:SIZE_IS,val[2]], [:MAX_IS, val[4]] ]
+        }
+    | COUNT_IS '(' expression ')'    { result = [ [:COUNT_IS,val[2]] ] }
+    | NULLABLE        { result = [ [:NULLABLE] ] }
 
 type_name
-        : type_specifier_qualifier_list
-        | type_specifier_qualifier_list abstract_declarator
-		{
-			if val[1] then
-				val[1].set_type( val[0] )
-				result = val[1]
-			else
-				# エラー：仮で val[0] を返す
-				result = val[0]
-			end
-		}
-		# mikan abstract_declarator が pointer 以外ではうまく動かない、とりあえず '*' CAST のみ救った
+    : type_specifier_qualifier_list
+    | type_specifier_qualifier_list abstract_declarator
+        {
+            if val[1] then
+                val[1].set_type( val[0] )
+                result = val[1]
+            else
+                # エラー：仮で val[0] を返す
+                result = val[0]
+            end
+        }
+        # mikan abstract_declarator が pointer 以外ではうまく動かない、とりあえず '*' CAST のみ救った
 
-abstract_declarator		# mikan
-        : pointer
-        | direct_abstract_declarator
-        | pointer direct_abstract_declarator
+abstract_declarator        # mikan
+    : pointer
+    | direct_abstract_declarator
+    | pointer direct_abstract_declarator
 
 direct_abstract_declarator
-        : '(' abstract_declarator ')'
-		{ result = val[1] }  # 関数ポインタ型を救う
-        | '[' ']'
-		{
-			Generator.error( "G1004 impossible array type"  )
-			result = nil
-		}
-        | '[' constant_expression ']'
-		{
-			Generator.error( "G1005 impossible array type"  )
-			result = nil
-		}
-        | direct_abstract_declarator '[' ']'
-		{
-			Generator.error( "G1006 impossible array type"  )
-			result = nil
-		}
-        | direct_abstract_declarator '[' constant_expression ']'
-		{
-			Generator.error( "G1007 impossible array type"  )
-			result = nil
-		}
-        | '(' ')'
-		{
-			Generator.error( "G1008 impossible function type"  )
-			result = nil
-		}
-        | '(' parameter_type_list ')'
-        | direct_abstract_declarator '(' ')'
-		{
-			Generator.warning( "W5011 need 'void' for no parameter"  )
-			val[0].set_type( FuncType.new )
-			result = val[0]
-		}
-        | direct_abstract_declarator '(' parameter_type_list ')'
-		{
-			val[0].set_type( FuncType.new( val[2] ) )
-			result = val[0]
-		}
+    : '(' abstract_declarator ')'
+        { result = val[1] }  # 関数ポインタ型を救う
+    | '[' ']'
+        {
+            Generator.error( "G1004 impossible array type"  )
+            result = nil
+        }
+    | '[' constant_expression ']'
+        {
+            Generator.error( "G1005 impossible array type"  )
+            result = nil
+        }
+    | direct_abstract_declarator '[' ']'
+        {
+            Generator.error( "G1006 impossible array type"  )
+            result = nil
+        }
+    | direct_abstract_declarator '[' constant_expression ']'
+        {
+            Generator.error( "G1007 impossible array type"  )
+            result = nil
+        }
+    | '(' ')'
+        {
+            Generator.error( "G1008 impossible function type"  )
+            result = nil
+        }
+    | '(' parameter_type_list ')'
+    | direct_abstract_declarator '(' ')'
+        {
+            Generator.warning( "W5011 need 'void' for no parameter"  )
+            val[0].set_type( FuncType.new )
+            result = val[0]
+        }
+    | direct_abstract_declarator '(' parameter_type_list ')'
+        {
+            val[0].set_type( FuncType.new( val[2] ) )
+            result = val[0]
+        }
 
 # assignment_expressionをconstant_expressionに変更
-initializer			# mikan
-        : constant_expression
-		{ result = val[0] }
-        | '{' initializer_list '}'
-		{ result = val[1] }
-        | '{' initializer_list ',' '}'
-		{ result = val[1] }
-#        | C_EXP '(' STRING_LITERAL ')'
-        | C_EXP '(' string_literal_list ')'
-		{ result = C_EXP.new( val[2] ) }
+initializer            # mikan
+    : constant_expression
+        { result = val[0] }
+    | '{' initializer_list '}'
+        { result = val[1] }
+    | '{' initializer_list ',' '}'
+        { result = val[1] }
+#    | C_EXP '(' STRING_LITERAL ')'
+    | C_EXP '(' string_literal_list ')'
+        { result = C_EXP.new( val[2] ) }
 
 initializer_list
-        : initializer
-		{
-			result = [ val[0] ]
-		}
-        | initializer_list ',' initializer
-		{
-			val[0] << val[2]
-			result = val[0]
-		}
+    : initializer
+        {
+            result = [ val[0] ]
+        }
+    | initializer_list ',' initializer
+        {
+            val[0] << val[2]
+            result = val[0]
+        }
 
 
 ##########################  ここからはCDL独自  ##########################
@@ -708,825 +708,808 @@ initializer_list
 #トップレベルの構文規則
 #コンポーネント記述
 component_description
-        : component_description specified_statement
-        | component_description location_information
-        | component_description tool_info
-        | 
+    : component_description specified_statement
+    | component_description tool_info
+    | 
 
 specified_statement
-        : statement
-        | spec_L statement_specifier_list spec_R statement
-		{
-			obj = val[3]
-			if obj.kind_of?( Cell ) || obj.kind_of?( Signature ) || obj.kind_of?( Celltype ) || obj.kind_of?( CompositeCelltype )then
-                                # cell, signature 以外は、指定子を置けない
-			else
-              Generator.get_statement_specifier   # クリア
-              Generator.error( "G1009 unexpected specifier"  )
-			end
-		}
-		# これと同じ記述が composite_celltype にもある
+    : statement
+    | spec_L statement_specifier_list spec_R statement
+        {
+            obj = val[3]
+            if obj.kind_of?( Cell ) || obj.kind_of?( Signature ) || obj.kind_of?( Celltype ) || obj.kind_of?( CompositeCelltype )then
+                # cell, signature 以外は、指定子を置けない
+            else
+          Generator.get_statement_specifier   # クリア
+          Generator.error( "G1009 unexpected specifier"  )
+            end
+        }
+        # これと同じ記述が composite_celltype にもある
 
 statement
-        : typedef
-        | const_statement
-        | namespace
-        | signature
-        | celltype
-        | cell
-        | composite_celltype
-        | enum_specifier ';'
-        | struct_specifier ';'
-        | region
-        | import
-        | import_C
-        | generate_statement
-        | error   # エラー回復ポイント
+    : typedef
+    | const_statement
+    | namespace
+    | signature
+    | celltype
+    | cell
+    | composite_celltype
+    | enum_specifier ';'
+    | struct_specifier ';'
+    | region
+    | import
+    | import_C
+    | generate_statement
+    | error  # エラー回復ポイント
 
-	
+    
 statement_specifier_list
-        : statement_specifier
-		{ Generator.add_statement_specifier val[0]	}
-        | statement_specifier_list ',' statement_specifier
-		{ Generator.add_statement_specifier val[2] }
+    : statement_specifier
+        { Generator.add_statement_specifier val[0]    }
+    | statement_specifier_list ',' statement_specifier
+        { Generator.add_statement_specifier val[2] }
 
 statement_specifier
-        : ALLOCATOR '(' alloc_list ')'                       # cell
-		{ result = [ :ALLOCATOR, val[2] ] }
-        | CALLBACK                                           # signature
-		{ result = [ :CALLBACK ] }
-        | CONTEXT '(' string_literal_list ')'                # signature
-		{ result = [ :CONTEXT, val[2].val ] }
-        | DEVIATE                                            # signature
-		{ result = [ :DEVIATE ] }
-        | ID '(' constant_expression ')'                     # cell
-		{ result = [ :ID, val[2] ] }
-        | PROTOTYPE                                          # cell
-		{ result = [ :PROTOTYPE ] }
-        | RESTRICT  '(' restrict_list ')'                    # cell
-		{ result = [ :RESTRICT, val[2] ] }
-        | SINGLETON  { result = [:SINGLETON] }               # celltype, composite
-        | IDX_IS_ID  { result = [:IDX_IS_ID] }               # celltype, composite (composite: no-effective)
-        | ACTIVE     { result = [:ACTIVE] }                  # celltype, composite
-        | GENERATE '(' plugin_name ',' plugin_arg  ')'       # celltype, cell
-		{ result = [:GENERATE, val[2].val, val[4].val] }
+    : ACTIVE     { result = [:ACTIVE] }              # celltype, composite
+    | ALLOCATOR '(' alloc_list ')'                   # cell
+        { result = [ :ALLOCATOR, val[2] ] }
+    | CALLBACK                                       # signature
+        { result = [ :CALLBACK ] }
+    | CONTEXT '(' string_literal_list ')'            # signature
+        { result = [ :CONTEXT, val[2].val ] }
+    | DEVIATE                                        # signature
+        { result = [ :DEVIATE ] }
+    | GENERATE '(' plugin_name ',' plugin_arg  ')'   # celltype, cell
+        { result = [:GENERATE, val[2].val, val[4].val] }
+    | ID '(' constant_expression ')'                 # cell
+        { result = [ :ID, val[2] ] }
+    | IDX_IS_ID  { result = [:IDX_IS_ID] }           # celltype, composite (composite: no-effective)
+    | PROTOTYPE                      # cell
+        { result = [ :PROTOTYPE ] }
+    | PSEUDO_ACTIVE { result = [:PSEUDO_ACTIVE]}
+    | RESTRICT  '(' restrict_list ')'                # cell
+        { result = [ :RESTRICT, val[2] ] }
+    | SINGLETON  { result = [:SINGLETON] }           # celltype, composite
+    | THROUGH '(' port_name ',' plugin_name ',' plugin_arg ')' # cell
+        { result = [ :THROUGH, val[2], val[4], val[6] ] }
 
 alloc_list
-        : alloc			{ result = [ val[0] ] }
-        | alloc_list ',' alloc	{ result << val[2] }
+    : alloc            { result = [ val[0] ] }
+    | alloc_list ',' alloc    { result << val[2] }
 
 alloc
-        : IDENTIFIER '.' IDENTIFIER '.' IDENTIFIER '=' initializer
-		{  result = [ :NORMAL_ALLOC, val[0], nil, val[2], val[4], val[6] ] }
-        | IDENTIFIER '[' constant_expression ']' '.' IDENTIFIER '.' IDENTIFIER '=' initializer
-		{  result = [ :NORMAL_ALLOC, val[0], val[2], val[5], val[7], val[9] ] }
+    : port_name '.' func_name '.' param_name '=' initializer
+        {  result = [ :NORMAL_ALLOC, val[0], nil, val[2], val[4], val[6] ] }
+    | port_name '[' constant_expression ']' '.' func_name '.' param_name '=' initializer
+        {  result = [ :NORMAL_ALLOC, val[0], val[2], val[5], val[7], val[9] ] }
 # mikan 将来的な拡張 ('*' でまとめて指定可能とする)
-#        | IDENTIFIER '.' IDENTIFIER '.' '*'        '=' initializer
-#		{  result = [ val[0], val[ ], val[ ], val[ ] ] }
-#        | IDENTIFIER '.' '*' '.' '*'               '=' initializer
-#		{  result = [ val[0], val[ ], val[ ], val[ ] ] }
+#    | port_name '.' func_name '.' '*'    '=' initializer
+#        {  result = [ val[0], val[ ], val[ ], val[ ] ] }
+#    | port_name '.' '*' '.' '*'           '=' initializer
+#        {  result = [ val[0], val[ ], val[ ], val[ ] ] }
 
 restrict_list
-        : restrict
-		{	result = [val[0]]		}
-        | restrict_list ',' restrict
-		{	result << val[2]		}
+    : restrict
+        {    result = [val[0]]        }
+    | restrict_list ',' restrict
+        {    result << val[2]        }
 
 restrict
-        : port_name '=' '{' region_name_list '}'
-		{	result = [ val[0].val, nil, val[3] ]		}
-        | port_name '.' IDENTIFIER '=' '{' region_name_list '}'
-		{	result = [ val[0].val, val[2].val, val[5] ]		}
+    : port_name '=' '{' region_name_list '}'
+        {    result = [ val[0].val, nil, val[3] ]        }
+    | port_name '.' func_name '=' '{' region_name_list '}'
+        {    result = [ val[0].val, val[2].val, val[5] ]        }
 
 region_name_list
-        : namespace_identifier
-		{	result = [val[0]]		}
-        | region_name_list ',' namespace_identifier
-		{	result << val[2]		}
+    : namespace_identifier
+        {    result = [val[0]]        }
+    | region_name_list ',' namespace_identifier
+        {    result << val[2]        }
+
+port_name
+    : IDENTIFIER
+    
+func_name
+    : IDENTIFIER
+
+param_name
+    : IDENTIFIER
+
+class_name
+    : IDENTIFIER
 
 const_statement
-        : declaration   # 定数定義
-		{
-			val[0].each { |decl|
-				decl.set_kind( :CONSTANT )
-				Namespace.new_const_decl( decl )
-				decl.check
-			}
-		}
+    : declaration   # 定数定義
+        {
+            val[0].each { |decl|
+                decl.set_kind( :CONSTANT )
+                Namespace.new_const_decl( decl )
+                decl.check
+            }
+        }
 
 import_C
-        : IMPORT_C '(' STRING_LITERAL ')' ';'
-		{
-			@@import_C = true
-			Import_C.new( val[2] )
-			@@import_C = false
-		}
-        | IMPORT_C '(' STRING_LITERAL ',' STRING_LITERAL ')' ';'
-		{
-			@@import_C = true
-			Import_C.new( val[2], val[4] )
-			@@import_C = false
-		}
+    : IMPORT_C '(' STRING_LITERAL ')' ';'
+        {
+            @@import_C = true
+            Import_C.new( val[2] )
+            @@import_C = false
+        }
+    | IMPORT_C '(' STRING_LITERAL ',' STRING_LITERAL ')' ';'
+        {
+            @@import_C = true
+            Import_C.new( val[2], val[4] )
+            @@import_C = false
+        }
 
 import
-        : IMPORT '(' STRING_LITERAL ')' ';'
-		{ Import.new( val[2] ) }
-        | IMPORT '(' AB_STRING_LITERAL ')' ';'
-		{ Import.new( val[2], true ) }
+    : IMPORT '(' STRING_LITERAL ')' ';'
+        { Import.new( val[2] ) }
+    | IMPORT '(' AB_STRING_LITERAL ')' ';'
+        { Import.new( val[2], true ) }
 
 generate_statement
-#        : GENERATE '(' plugin_name ',' namespace_identifier ',' STRING_LITERAL ')' ';'  #1ok signature plugin
-        : GENERATE '(' plugin_name ',' namespace_identifier ',' plugin_arg ')' ';'  #1ok signature plugin
-		{ Generate.new( val[2].val, val[4], val[6] ) }
+#    : GENERATE '(' plugin_name ',' namespace_identifier ',' STRING_LITERAL ')' ';'  #1ok signature plugin
+    : GENERATE '(' plugin_name ',' namespace_identifier ',' plugin_arg ')' ';'  #1ok signature plugin
+        { Generate.new( val[2].val, val[4], val[6] ) }
 
 typedef
-        : TYPEDEF type_specifier_qualifier_list declarator_list ';'
-		{
-			val[2].each{ |i|       # i:Decl
-				i.set_kind( :TYPEDEF )
-    		}
-			Typedef.new_decl_list( val[1], val[2] )
-			val[2].each{ |i|       # i:Decl
-				i.check
-			}
-		}
-        | TYPEDEF '[' typedef_specifier ']' type_specifier_qualifier_list declarator_list ';'
-		{
-			val[5].each{ |i|       # i:Decl
-				i.set_kind( :TYPEDEF )
-			}
-			Typedef.new_decl_list( val[4], val[5] )
-			val[5].each{ |i|       # i:Decl
-				i.check
-			}
-		}
-		# mikan   typedef_specifier 未処置
+    : TYPEDEF type_specifier_qualifier_list declarator_list ';'
+        {
+            val[2].each{ |i|       # i:Decl
+                i.set_kind( :TYPEDEF )
+            }
+            Typedef.new_decl_list( val[1], val[2] )
+            val[2].each{ |i|       # i:Decl
+                i.check
+            }
+        }
+    | TYPEDEF '[' typedef_specifier ']' type_specifier_qualifier_list declarator_list ';'
+        {
+            val[5].each{ |i|       # i:Decl
+                i.set_kind( :TYPEDEF )
+            }
+            Typedef.new_decl_list( val[4], val[5] )
+            val[5].each{ |i|       # i:Decl
+                i.check
+            }
+        }
+        # mikan   typedef_specifier 未処置
 
 
 typedef_specifier
-        : STRING
-        | STRING '(' expression ')'
+    : STRING
+    | STRING '(' expression ')'
 
 declarator_list
-        : declarator
-		{ result = [ val[0] ] }
-        | declarator_list ',' declarator
-		{ result << val[2] }
+    : declarator
+        { result = [ val[0] ] }
+    | declarator_list ',' declarator
+        { result << val[2] }
 
 namespace
-        : NAMESPACE namespace_name '{' statement_list '}' ';'
-		{val[1].end_of_parse}
+    : NAMESPACE namespace_NAME '{' statement_list '}' ';'
+        {val[1].end_of_parse}
 
-namespace_name
-        : IDENTIFIER
-		{result = Namespace.new(val[0].val)}
-		# namespace インスタンスに statement を記憶させるためここで生成
+namespace_NAME
+    : IDENTIFIER
+        {result = Namespace.new(val[0].val)}
+        # namespace インスタンスに statement を記憶させるためここで生成
 
 statement_list
-        : specified_statement
-        | statement_list specified_statement
+    : specified_statement
+    | statement_list specified_statement
 
 namespace_identifier
-        : IDENTIFIER		{ result = NamespacePath.new( val[0].val, false ) }
-        | '::' IDENTIFIER	{ result = NamespacePath.new( val[1].val, true ) }
-        | namespace_identifier '::' IDENTIFIER
-		{ result = val[0].append!( val[2].val ) }
+    : namespace_name        { result = NamespacePath.new( val[0].val, false ) }
+    | '::' namespace_name   { result = NamespacePath.new( val[1].val, true ) }
+    | namespace_identifier '::' namespace_name
+        { result = val[0].append!( val[2].val ) }
+
+namespace_name
+    : IDENTIFIER
 
 #シグニチャ
 signature
-        : SIGNATURE signature_name '{' function_head_list '}' ';'
-		{ result = val[1].end_of_parse( val[3] ) }
+    : SIGNATURE signature_NAME '{' function_head_list '}' ';'
+        { result = val[1].end_of_parse( val[3] ) }
 
-signature_name
-        : IDENTIFIER
-		{result = Signature.new( val[0].val ) }
+signature_NAME
+    : IDENTIFIER
+        {result = Signature.new( val[0].val ) }
 
 function_head_list     # result:  function_head の配列
-#        : function_head
-#		{ result = NamedList.new( val[0], "function" ) }
-        :
-		{ result = NamedList.new( nil, "function" ) }
-        | function_head_list function_head
-		{ result = val[0].add_item( val[1] ) }
+#    : function_head
+#        { result = NamedList.new( val[0], "function" ) }
+    :
+        { result = NamedList.new( nil, "function" ) }
+    | function_head_list function_head
+        { result = val[0].add_item( val[1] ) }
 
 function_head
-        :               type_specifier_qualifier_list declarator ';'
-		{
-			# val[1]: Decl
-			if val[1].is_function? then
-				result = FuncHead.new( val[1], val[0], false )
-				val[1].set_kind :FUNCHEAD
-				val[1].check
-			else
-				# mikan 関数の配列も以下のメッセージになる
-				Generator.error( "G1010 Not function"  )
-				result = nil
-			end
-		}
-        | spec_L ONEWAY spec_R type_specifier_qualifier_list declarator ';'
-		{
-			if val[4].is_function? then
-				result = FuncHead.new( val[4], val[3], true )
-			else
-				Generator.error( "G1011 Not function"  )
-				result = nil
-			end
-		}
-
+    :           type_specifier_qualifier_list declarator ';'
+        {
+            # val[1]: Decl
+            if val[1].is_function? then
+                result = FuncHead.new( val[1], val[0], false )
+                val[1].set_kind :FUNCHEAD
+                val[1].check
+            else
+                # mikan 関数の配列も以下のメッセージになる
+                Generator.error( "G1010 Not function"  )
+                result = nil
+            end
+        }
+    | spec_L ONEWAY spec_R type_specifier_qualifier_list declarator ';'
+        {
+            if val[4].is_function? then
+                result = FuncHead.new( val[4], val[3], true )
+            else
+                Generator.error( "G1011 Not function"  )
+                result = nil
+            end
+        }
 
 #セルタイプ
 celltype
-        : CELLTYPE celltype_name '{' celltype_statement_list '}' ';'
-		{
-			val[1].end_of_parse
-			result = val[1]
-		}
+    : CELLTYPE celltype_NAME '{' celltype_statement_list '}' ';'
+        {
+            val[1].end_of_parse
+            result = val[1]
+        }
 
-celltype_name
-        : IDENTIFIER
-		{ result = Celltype.new(val[0].val) }
+celltype_NAME
+    : IDENTIFIER
+        { result = Celltype.new(val[0].val) }
 
 celltype_statement_list
-        : specified_celltype_statement
-        | celltype_statement_list specified_celltype_statement
+    : specified_celltype_statement
+    | celltype_statement_list specified_celltype_statement
 
 specified_celltype_statement
-        : celltype_statement
-		{
-			if val[0].kind_of? Port then
-				Celltype.new_port( val[0] )
-			end
-		}
-        | spec_L celltype_statement_specifier_list spec_R celltype_statement
-		{
-			if val[3].kind_of? Port then
-				val[3].set_specifier val[1]  # 設定順序あり
-				Celltype.new_port( val[3] )
-			else
-				# Port 以外では指定子はエラー
-				Generator.error( "G1012 $1 : cannot put specifier here" , val[1] )
-			end
-		}
+    : celltype_statement
+        {
+            if val[0].kind_of? Port then
+                Celltype.new_port( val[0] )
+            end
+        }
+    | spec_L celltype_statement_specifier_list spec_R celltype_statement
+        {
+            if val[3].kind_of? Port then
+                val[3].set_specifier val[1]  # 設定順序あり
+                Celltype.new_port( val[3] )
+            else
+                # Port 以外では指定子はエラー
+                Generator.error( "G1012 $1 : cannot put specifier here" , val[1] )
+            end
+        }
 
 celltype_statement
-        : port
-        | attribute
-        | var
-        | require
-        | factory
-#        | error       # エラー回復ポイント  (#513 無限ループに陥るケースがあるので、ここでのエラー回復は取りやめ)
+    : port
+    | attribute
+    | var
+    | require
+    | factory
+#    | error       # エラー回復ポイント  (#513 無限ループに陥るケースがあるので、ここでのエラー回復は取りやめ)
 
 celltype_statement_specifier_list
-        : celltype_statement_specifier
-		{ result = [ val[0] ] }
-        | celltype_statement_specifier_list ',' celltype_statement_specifier
-		{ result << val[2] }
+    : celltype_statement_specifier
+        { result = [ val[0] ] }
+    | celltype_statement_specifier_list ',' celltype_statement_specifier
+        { result << val[2] }
 
 celltype_statement_specifier
-        : INLINE { result = [ :INLINE ] }
-        | ALLOCATOR '(' alloc_list2 ')'    { result = [ :ALLOCATOR, val[2] ] }
-        | OPTIONAL { result = [ :OPTIONAL ] }
-        | REF_DESC { result = [ :REF_DESC ] }
-        | DYNAMIC { result = [ :DYNAMIC ] }
-        | OMIT { result = [ :OMIT ] }
+    : INLINE { result = [ :INLINE ] }
+    | ALLOCATOR '(' alloc_list2 ')'    { result = [ :ALLOCATOR, val[2] ] }
+    | OPTIONAL { result = [ :OPTIONAL ] }
+    | REF_DESC { result = [ :REF_DESC ] }
+    | DYNAMIC { result = [ :DYNAMIC ] }
+    | OMIT { result = [ :OMIT ] }
 
 alloc_list2
-        : alloc2			{ result = [ val[0] ] }    # 受け口のアロケータ指定
-        | alloc				{ result = [ val[0] ] }    # 内部セルのアロケータ指定
-        | alloc_list2 ',' alloc2	{ result << val[2] }
-        | alloc_list2 ',' alloc		{ result << val[2] }
+    : alloc2                   { result = [ val[0] ] }    # 受け口のアロケータ指定
+    | alloc                    { result = [ val[0] ] }    # 内部セルのアロケータ指定
+    | alloc_list2 ',' alloc2   { result << val[2] }
+    | alloc_list2 ',' alloc    { result << val[2] }
 
 alloc2
-        : IDENTIFIER '.' IDENTIFIER '=' initializer    # 内部アロケータ (デバドラ向きアロケータ)指定
-		{  result = [ :INTERNAL_ALLOC, val[0].val, val[2].val, val[4] ] }
-        | IDENTIFIER '.' IDENTIFIER '<=' initializer   # 多段リレーモデル向きアロケータ指定
-		{  result = [ :RELAY_ALLOC, val[0].val, val[2].val, val[4] ] }
+    : port_name '.' func_name '=' initializer    # 内部アロケータ (デバドラ向きアロケータ)指定
+        {  result = [ :INTERNAL_ALLOC, val[0].val, val[2].val, val[4] ] }
+    | port_name '.' func_name '<=' initializer   # 多段リレーモデル向きアロケータ指定
+        {  result = [ :RELAY_ALLOC, val[0].val, val[2].val, val[4] ] }
 
 
 #呼び口、受け口
 port
-        : port_type namespace_signature_name port_name ';'
-		{ result = Port.new( val[2].val, val[1], val[0] ) }
-        | port_type namespace_signature_name port_name '[' ']' ';'
-		{ result = Port.new( val[2].val, val[1], val[0], "[]" ) }
-        | port_type namespace_signature_name port_name '[' array_size ']' ';'
-		{ result = Port.new(val[2].val, val[1], val[0], val[4]) }
-        | port_type namespace_signature_name port_name '<=' namespace_identifier '.' IDENTIFIER ';'    #1ok reverse require
-		{ result = Port.new( val[2].val, val[1], val[0], nil, val[4], val[ 6 ].val ) }
+    : port_type namespace_signature_name port_name ';'
+        { result = Port.new( val[2].val, val[1], val[0] ) }
+    | port_type namespace_signature_name port_name '[' ']' ';'
+        { result = Port.new( val[2].val, val[1], val[0], "[]" ) }
+    | port_type namespace_signature_name port_name '[' array_size ']' ';'
+        { result = Port.new(val[2].val, val[1], val[0], val[4]) }
+    | port_type namespace_signature_name port_name '<=' namespace_identifier '.' IDENTIFIER ';'    #1ok reverse require
+        { result = Port.new( val[2].val, val[1], val[0], nil, val[4], val[ 6 ].val ) }
 
 port_type
-        : CALL	{ result = :CALL }
-        | ENTRY	{ result = :ENTRY }
+    : CALL    { result = :CALL }
+    | ENTRY    { result = :ENTRY }
 
 namespace_signature_name
-        : namespace_identifier  #1ok
-		{ result = val[0] }
-
-port_name
-        : IDENTIFIER
+    : namespace_identifier  #1ok
+        { result = val[0] }
 
 array_size
-        : constant_expression
+    : constant_expression
 
 
 #属性
 attribute
-        : ATTRIBUTE '{' attribute_declaration_list '}' ';'
-		{ result = nil }
+    : ATTRIBUTE '{' attribute_declaration_list '}' ';'
+        { result = nil }
 
 attribute_declaration_list
-        : attribute_declaration
-		{ Celltype.new_attribute( val[0] ) }
-        | attribute_declaration_list attribute_declaration
-		{ Celltype.new_attribute( val[1] ) }
+    : attribute_declaration
+        { Celltype.new_attribute( val[0] ) }
+    | attribute_declaration_list attribute_declaration
+        { Celltype.new_attribute( val[1] ) }
 
 
 attribute_declaration
-        :                             declaration
-		{
-			val[0].each{ |i|       # i:Decl
-				i.set_kind( :ATTRIBUTE )
-				i.check
-			}
-			result = val[0]
-		}
-        | spec_L attribute_specifier spec_R declaration
-		{
-			val[3].each{ |i|       # i:Decl
-				i.set_kind( :ATTRIBUTE )   # 設定順序あり
-				i.set_specifier_list( [val[1]] )
-				i.check
-			}
-			result = val[3]
-		}
+    :                 declaration
+        {
+            val[0].each{ |i|       # i:Decl
+                i.set_kind( :ATTRIBUTE )
+                i.check
+            }
+            result = val[0]
+        }
+    | spec_L attribute_specifier spec_R declaration
+        {
+            val[3].each{ |i|       # i:Decl
+                i.set_kind( :ATTRIBUTE )   # 設定順序あり
+                i.set_specifier_list( [val[1]] )
+                i.check
+            }
+            result = val[3]
+        }
 
 attribute_specifier
-        : OMIT     { result = [:OMIT] }
-        | SIZE_IS  '(' expression ')'	{ result = [:SIZE_IS,val[2]] }
-        | CHOICE '=' '{' choice_list '}' {  result = [:CHOICE,val[3]] }
+    : OMIT     { result = [:OMIT] }
+    | SIZE_IS  '(' expression ')'    { result = [:SIZE_IS,val[2]] }
+    | CHOICE '=' '{' choice_list '}' {  result = [:CHOICE,val[3]] }
 
 choice_list
-        : choice_list ',' choice_element {  result << val[2] }
-        | choice_element                 {  result = [ val[0] ] }
+    : choice_list ',' choice_element {  result << val[2] }
+    | choice_element         {  result = [ val[0] ] }
 
 choice_element
-        : STRING_LITERAL
+    : STRING_LITERAL
 
 #内部変数
 var
-        : VAR '{' var_declaration_list '}' ';'
-		{ result = nil }
+    : VAR '{' var_declaration_list '}' ';'
+        { result = nil }
 
 var_declaration_list
-        : var_declaration
-   		{ Celltype.new_var( val[0] ) }
-        | var_declaration_list var_declaration
-   		{ Celltype.new_var( val[1] ) }
+    : var_declaration
+           { Celltype.new_var( val[0] ) }
+    | var_declaration_list var_declaration
+           { Celltype.new_var( val[1] ) }
 
 var_declaration
-        : declaration
-		{
-			val[0].each{ |i|       # i:Decl
-				i.set_kind( :VAR )
-				i.check
-			}
-		}
-        | spec_L var_specifier spec_R declaration
-		{
-			val[3].each{ |i|       # i:Decl
-				i.set_kind( :VAR )   # 設定順序あり
-				i.set_specifier_list( [val[1]] )
-				i.check
-			}
-			result = val[3]
-		}
+    : declaration
+        {
+            val[0].each{ |i|       # i:Decl
+                i.set_kind( :VAR )
+                i.check
+            }
+        }
+    | spec_L var_specifier spec_R declaration
+        {
+            val[3].each{ |i|       # i:Decl
+                i.set_kind( :VAR )   # 設定順序あり
+                i.set_specifier_list( [val[1]] )
+                i.check
+            }
+            result = val[3]
+        }
 
 var_specifier
-        : SIZE_IS  '(' expression ')'	{ result = [:SIZE_IS,val[2]] }
+    : SIZE_IS  '(' expression ')'    { result = [:SIZE_IS,val[2]] }
 
 # リクワイア
 require
-        : REQUIRE namespace_identifier '.' IDENTIFIER';'                            # mikan namespace #1
-		{
-			Celltype.new_require( val[1], val[3] )
-		}
-        | REQUIRE IDENTIFIER '=' namespace_identifier '.' IDENTIFIER';'             #1
-		{
-			Celltype.new_require( val[3], val[5], val[1].val )
-		}
+    : REQUIRE namespace_identifier '.' port_name';'                # mikan namespace #1
+        {
+            Celltype.new_require( val[1], val[3] )
+        }
+    | REQUIRE port_name '=' namespace_identifier '.' port_name';'         #1
+        {
+            Celltype.new_require( val[3], val[5], val[1].val )
+        }
 
 #ファクトリ
 factory
-        : factory_head '{' factory_function_list '}' ';'
+    : factory_head '{' factory_function_list '}' ';'
 
 factory_head
-        : FACTORY     { Factory.set_f_celltype( false ) }
-        | CTFACTORY   { Factory.set_f_celltype( true ) }
+    : FACTORY     { Factory.set_f_celltype( false ) }
+    | CTFACTORY   { Factory.set_f_celltype( true ) }
 
 factory_function_list
-        :                                         # 空
-        | factory_function_list factory_function
+    :                     # 空
+    | factory_function_list factory_function
 
 factory_function
-        : factory_function_name '(' constant_expression ',' constant_expression  ')' ';'
-		{ Factory.new( val[0].val, val[2], val[4], nil    ) }
-        | factory_function_name '(' constant_expression ',' constant_expression ',' arg_list ')' ';'
-		{ Factory.new( val[0].val, val[2], val[4], val[6] ) }
+    : factory_function_name '(' constant_expression ',' constant_expression  ')' ';'
+        { Factory.new( val[0].val, val[2], val[4], nil    ) }
+    | factory_function_name '(' constant_expression ',' constant_expression ',' arg_list ')' ';'
+        { Factory.new( val[0].val, val[2], val[4], val[6] ) }
 
 factory_function_name
-        : IDENTIFIER
+    : IDENTIFIER
 
 arg_list     # factory の write 関数の第三引数以降
-        : IDENTIFIER
-		{ result = [ [ :IDENTIFIER, val[0].val ] ] }
-        | arg_list ',' IDENTIFIER
-		{ result << [ :IDENTIFIER, val[2].val ] }
-        | STRING_LITERAL
-		{ result = [ [ :STRING_LITERAL, val[0].val ] ] }
-        | arg_list ',' STRING_LITERAL
-		{ result << [ :STRING_LITERAL, val[2].val ] }
+    : IDENTIFIER
+        { result = [ [ :IDENTIFIER, val[0].val ] ] }
+    | arg_list ',' IDENTIFIER
+        { result << [ :IDENTIFIER, val[2].val ] }
+    | STRING_LITERAL
+        { result = [ [ :STRING_LITERAL, val[0].val ] ] }
+    | arg_list ',' STRING_LITERAL
+        { result << [ :STRING_LITERAL, val[2].val ] }
 
 #セル生成
 cell
-        : CELL namespace_celltype_name cell_name '{'
-		{ Cell.new_def }
-          join_list '}' ';'
-		{ result = Cell.end_of_parse true }
-        | CELL namespace_celltype_name cell_name ';'   # oyama プロトタイプ宣言
-			{ result = Cell.end_of_parse false }
+    : CELL namespace_celltype_NAME cell_NAME '{'
+        { Cell.new_def }
+      join_list '}' ';'
+        { result = Cell.end_of_parse true }
+    | CELL namespace_celltype_NAME cell_NAME ';'   # oyama プロトタイプ宣言
+            { result = Cell.end_of_parse false }
 
-namespace_celltype_name
-        : namespace_identifier
-		{ result = Cell.new(val[0]) }
+namespace_celltype_NAME
+    : namespace_identifier
+        { result = Cell.new(val[0]) }
 
-cell_name
-        : IDENTIFIER
-		{ result = Cell.set_name(val[0].val) }
+cell_NAME
+    : IDENTIFIER
+        { result = Cell.set_name(val[0].val) }
 
 join_list
-        :   # 空行  061007
-        | join_list specified_join
-        | join_list reverse_join
+    :   # 空行  061007
+    | join_list specified_join
+    | join_list reverse_join
 
 specified_join
-        :  spec_L join_specifier_list spec_R join
-		{ val[3].set_specifier_list( val[1] )  }
-	|  join
-		{ val[0].set_specifier_list( [] ) }
+    :  spec_L join_specifier_list spec_R join
+        { val[3].set_specifier_list( val[1] )  }
+    |  join
+        { val[0].set_specifier_list( [] ) }
 
 join_specifier_list
-        : join_specifier_list ',' join_specifier
-		{ result << val[2] }
-        | join_specifier
-		{ result = [val[0]] }
+    : join_specifier_list ',' join_specifier
+        { result << val[2] }
+    | join_specifier
+        { result = [val[0]] }
 
 join_specifier
-        : THROUGH '(' plugin_name ',' plugin_arg ')'
-		{ result = [ :THROUGH, val[2], val[4] ] }
+    : THROUGH '(' plugin_name ',' plugin_arg ')'
+        { result = [ :THROUGH, val[2], val[4] ] }
 
 plugin_name
-        : IDENTIFIER   { result = val[0] }
+    : IDENTIFIER
 
 plugin_arg
-        : string_literal_list
+    : string_literal_list
 
 join
-#        : cae_name                     '=' expression ';'
-#		{
-#			result = Join.new( val[0].val, nil, val[2] )
-#			Cell.new_join( result, true )
-#		}
-#        | cae_name '[' ']'             '=' expression ';'
-        : cae_name '[' ']'             '=' expression ';'
-		{
-			result = Join.new( val[0].val,  -1, val[4] )
-			Cell.new_join( result, true )
-		 }
-        | cae_name '[' array_index ']' '=' expression ';'
-		{
-			result = Join.new( val[0].val, val[2], val[5] )
-			Cell.new_join( result, true )
-		}
-        | cae_name '=' initializer ';'     # 初期化子： '{', '}' も可
-		{
-			result = Join.new( val[0].val, nil, val[2] )
-			Cell.new_join( result, true )
-		}
-        | cae_name '=' COMPOSITE '.' IDENTIFIER ';'
-		{
-			result = Join.new( val[0].val, nil, [ :COMPOSITE, val[4] ] )
-			Cell.new_join( result, true )
-		}
+#    : cae_name             '=' expression ';'
+#        {
+#            result = Join.new( val[0].val, nil, val[2] )
+#            Cell.new_join( result, true )
+#        }
+#    | cae_name '[' ']'         '=' expression ';'
+    : cae_name '[' ']'         '=' expression ';'
+        {
+            result = Join.new( val[0].val,  -1, val[4] )
+            Cell.new_join( result, true )
+         }
+    | cae_name '[' array_index ']' '=' expression ';'
+        {
+            result = Join.new( val[0].val, val[2], val[5] )
+            Cell.new_join( result, true )
+        }
+    | cae_name '=' initializer ';'     # 初期化子： '{', '}' も可
+        {
+            result = Join.new( val[0].val, nil, val[2] )
+            Cell.new_join( result, true )
+        }
+    | cae_name '=' COMPOSITE '.' IDENTIFIER ';'
+        {
+            result = Join.new( val[0].val, nil, [ :COMPOSITE, val[4] ] )
+            Cell.new_join( result, true )
+        }
 
 cae_name #  cae: callport, attribute, entryport
-        : IDENTIFIER
+    : IDENTIFIER
 
 reverse_join
-        # non-array <= non-array
-        : cae_name '<=' namespace_identifier '.' IDENTIFIER ';'
-		{
-			rj = ReverseJoin.new( val[0].val, nil, val[2], val[4].val )
-			Cell.new_reverse_join( rj )
-		}
-        # non-array <= array
-        | cae_name '<=' namespace_identifier '.' IDENTIFIER '[' expression ']' ';'
-		{
-			rj = ReverseJoin.new( val[0].val, nil, val[2], val[4].val, val[6] )
-			Cell.new_reverse_join( rj )
-		}
-        # array <= non-array
-        | cae_name '[' array_index ']' '<=' namespace_identifier '.' IDENTIFIER ';'
-		{
-			rj = ReverseJoin.new( val[0].val, val[2], val[5], val[7].val )
-			Cell.new_reverse_join( rj )
-		}
-        # array <= array
-        | cae_name '[' array_index ']' '<=' namespace_identifier '.' IDENTIFIER '[' expression ']' ';'
-		{
-			rj = ReverseJoin.new( val[0].val, val[2], val[5], val[7].val, val[9] )
-			Cell.new_reverse_join( rj )
-		}
+    # non-array <= non-array
+    : cae_name '<=' namespace_identifier '.' port_name ';'
+        {
+            rj = ReverseJoin.new( val[0].val, nil, val[2], val[4].val )
+            Cell.new_reverse_join( rj )
+        }
+    # non-array <= array
+    | cae_name '<=' namespace_identifier '.' port_name '[' expression ']' ';'
+        {
+            rj = ReverseJoin.new( val[0].val, nil, val[2], val[4].val, val[6] )
+            Cell.new_reverse_join( rj )
+        }
+    # array <= non-array
+    | cae_name '[' array_index ']' '<=' namespace_identifier '.' port_name ';'
+        {
+            rj = ReverseJoin.new( val[0].val, val[2], val[5], val[7].val )
+            Cell.new_reverse_join( rj )
+        }
+    # array <= array
+    | cae_name '[' array_index ']' '<=' namespace_identifier '.' port_name '[' expression ']' ';'
+        {
+            rj = ReverseJoin.new( val[0].val, val[2], val[5], val[7].val, val[9] )
+            Cell.new_reverse_join( rj )
+        }
 
 
 array_index
-        : constant_expression
+    : constant_expression
 
-#複合種
+#複合セルタイプ
 composite_celltype
-        : COMPOSITE composite_celltype_name '{' composite_celltype_statement_list '}' ';'
-		{
-			CompositeCelltype.end_of_parse
-			result = val[1]
-		}
+    : COMPOSITE composite_celltype_NAME '{' composite_celltype_statement_list '}' ';'
+        {
+            CompositeCelltype.end_of_parse
+            result = val[1]
+        }
 
-composite_celltype_name
-        : IDENTIFIER
-		{ result = CompositeCelltype.new(val[0].val) }
+composite_celltype_NAME
+    : IDENTIFIER
+        { result = CompositeCelltype.new(val[0].val) }
 
 composite_celltype_statement_list
-        : specified_composite_celltype_statement
-        | composite_celltype_statement_list specified_composite_celltype_statement
+    : specified_composite_celltype_statement
+    | composite_celltype_statement_list specified_composite_celltype_statement
 
 specified_composite_celltype_statement
-        : composite_celltype_statement
-		{
-			if val[0].kind_of?( Port ) then
-				CompositeCelltype.new_port( val[0] )   # 遅延して登録
-			end
-		}
-        | spec_L composite_celltype_statement_specifier_list spec_R composite_celltype_statement
-		{
-			if val[3].kind_of?( Port ) then
-				# port 以外 val[3] に有効な値が入っていないので、以下のメソッドを適用できない
-				# 現状 port, cell 以外は指定子を受け付けない
-				# （しかし将来他の文も指定子を受け付ける可能性があるので、この位置に記述する）
-				val[3].set_specifier( Generator.get_statement_specifier )
-				CompositeCelltype.new_port( val[3] )   # 遅延して登録 (set_specifier 後)
-			elsif val[3].kind_of?( Cell ) then
-				# Cell.end_of_parse にて設定
-			else
-              Generator.get_statement_specifier   # クリア
-              Generator.error( "G1013 unexpected specifier"  )
-			end
-		}
+    : composite_celltype_statement
+        {
+            if val[0].kind_of?( Port ) then
+                CompositeCelltype.new_port( val[0] )   # 遅延して登録
+            end
+        }
+    | spec_L composite_celltype_statement_specifier_list spec_R composite_celltype_statement
+        {
+            if val[3].kind_of?( Port ) then
+                # port 以外 val[3] に有効な値が入っていないので、以下のメソッドを適用できない
+                # 現状 port, cell 以外は指定子を受け付けない
+                # （しかし将来他の文も指定子を受け付ける可能性があるので、この位置に記述する）
+                val[3].set_specifier( Generator.get_statement_specifier )
+                CompositeCelltype.new_port( val[3] )   # 遅延して登録 (set_specifier 後)
+            elsif val[3].kind_of?( Cell ) then
+                # Cell.end_of_parse にて設定
+            else
+          Generator.get_statement_specifier   # クリア
+          Generator.error( "G1013 unexpected specifier"  )
+            end
+        }
 
 composite_celltype_statement
-        : composite_port
-        | composite_attribute
-        | internal_cell
-        | export_join
-#        | error       # エラー回復ポイント  (#513 無限ループに陥るケースがあるので、ここでのエラー回復は取りやめ)
+    : composite_port
+    | composite_attribute
+    | internal_cell
+    | export_join
+#    | error       # エラー回復ポイント  (#513 無限ループに陥るケースがあるので、ここでのエラー回復は取りやめ)
 
 composite_celltype_statement_specifier_list
-        : composite_celltype_statement_specifier
-		{
-			Generator.add_statement_specifier val[0]
-			result = [ val[0] ]
-		}
-        | composite_celltype_statement_specifier_list ',' composite_celltype_statement_specifier
-		{
-			Generator.add_statement_specifier val[2]
-			result = val[0] << val[2]
-		}
+    : composite_celltype_statement_specifier
+        {
+            Generator.add_statement_specifier val[0]
+            result = [ val[0] ]
+        }
+    | composite_celltype_statement_specifier_list ',' composite_celltype_statement_specifier
+        {
+            Generator.add_statement_specifier val[2]
+            result = val[0] << val[2]
+        }
 
 composite_celltype_statement_specifier
-        : ALLOCATOR '(' alloc_list2 ')'		{ result = [ :ALLOCATOR, val[2] ] }
-        | OMIT	{ result = [ :OMIT ] }
-        | OPTIONAL	{ result = [ :OPTIONAL ] }
-        | REF_DESC	{ result = [ :REF_DESC ] }
-        | DYNAMIC	{ result = [ :DYNAMIC ] }
+    : ALLOCATOR '(' alloc_list2 ')'        { result = [ :ALLOCATOR, val[2] ] }
+    | OMIT    { result = [ :OMIT ] }
+    | OPTIONAL    { result = [ :OPTIONAL ] }
+    | REF_DESC    { result = [ :REF_DESC ] }
+    | DYNAMIC    { result = [ :DYNAMIC ] }
 
 composite_port
-        : port
-		{
-			# CompositeCelltype.new_port( val[0] )
-			result = val[0]
-		}
+    : port
+        {
+            # CompositeCelltype.new_port( val[0] )
+            result = val[0]
+        }
 
 #属性
 composite_attribute
-        : ATTRIBUTE '{' composite_attribute_declaration_list '}' ';'
-		{ result = nil }
+    : ATTRIBUTE '{' composite_attribute_declaration_list '}' ';'
+        { result = nil }
 
 composite_attribute_declaration_list
-        : attribute_declaration
-		{ CompositeCelltype.new_attribute( val[0] ) }
-        | composite_attribute_declaration_list attribute_declaration
-		{ CompositeCelltype.new_attribute( val[1] ) }
+    : attribute_declaration
+        { CompositeCelltype.new_attribute( val[0] ) }
+    | composite_attribute_declaration_list attribute_declaration
+        { CompositeCelltype.new_attribute( val[1] ) }
 
 internal_cell
-        : CELL internal_namespace_celltype_name
-             internal_cell_name '{'
-		{ Cell.new_def }
-             internal_join_list '}' ';'
-		{ result = Cell.end_of_parse true }
-        | CELL internal_namespace_celltype_name	internal_cell_name ';'
-		{ result = Cell.end_of_parse false }
+    : CELL internal_namespace_celltype_NAME
+         internal_cell_NAME '{'
+        { Cell.new_def }
+         internal_join_list '}' ';'
+        { result = Cell.end_of_parse true }
+    | CELL internal_namespace_celltype_NAME    internal_cell_NAME ';'
+        { result = Cell.end_of_parse false }
 
+internal_namespace_celltype_NAME
+    : namespace_identifier
+        { Cell.new(val[0],true) }
 
-internal_namespace_celltype_name
-        : namespace_identifier
-		{ Cell.new(val[0],true) }
-
-internal_cell_name
-        : IDENTIFIER
-		{ Cell.set_name(val[0].val) }
-
+internal_cell_NAME
+    : IDENTIFIER
+        { Cell.set_name(val[0].val) }
 
 internal_join_list
-        :   # 空行  061007
-        | internal_join_list specified_join
-        | internal_join_list external_join
-        | internal_join_list reverse_join
+    :   # 空行  061007
+    | internal_join_list specified_join
+    | internal_join_list external_join
+    | internal_join_list reverse_join
 
 external_join  # cell 内に記述する呼び口の外部結合
-        : internal_cell_elem_name '=>' COMPOSITE '.' export_name ';'
-		{	Cell.external_join( val[0].val, val[4].val, true )	}
-        | internal_cell_elem_name '=>' export_name ';'
-		{	Cell.external_join( val[0].val, val[2].val, false )	}
-        # 以前の文法では、呼び口側も cell の外に記述していた
-        # その時の実装を
+    : internal_cell_elem_name '=>' COMPOSITE '.' export_name ';'
+        {    Cell.external_join( val[0].val, val[4].val, true )    }
+    | internal_cell_elem_name '=>' export_name ';'
+        {    Cell.external_join( val[0].val, val[2].val, false )    }
+    # 以前の文法では、呼び口側も cell の外に記述していた
+    # その時の実装を
 
 export_join    # cell 外に記述する受け口の外部結合
-        : export_name '=>' internal_ref_cell_name '.' internal_cell_elem_name ';'
-		{
-			CompositeCelltype.new_join( val[0].val,
-						val[2].val, val[4].val, :ENTRY )
-		}
-        | COMPOSITE '.' export_name '=>' internal_ref_cell_name '.' internal_cell_elem_name ';'
-		{
-			CompositeCelltype.new_join( val[2].val,
-						val[4].val, val[6].val, :ENTRY )
-		}
+    : export_name '=>' internal_ref_cell_name '.' internal_cell_elem_name ';'
+        {
+            CompositeCelltype.new_join( val[0].val,
+                        val[2].val, val[4].val, :ENTRY )
+        }
+    | COMPOSITE '.' export_name '=>' internal_ref_cell_name '.' internal_cell_elem_name ';'
+        {
+            CompositeCelltype.new_join( val[2].val,
+                        val[4].val, val[6].val, :ENTRY )
+        }
 
 export_name
-        : IDENTIFIER
+    : IDENTIFIER
 
 internal_ref_cell_name
-        : IDENTIFIER
+    : IDENTIFIER
 
 internal_cell_elem_name
-        : IDENTIFIER
+    : IDENTIFIER
 
 # リージョン
 region
-        : spec_L region_specifier_list spec_R REGION region_name '{'  region_statement '}' ';'
-		{ Region.end_of_parse }
-        |                  REGION region_name '{'  region_statement '}' ';'
-		{ Region.end_of_parse }
-
+    : spec_L region_specifier_list spec_R REGION region_NAME '{'  region_statement '}' ';'
+        { Region.end_of_parse }
+    |          REGION region_NAME '{'  region_statement '}' ';'
+        { Region.end_of_parse }
 
 region_specifier_list
-        : region_specifier
-        | region_specifier_list ',' region_specifier
+    : region_specifier
+    | region_specifier_list ',' region_specifier
 
 region_specifier
-        : IN_THROUGH '(' plugin_name ',' plugin_arg ')'
-		{ Region.new_in_through( val[2].val, val[4].val ) }
-        | IN_THROUGH '(' ')'   # in 許可
-		{ Region.new_in_through }
-        | OUT_THROUGH '(' plugin_name ',' plugin_arg ')'
-		{ Region.new_out_through( val[2].val, val[4].val ) }
-        | OUT_THROUGH '(' ')'  # out 許可
-		{ Region.new_out_through() }
-        | TO_THROUGH '(' namespace_region_name ',' plugin_name ',' plugin_arg ')'
-		{ Region.new_to_through( val[2], val[4].val, val[6].val ) }
-        | TO_THROUGH '('namespace_region_name ')'  # to 許可
-		{ Region.new_to_through( val[2], nil, nil ) }
-        | NODE
-		{ Region.set_type( :NODE ) }
-        | LINKUNIT
-		{ Region.set_type( :LINKUNIT ) }
-        | DOMAIN '(' IDENTIFIER ',' STRING_LITERAL ')'
-		{ Region.set_domain( val[2].val, val[4] ) }
-        | CLASS '(' IDENTIFIER ')'
-		{ Region.set_type( :CLASS, val[2].val ) }
+    : IN_THROUGH '(' plugin_name ',' plugin_arg ')'
+        { Region.new_in_through( val[2].val, val[4].val ) }
+    | IN_THROUGH '(' ')'   # in 許可
+        { Region.new_in_through }
+    | OUT_THROUGH '(' plugin_name ',' plugin_arg ')'
+        { Region.new_out_through( val[2].val, val[4].val ) }
+    | OUT_THROUGH '(' ')'  # out 許可
+        { Region.new_out_through() }
+    | TO_THROUGH '(' namespace_region_NAME ',' plugin_name ',' plugin_arg ')'
+        { Region.new_to_through( val[2], val[4].val, val[6].val ) }
+    | TO_THROUGH '('namespace_region_NAME ')'  # to 許可
+        { Region.new_to_through( val[2], nil, nil ) }
+    | FROM_THROUGH '(' namespace_region_NAME ',' plugin_name ',' plugin_arg ')'
+        { Region.new_from_through( val[2], val[4].val, val[6].val ) }
+    | FROM_THROUGH '('namespace_region_NAME ')'  # from 許可
+        { Region.new_from_through( val[2], nil, nil ) }
+    | NODE
+        { Region.set_type( :NODE ) }
+    | LINKUNIT
+        { Region.set_type( :LINKUNIT ) }
+    | DOMAIN '(' domain_type ',' domain_name ')'
+        { Region.set_domain( val[2].val, val[4] ) }
+    | CLASS '(' class_type ',' class_name ')'
+        { Region.set_class( val[2].val, val[4] ) }
 
-region_name
-        : IDENTIFIER
-		{ result = Region.new( val[0].val ) }
+region_NAME
+    : IDENTIFIER
+        { result = Region.new( val[0].val ) }
+
+domain_type
+    : IDENTIFIER
+domain_name
+    : STRING_LITERAL
+
+class_type
+    : IDENTIFIER
+class_name
+    : STRING_LITERAL
 
 region_statement
-        :
-        | region_statement region_cell
-        | region_statement region
+    :
+    | region_statement region_cell
+    | region_statement region
 
 region_cell
-        : cell
-        | spec_L statement_specifier_list spec_R cell
-		{
-			obj = val[3]
-			if obj.kind_of?( Cell ) then
-			else
-              Generator.get_statement_specifier   # クリア
-              Generator.error( "G9999 unexpected specifier"  )
-			end
-		}
-#        | spec_L region_cell_specifier_list spec_R cell
+    : cell
+    | spec_L statement_specifier_list spec_R cell
+        {
+            obj = val[3]
+            if obj.kind_of?( Cell ) then
+            else
+          Generator.get_statement_specifier   # クリア
+          Generator.error( "G9999 unexpected specifier"  )
+            end
+        }
+#    | spec_L region_cell_specifier_list spec_R cell
 
 # region_cell_specifier_list
-#         : region_cell_specifier
-# 		{ Generator.add_statement_specifier val[0] }
-#         | region_cell_specifier_list region_cell_specifier
-# 		{ Generator.add_statement_specifier val[2] }
+#     : region_cell_specifier
+#         { Generator.add_statement_specifier val[0] }
+#     | region_cell_specifier_list region_cell_specifier
+#         { Generator.add_statement_specifier val[2] }
 
 # region_cell_specifier
-#         : ALLOCATOR '(' alloc_list ')'
-# 		{ result = [ :ALLOCATOR, val[2] ] }
+#     : ALLOCATOR '(' alloc_list ')'
+#         { result = [ :ALLOCATOR, val[2] ] }
 
-
-namespace_region_name
-         : :IDENTIFIER
-		{ result = [ val[0].val ] }  # mikan 配列である必要はない
-#        : namespace_identifier
+namespace_region_NAME
+     : :IDENTIFIER
+        { result = [ val[0].val ] }  # mikan 配列である必要はない
+#    : namespace_identifier
 
 # 指定子の括弧 (in, out などのキーワード切り替えのため分離)
 spec_L
-        : '['  { set_in_specifier }
+    : '['  { set_in_specifier }
 spec_R
-        : ']'  { unset_in_specifier }
+    : ']'  { unset_in_specifier }
 
-# location information
-location_information
-        :  __LOCATION_INFORMATION__ '{'  cell_location_join_location_list '}'
-
-cell_location_join_location_list
-        : cell_location_join_location_list cell_location
-        | cell_location_join_location_list join_location
-        |
-
-cell_location
-        : __CELL__ namespace_identifier '(' constant_expression ',' constant_expression ','  constant_expression ','  constant_expression ')' '{' port_location_list '}'
-		{
-			TECSGEN::Cell_location.new( val[1], val[3], val[5], val[7], val[9], val[12] )
-		}
-
-port_location_list
-        : port_location_list port_location
-		{
-			result = val[0] << val[1]
-		}
-        |
-		{ result = [] }
-
-port_location
-        : IDENTIFIER '(' IDENTIFIER ',' constant_expression ')'
-		{ result = [ val[0], val[2], val[3] ] }
-
-join_location    # mikan port array
-        : __JOIN__ '(' namespace_identifier '.' IDENTIFIER '=>' namespace_identifier '.' IDENTIFIER ')'  '{' bar_list '}'
-		{
-            TECSGEN::Join_location.new( val[2], val[4], val[6], val[8], val[11] )
-		}
-
-bar_list
-        : bar_list IDENTIFIER '(' constant_expression ')'
-          {
-            result = val[0] << [ val[1], val[3] ]
-          }
-        | { result = [] }
-
-
-#  JSON object
-tool_info        : TOOL_INFO '(' JSON_string ')' JSON_object { TOOL_INFO.new( val[2].to_sym, val[4] ) }
-JSON_object      : '{' JSON_property_list   '}'              {  result = val[1] }
-JSON_property_list : JSON_string ':' JSON_value              { result = { val[0].to_sym => val[2] } }
-                 | JSON_property_list ',' JSON_string ':' JSON_value
-                                                             { val[0][ val[2].to_sym ] = val[4] }
+######################
+#     JSON object    #
+######################
+tool_info    : TOOL_INFO '(' JSON_string ')' JSON_object { TOOL_INFO.new( val[2].to_sym, val[4] ) }
+JSON_object      : '{' JSON_property_list   '}'          {  result = val[1] }
+JSON_property_list : JSON_string ':' JSON_value          { result = { val[0].to_sym => val[2] } }
+         | JSON_property_list ',' JSON_string ':' JSON_value
+                                 { val[0][ val[2].to_sym ] = val[4] }
 JSON_value       : JSON_string | JSON_number | JSON_object | JSON_array
-                 | TRUE { result=val[0].val } | FALSE  { result=val[0].val } # JSON_NULL # null not suppoted
-JSON_array       : '[' JSON_array_list ']'                   { result = val[1]  }
-                 | '['  ']'                                  { result = []  }
-JSON_array_list  : JSON_value                                { result = [ val[0] ] }
-                 | JSON_array_list ',' JSON_value            { val[0] << val[2] }
-JSON_string      : STRING_LITERAL                            { result = val[0].val.gsub!( /\"(.*)\"/, "\\1" ) }
-JSON_number      : INTEGER_CONSTANT                          { result = val[0].val.to_i }
-                 | FLOATING_CONSTANT                         { result = val[0].val.to_f }
-                 | '-' INTEGER_CONSTANT                      { result = - val[0].val.to_i }
-                 | '-' FLOATING_CONSTANT                     { result = - val[0].val.to_f }
-                 | '+' INTEGER_CONSTANT                      { result = val[0].val.to_i }
-                 | '+' FLOATING_CONSTANT                     { result = val[0].val.to_f }
-
+         | TRUE { result=val[0].val } | FALSE  { result=val[0].val } # JSON_NULL # null not suppoted
+JSON_array       : '[' JSON_array_list ']'           { result = val[1]  }
+         | '['  ']'                  { result = []  }
+JSON_array_list  : JSON_value                { result = [ val[0] ] }
+         | JSON_array_list ',' JSON_value        { val[0] << val[2] }
+JSON_string      : STRING_LITERAL                { result = val[0].val.gsub!( /\"(.*)\"/, "\\1" ) }
+JSON_number      : INTEGER_CONSTANT              { result = val[0].val.to_i }
+         | FLOATING_CONSTANT             { result = val[0].val.to_f }
+         | '-' INTEGER_CONSTANT              { result = - val[0].val.to_i }
+         | '-' FLOATING_CONSTANT             { result = - val[0].val.to_f }
+         | '+' INTEGER_CONSTANT              { result = val[0].val.to_i }
+         | '+' FLOATING_CONSTANT             { result = val[0].val.to_f }
 
 end
 
@@ -1610,11 +1593,6 @@ end
     'C_EXP'   => :C_EXP,
 
     'Descriptor'   => :DESCRIPTOR,
-
-    # location information for TECSCDE
-    '__location_information__' => :__LOCATION_INFORMATION__,
-    '__cell__' => :__CELL__,
-    '__join__' => :__JOIN__,
   }
 
   # 指定子 '[]' 内でのみ使用できるキーワード
@@ -1631,6 +1609,7 @@ end
     'singleton' => :SINGLETON,
     'idx_is_id' => :IDX_IS_ID,
     'active' => :ACTIVE,
+    'pseudo_active' => :PSEUDO_ACTIVE,
 
     # port (entry)
     'inline' => :INLINE,
@@ -1671,6 +1650,7 @@ end
     'in_through' => :IN_THROUGH,
     'out_through' => :OUT_THROUGH,
     'to_through' => :TO_THROUGH,
+    'from_through' => :FROM_THROUGH,
 
     'node' => :NODE,
     'linkunit' => :LINKUNIT ,
@@ -1770,122 +1750,131 @@ end
 
       @q = []
       b_in_comment = false
+      b_in_comment2 = false
       b_in_string = false
 
       # euc のコメントを utf8 として扱うと、コメントの終わりを誤る問題の対策
       TECS_LANG::set_kcode_binary
 
       files.each {|file|
-        lineno = 1
-        begin
-          string = ""
-#2.0          IO.foreach(file) {|line|
-          TECSIO.foreach(file) {|line|
-            col = 1
-#            line.rstrip!         改行含む文字列を扱うようになったので、ここで空白を取り除けなくなった
+    lineno = 1
+    begin
+      string = ""
+#2.0      IO.foreach(file) {|line|
+      TECSIO.foreach(file) {|line|
+        col = 1
+#        line.rstrip!     改行含む文字列を扱うようになったので、ここで空白を取り除けなくなった
 
-            until line.empty?
+        until line.empty?
 
-              if b_in_comment
-                case line
-                  # コメント終了
-                when /\A\*\//
-                  b_in_comment = false
-                when /\A./
-                  ;
-                when /\s+/     # line.rstrip! を止めたため \n などの空白文字とまっちするルールが必要になった
-                  ;
-                end
-              elsif b_in_string
-                if line =~ /\A(?:[^"\\]|\\.)*"/
-                  string = "#{string}#{$&}"
-                  @q <<  [:STRING_LITERAL, Token.new(string, file, lineno, col)]
-                  b_in_string = false
-                elsif line =~ /\A.*\\\n/     # 改行 \n は '.' にマッチしない
-                  string += $&
-                elsif line =~ /\A.*\n/     # 改行 \n は '.' にマッチしない
-                  string += line
-                  # この位置では error メソッドは使えない (token 読出し前)
-                  puts "#{file}:#{lineno}:#{col}: error: string literal has newline without escape"
-                  @@n_error += 1
-                end
-              else
-                case line
-                # 空白、プリプロセスディレクティブ
-                when /\A\s+/
-                  ;
-                # 識別子
-                when /\A[a-zA-Z_]\w*/
-                  word = $&
-                  @q << [RESERVED[word] || :IDENTIFIER, Token.new(word.intern, file, lineno, col)]
-                # 16 進数定数
-                when /\A0x[0-9A-Fa-f]+/
-                  @q << [:HEX_CONSTANT, Token.new($&, file, lineno, col)]
-                # 8 進数定数
-                when /\A0[0-7]+/
-                  @q << [:OCTAL_CONSTANT, Token.new($&, file, lineno, col)]
-                # 浮動小数定数
-                when /\A[0-9]+\.([0-9]*)?([Ee][+-]?[0-9]+)?/
-                  @q << [:FLOATING_CONSTANT, Token.new($&, file, lineno, col)]
-                # 整数定数
-                when /\A\d+/
-                  @q << [:INTEGER_CONSTANT, Token.new($&.to_i, file, lineno, col)]
-                # 文字定数
-                when /\A'(?:[^'\\]|\\.)'/
-                  @q << [:CHARACTER_LITERAL, Token.new($&, file, lineno, col)]
-                # 文字列
-#                "#include  #include #include \"../systask/logtask.cfg\"       最後の " 忘れ)で無限ループ
-#                when /\A"(?:[^"\\]+|\\.)*"/
-                when /\A"(?:[^"\\]|\\.)*"/   # これはうまく行くようだ
-                  @q << [:STRING_LITERAL, Token.new($&, file, lineno, col)]
-                # 文字列 (改行あり)
-                when /\A"(?:[^"\\]|\\.)*\\\n$/
-                  string = $&
-                  b_in_string = true
-                # 文字列 (改行あり, escape なし)
-                when /\A("(?:[^"\\]|\e\.)*)\n$/
-                  string = $1 + "\\\n"
-                  b_in_string = true
-                  # この位置では error メソッドは使えない (token 読出し前) # mikan cdl_error ではない
-                  puts "#{file}:#{lineno}:#{col}: error: string literal has newline without escape"
-                  @@n_error += 1
-                # 山括弧で囲まれた文字列
-                # when /\A<[0-9A-Za-z_\. \/]+>/   # AB: angle bracke
-                when /\A<(?:[^>\\]|\\.)*>/   # これはうまく行くようだ
-                  @q << [:AB_STRING_LITERAL, Token.new($&, file, lineno, col)]
-                # 行コメント
-                when /\A\/\/.*$/
-                  # 読み飛ばすだけ
-                # コメント開始
-                when /\A\/\*/
-                  b_in_comment = true
-                # '>>', '<<' など
-                when /\A>>/, /\A<</, /\A==/, /\A!=/, /\A\&\&/, /\A\|\|/
-                  @q << [$&, Token.new($&, file, lineno, col)]
-                when /\A::/, /\A=>/, /\A<=/, /\A>=/
-                  @q << [$&, Token.new($&, file, lineno, col)]
-                # '(', ')' など一文字の記号、または未知の記号
-                when /\A./
-                  @q << [$&, Token.new($&, file, lineno, col)]
-                else
-                  raise
-                end
-              end
-
-              line = $'
-              col += $&.length
-            end
-
-            lineno += 1
-          }
-
-        rescue => evar
-          Generator.error( "G1014 while open or reading \'$1\'" , file )
-          if $debug then
-            p puts( evar )
-            pp $@
+          if b_in_comment || b_in_comment2 then
+        case line
+          # コメント終了
+        when /\A\*\//
+          if b_in_comment then
+            b_in_comment = false
           end
+        when /\A\-\-\-\+/
+          if b_in_comment2 then
+            b_in_comment2 = false
+          end
+        when /\A./
+          ;
+        when /\s+/     # line.rstrip! を止めたため \n などの空白文字とまっちするルールが必要になった
+          ;
         end
+          elsif b_in_string
+        if line =~ /\A(?:[^"\\]|\\.)*"/
+          string = "#{string}#{$&}"
+          @q <<  [:STRING_LITERAL, Token.new(string, file, lineno, col)]
+          b_in_string = false
+        elsif line =~ /\A.*\\\n/     # 改行 \n は '.' にマッチしない
+          string += $&
+        elsif line =~ /\A.*\n/     # 改行 \n は '.' にマッチしない
+          string += line
+          # この位置では error メソッドは使えない (token 読出し前)
+          puts "#{file}:#{lineno}:#{col}: error: string literal has newline without escape"
+          @@n_error += 1
+        end
+          else
+        case line
+        # 空白、プリプロセスディレクティブ
+        when /\A\s+/
+          ;
+        # 識別子
+        when /\A[a-zA-Z_]\w*/
+          word = $&
+          @q << [RESERVED[word] || :IDENTIFIER, Token.new(word.intern, file, lineno, col)]
+        # 16 進数定数
+        when /\A0x[0-9A-Fa-f]+/
+          @q << [:HEX_CONSTANT, Token.new($&, file, lineno, col)]
+        # 8 進数定数
+        when /\A0[0-7]+/
+          @q << [:OCTAL_CONSTANT, Token.new($&, file, lineno, col)]
+        # 浮動小数定数
+        when /\A[0-9]+\.([0-9]*)?([Ee][+-]?[0-9]+)?/
+          @q << [:FLOATING_CONSTANT, Token.new($&, file, lineno, col)]
+        # 整数定数
+        when /\A\d+/
+          @q << [:INTEGER_CONSTANT, Token.new($&.to_i, file, lineno, col)]
+        # 文字定数
+        when /\A'(?:[^'\\]|\\.)'/
+          @q << [:CHARACTER_LITERAL, Token.new($&, file, lineno, col)]
+        # 文字列
+#        "#include  #include #include \"../systask/logtask.cfg\"       最後の " 忘れ)で無限ループ
+#        when /\A"(?:[^"\\]+|\\.)*"/
+        when /\A"(?:[^"\\]|\\.)*"/   # これはうまく行くようだ
+          @q << [:STRING_LITERAL, Token.new($&, file, lineno, col)]
+        # 文字列 (改行あり)
+        when /\A"(?:[^"\\]|\\.)*\\\n$/
+          string = $&
+          b_in_string = true
+        # 文字列 (改行あり, escape なし)
+        when /\A("(?:[^"\\]|\e\.)*)\n$/
+          string = $1 + "\\\n"
+          b_in_string = true
+          # この位置では error メソッドは使えない (token 読出し前) # mikan cdl_error ではない
+          puts "#{file}:#{lineno}:#{col}: error: string literal has newline without escape"
+          @@n_error += 1
+        # 山括弧で囲まれた文字列
+        # when /\A<[0-9A-Za-z_\. \/]+>/   # AB: angle bracke
+        when /\A<(?:[^>\\]|\\.)*>/   # これはうまく行くようだ
+          @q << [:AB_STRING_LITERAL, Token.new($&, file, lineno, col)]
+        # 行コメント
+        when /\A\/\/.*$/
+          # 読み飛ばすだけ
+        # コメント開始
+        when /\A\/\*/
+          b_in_comment = true
+        when /^\+\-\-\-/
+          b_in_comment2 = true
+        # '>>', '<<' など
+        when /\A>>/, /\A<</, /\A==/, /\A!=/, /\A\&\&/, /\A\|\|/
+          @q << [$&, Token.new($&, file, lineno, col)]
+        when /\A::/, /\A=>/, /\A<=/, /\A>=/
+          @q << [$&, Token.new($&, file, lineno, col)]
+        # '(', ')' など一文字の記号、または未知の記号
+        when /\A./
+          @q << [$&, Token.new($&, file, lineno, col)]
+        else
+          raise
+        end
+          end
+
+          line = $'
+          col += $&.length
+        end
+
+        lineno += 1
+      }
+
+    rescue => evar
+      Generator.error( "G1014 while open or reading \'$1\'" , file )
+      if $debug then
+        p puts( evar )
+        pp $@
+      end
+    end
       }
 
       # 終了の印
@@ -1910,19 +1899,19 @@ end
       if token[0] == :IDENTIFIER then
         # TYPE_NAME トークンへ置換え
         if Namespace.is_typename?( token[1].val ) then
-          token[0] = :TYPE_NAME
+        token[0] = :TYPE_NAME
         elsif @in_specifier && RESERVED2[ token[1].val.to_s ] then
-          # 指定子キーワード（ '[', ']' 内でのみ有効)
-          token[0] = RESERVED2[ token[1].val.to_s ]
+        # 指定子キーワード（ '[', ']' 内でのみ有効)
+        token[0] = RESERVED2[ token[1].val.to_s ]
         end
       end
 
       if $debug then     # 070107 token 無効時ここを通さないようした (through 対応 -d の時に例外発生) 
         locale = @@current_locale[@@generator_nest]
         if token then
-          print( "#{locale[0]}: line #{locale[1]} : #{token[0]} '#{token[1].val}'\n" )
+            print( "#{locale[0]}: line #{locale[1]} : #{token[0]} '#{token[1].val}'\n" )
         else
-          print( "#{locale[0]}: line #{locale[1]} : EOF\n" )
+            print( "#{locale[0]}: line #{locale[1]} : EOF\n" )
         end
       end
     else
@@ -1979,7 +1968,7 @@ end
       # クをすると owner の行番号が出てしまう点で、ずれが生じている)
 
       if @@b_end_all_parse == false || locale == nil then
-        locale = @@current_locale[ @@generator_nest ]
+    locale = @@current_locale[ @@generator_nest ]
       end
     end
     if locale then
@@ -2013,7 +2002,7 @@ end
       locale = C_parser.current_locale
     else
       if @@b_end_all_parse == false || locale == nil then
-        locale = @@current_locale[ @@generator_nest ]
+    locale = @@current_locale[ @@generator_nest ]
       end
     end
     if locale then
@@ -2047,7 +2036,7 @@ end
       locale = C_parser.current_locale
     else
       if @@b_end_all_parse == false || locale == nil then
-        locale = @@current_locale[ @@generator_nest ]
+    locale = @@current_locale[ @@generator_nest ]
       end
     end
     if locale then
@@ -2171,25 +2160,26 @@ end
 #  Ruby2.0(1.9) 対応に伴い導入したクラス
 #  SJIS 以外では、ASCII-8BIT として入力する
 class TECSIO
-  def self.foreach(file) # ブロック引数 { |line| }
-    pr = Proc.new   # このメソッドのブロック引数を pr に代入
+  def self.foreach(file, &pr) # ブロック引数 { |line| }
+    # obsolete Ruby 3.0 では使えなくなった
+    # pr = Proc.new   # このメソッドのブロック引数を pr に代入
     if $b_no_kcode then
-	  msg = "E".encode $Ruby19_File_Encode
+      msg = "E".encode $Ruby19_File_Encode
       if( $Ruby19_File_Encode == "Shift_JIS" )
 
-        # Shift JIS は、いったん Windows-31J として読み込ませ、Shift_JIS に変換させる．
-        # コメント等に含まれる SJIS に不適切な文字コードは '?' または REPLACEMENT CHARACTER に変換される．
-        # EUC や UTF-8 で記述された CDL が混在していても、Ruby 例外が発生することなく処理を進めることができる．
-        # 文字コード指定が SJIS であって、文字列リテラルの中に、文字コードがSJIS 以外の非 ASCII が含まれている場合、
-        # Ruby 1.8 の tecsgen では文字コード指定に影響なく処理されたものが、Ruby 1.9 以降では '?' に置き換わる可能性がある．
+    # Shift JIS は、いったん Windows-31J として読み込ませ、Shift_JIS に変換させる．
+    # コメント等に含まれる SJIS に不適切な文字コードは '?' または REPLACEMENT CHARACTER に変換される．
+    # EUC や UTF-8 で記述された CDL が混在していても、Ruby 例外が発生することなく処理を進めることができる．
+    # 文字コード指定が SJIS であって、文字列リテラルの中に、文字コードがSJIS 以外の非 ASCII が含まれている場合、
+    # Ruby 1.8 の tecsgen では文字コード指定に影響なく処理されたものが、Ruby 1.9 以降では '?' に置き換わる可能性がある．
 
-        mode = "r:Windows-31J"
+    mode = "r:Windows-31J"
       else
-        mode = "r:#{$Ruby19_File_Encode}"
+    mode = "r:#{$Ruby19_File_Encode}"
       end
       # mode = "r"
     else
-	  msg = "E"
+      msg = "E"
       mode = "r"
     end
 
@@ -2214,13 +2204,18 @@ class TECSIO
   #msg_enc::Encode | String
   def self.str_code_convert( msg, str )
     if $b_no_kcode == false then
-      return str                          # Ruby V1.8 まで
+      return str              # Ruby V1.8 まで
     end
     if msg.encoding != str.encoding then
-      option = { :invalid => :replace, :undef => :replace }   # 例外を発生させず、'?' に変換する(utf-8 は 0xfffd)
-      # return str.encode( msg.encoding, option )
-      str = str.encode( "utf-8", option )
-      return str.encode( msg.encoding, option )
+      begin
+        # option = { :invalid => :replace, :undef => :replace }   # 例外を発生させず、'?' に変換する(utf-8 は 0xfffd)
+        # return str.encode( msg.encoding, option )
+        # Ruby 3.0: option を Hash で指定すると例外(?)
+        #  option の指定は、デフォルトと同じであるため、option の指定をとりやめる
+        return str.encode( msg.encoding )
+      rescue
+        return str
+      end
     else
       return str
     end

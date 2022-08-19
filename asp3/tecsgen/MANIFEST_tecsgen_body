@@ -1,9 +1,22 @@
-PACKAGE MANIFEST_tecsgen_body
+MANIFEST_tecsgen_body
 
 MANIFEST_for_asp3
 MANIFEST_for_hrp3
-MANIFEST_tecsgen_body
 Makefile
+
+tcflow
+tcflow.rb
+tecscde
+tecscde.rb
+tecsflow
+tecsflow.rb
+tecsgen
+tecsgen.rb
+tecsgen_rcov
+tecsgen_rcov.rb
+tecsmerge
+tecsmerge.rb
+
 cdelib/Makefile
 cdelib/cell_plugin_dialog.rb
 cdelib/cell_plugin_dialog_ui_definition.rb
@@ -16,8 +29,6 @@ cdelib/version.rb
 flowlib/C_parser.tab.rb
 flowlib/C_parser.y.rb
 flowlib/classes.rb
-tcflow
-tcflow.rb
 tecs/TECSInfo/TECSInfo.cdl
 tecs/TECSInfo/TECSInfoAccessor.cdl
 tecs/TECSInfo/nTECSInfo_tArrayTypeInfo.c
@@ -118,14 +129,6 @@ tecs/rpc/tecs_rpc.h
 tecs/sMalloc.cdl
 tecs/tecs.h
 tecs/tecs.xsd
-tecscde
-tecscde.rb
-tecsflow
-tecsflow.rb
-tecsgen
-tecsgen.rb
-tecsgen_rcov
-tecsgen_rcov.rb
 tecslib/core/C_parser.tab.rb
 tecslib/core/C_parser.y.rb
 tecslib/core/bnf.tab.rb
@@ -162,8 +165,16 @@ tecslib/plugin/ATK1TaskPlugin.rb
 tecslib/plugin/C2TECSBridgePlugin.rb
 tecslib/plugin/CellPlugin.rb
 tecslib/plugin/CelltypePlugin.rb
+tecslib/plugin/ClassPlugin.rb
 tecslib/plugin/CompositePlugin.rb
 tecslib/plugin/DomainPlugin.rb
+tecslib/plugin/FMPHandlerPlugin.rb
+tecslib/plugin/FMPObjectPlugin.rb
+tecslib/plugin/FMPPlugin.rb
+tecslib/plugin/HRMPClassPlugin.rb
+tecslib/plugin/HRMPDomainPlugin.rb
+tecslib/plugin/HRMPKernelObjectPlugin.rb
+tecslib/plugin/HRMPPlugin.rb
 tecslib/plugin/HRP2AlarmHandlerPlugin.rb
 tecslib/plugin/HRP2Cache.rb
 tecslib/plugin/HRP2CyclicHandlerPlugin.rb
@@ -186,7 +197,9 @@ tecslib/plugin/HRPKernelObjectPlugin.rb
 tecslib/plugin/HRPObjectPlugin.rb
 tecslib/plugin/HRPPlugin.rb
 tecslib/plugin/HRPRPCPlugin.rb
-tecslib/plugin/HRPSVCPlugin.rb
+tecslib/plugin/HRPSVCBodyCellPlugin.rb
+tecslib/plugin/HRPSVCSignaturePlugin.rb
+tecslib/plugin/HRPSVCThroughPlugin.rb
 tecslib/plugin/HRPTaskPlugin.rb
 tecslib/plugin/Mruby2CBridgePlugin.rb
 tecslib/plugin/MrubyBridgeCellPlugin.rb
@@ -212,6 +225,7 @@ tecslib/plugin/TECSInfoCompoPlugin.rb
 tecslib/plugin/TECSInfoPlugin.rb
 tecslib/plugin/ThroughPlugin.rb
 tecslib/plugin/TracePlugin.rb
+tecslib/plugin/lib/GenAttMod.rb
 tecslib/plugin/lib/GenHRP2Marshaler.rb
 tecslib/plugin/lib/GenOpaqueMarshaler.rb
 tecslib/plugin/lib/GenParamCopy.rb
@@ -219,5 +233,3 @@ tecslib/plugin/lib/GenTransparentMarshaler.rb
 tecslib/plugin/lib/MrubyBridgeCelltypePluginModule.rb
 tecslib/plugin/lib/MrubyBridgeSignaturePluginModule.rb
 tecslib/version.rb
-tecsmerge
-tecsmerge.rb

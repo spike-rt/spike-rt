@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2017 by TOPPERS Project
+#   Copyright (C) 2008-2020 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -537,7 +537,7 @@ class TECSMsg
 @@error_message[ :"S1106" ] = "$1: cannot specify array subscript number. use \'[]\'"
 
 # S1107 to export port, use \'cCall => composite.cCall\'"
-@@error_message[ :"S1107" ] = "to export port, use \'cCall => composite.cCall\'"
+@@error_message[ :"S1107" ] = "to export port '$1', use \'cCall => composite.cCall\'"
 
 # S1108 $1: rhs not \'Cell.ePort\' form"
 @@error_message[ :"S1108" ] = "$1: rhs not \'Cell.ePort\' form"

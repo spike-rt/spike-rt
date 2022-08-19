@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 by Ubiquitous Computing and Networking Laboratory
+ *  Copyright (C) 2012-2021 by Ubiquitous Computing and Networking Laboratory
  *                Ritsumeikan Univ., JAPAN
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -32,8 +32,17 @@
  * 
  *  @(#) $Id: tMruby.cdl 2640 2017-06-03 11:27:12Z okuma-top $
  */
-//import(<syssvc/tSerialPort.cdl>);
-//import(<kernel.cdl>);
+/*
+ * RTOS 上で用いるのにもっとも適した MrubyVM コンポーネント
+ *
+ * 複合セルタイプ tMruby： 標準的な MrubyVM
+ * 複合セルタイプ tMrubyCyclic： 周期起動タスク用
+ *
+ * 特徴：
+ * ・VM ごとに独立したヒープ．TLSF アロケータを VM ごとに用いる．
+ * ・mrubyFile に .rb を指定すると、mrbc により予めコンパイルされ
+ *   irep に設定される． 
+ */
 
 import(<mruby.cdl>);
 import(<sMruby.cdl>);
@@ -67,8 +76,10 @@ namespace nMruby{
       write("Makefile.tecsgen", "	rm -f $(MRB_C)"); 
     };
     factory{
+      write("Makefile.tecsgen", "# add $(POST_TECSGEN_TARGET) as a target following tecsgen");
+      write("Makefile.tecsgen", "# add 'MRBC' to specify the path where 'mrbc' exists");
       write("Makefile.tecsgen", "POST_TECSGEN_TARGET := $(POST_TECSGEN_TARGET) $cell_global$_mrb.c");
-      write("Makefile.tecsgen", "$cell_global$_mrb.c : %s tecs.timestamp Makefile", mrubyFile);
+      write("Makefile.tecsgen", "$cell_global$_mrb.c : %s $(GEN_DIR)/tecsgen.timestamp Makefile", mrubyFile);
       write("Makefile.tecsgen", "	$(MRBC) -B$cell_global$_irep -o$cell_global$_mrb.c %s", mrubyFile);
       write("Makefile.tecsgen", "TECS_COBJS := $(TECS_COBJS) $cell_global$_mrb.o");
       write("Makefile.tecsgen", "MRB_C := $(MRB_C) $cell_global$_mrb.c");
@@ -84,8 +95,13 @@ namespace nMruby{
     entry sTaskBody eMrubyBody;
     call  sMrubyVM  cMrubyVM;
   };
+
+  /*
+   * nMruby::tMruby   RTOS 用の標準的な VM の定義
+   */
   composite tMruby{
     entry sTaskBody eMrubyBody;
+    entry sTLSFStatistics eTLSFStatistics;
     [optional]  call sInitializeBridge cInit;
     attr{
       [omit]char_t *mrubyFile;
@@ -107,6 +123,7 @@ namespace nMruby{
       memoryPoolSize = composite.memoryPoolSize;
     };
     composite.eMrubyBody => MrubyTaskBody.eMrubyBody;
+    composite.eTLSFStatistics => TLSFMalloc.eStatistics;
   };
 
 /*** Cyclic Task Versoin  ***/

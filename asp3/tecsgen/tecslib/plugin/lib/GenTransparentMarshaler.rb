@@ -3,7 +3,7 @@
 #  TECS Generator
 #      Generator for TOPPERS Embedded Component System
 #  
-#   Copyright (C) 2008-2014 by TOPPERS Project
+#   Copyright (C) 2008-2020 by TOPPERS Project
 #--
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
 #   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id: GenTransparentMarshaler.rb 2952 2018-05-07 10:19:07Z okuma-top $
+#   $Id: GenTransparentMarshaler.rb 3176 2020-10-25 08:07:05Z okuma-top $
 #++
 
 #プラグインオプション用変数
@@ -108,6 +108,10 @@ module GenTransparentMarshaler
     @marshaler_celltype_name = "tMarshaler_#{@signature.get_global_name}"
     @unmarshaler_celltype_name = "tUnmarshaler_#{@signature.get_global_name}"
     @marshaler_celltype_file_name = "#{$gen}/#{@marshaler_celltype_name}.cdl"
+
+    if @signature.get_context != "task" then
+      cdl_error( "RPC9999 context of signature ($1) must be 'task'. $2 is not compatible with RPCPlugin", @signature.get_name, @signature.get_context )
+    end
   end
 
   def gen_marshaler_celltype 
@@ -122,7 +126,7 @@ module GenTransparentMarshaler
     # 同じ内容を二度書く可能性あり (AppFile は不可)
 
     f.print <<EOT
-
+/* GenTransparentMarshler0001 */
 celltype #{@marshaler_celltype_name} {
   entry #{@signature.get_namespace_path} eClientEntry;
   call sTDR        cTDR;
@@ -160,7 +164,7 @@ EOT
 
     # 関数の戻り値の元の型を得る(typedef されている場合)
     type = func_type.get_type.get_original_type
-
+    file.print( "    /* (GenTransparentMarshler0101) */\n")
     # 戻り値記憶用の変数を出力（void 型の関数では出力しない）
     if ! type.is_void? then
       if func_type.get_type.kind_of?( DefinedType ) && ( func_type.get_type.get_type_str == "ER" || func_type.get_type.get_type_str == "ER_INT" ) then
@@ -219,12 +223,12 @@ EOT
 EOT
 
     # SOP を送信
-    file.print "    /* SOPの送出 */\n"
+    file.print "    /* SOPの送出 (GenTransparentMarshler0102) */\n"
     file.print "    if( ( ercd_ = cTDR_sendSOP( true ) ) != E_OK )\n"
     file.print "      goto error_reset;\n"
 
     # func_id を送信
-    file.print "    /* 関数 id の送出 */\n"
+    file.print "    /* 関数 id の送出 (GenTransparentMarshler0103) */\n"
     file.print "    if( ( ercd_ = cTDR_putInt16( func_id_ ) ) != E_OK )\n"
     file.print "        goto error_reset;\n"
 
@@ -235,7 +239,7 @@ EOT
     b_marshal = true  # marshal
 
     # in 方向の入出力を出力
-    file.print "    /* 入力引数送出 */\n"
+    file.print "    /* 入力引数送出 (GenTransparentMarshler0104) */\n"
     print_params( params, file, 1, b_marshal, b_get, true, func_type.is_oneway? )
     print_params( params, file, 1, b_marshal, b_get, false, func_type.is_oneway? )
     if ! b_void && ! func_type.is_oneway? then
@@ -243,7 +247,7 @@ EOT
       print_param_nc( "retval_", ret_ptr_type, file, 1, :RETURN, "&", nil, b_get )
     end
 
-    file.print "    /* EOPの送出（パケットの掃きだし） */\n"
+    file.print "    /* EOPの送出（パケットの掃きだし）(GenTransparentMarshler0105) */\n"
     if ! func_type.is_oneway? then
       b_continue = "true"
     else
@@ -310,7 +314,7 @@ EOT
 
     # func_id を得るコードを生成
     file.print <<EOT
-
+    /* (GenTransparentMarshler0201) */
     int16_t   func_id_;
     ER        ercd_;
 
@@ -336,7 +340,7 @@ EOT
 
     file.print <<EOT
 
-    /* SOPのチェック */
+    /* SOPのチェック (GenTransparentMarshler0202) */
     if( (ercd_=cTDR_receiveSOP( false )) != E_OK )
         goto error_reset;
     /* func_id の取得 */
@@ -369,7 +373,7 @@ EOT
 
       # パケットの終わりをチェック（未受け取りのデータが残っていないかチェック）
       file.print "    case #{id}:       /*** #{f_name} ***/ \n"
-      file.print "        if( tTransparentUnmarshaler_#{@signature.get_global_name}_#{f_name}() != E_OK )\n"
+      file.print "        if( tTransparentUnmarshaler_#{@signature.get_global_name}_#{f_name}(p_cellcb) != E_OK )\n"
       file.print "            goto error_reset;\n"
       file.print "        break;\n"
 
@@ -555,13 +559,13 @@ EOT
       return
     end
 
-    file.print "/* アンマーシャラ関数のプロトタイプ宣言 */\n"
+    file.print "/* アンマーシャラ関数のプロトタイプ宣言 (GenTransparentMarshler0301) */\n"
     # signature に含まれる すべての関数について
     @signature.get_function_head_array.each { |f|
       f_name = f.get_name
       f_type = f.get_declarator.get_type
       id = @signature.get_id_from_func_name( f_name )
-      file.print "static ER  tTransparentUnmarshaler_#{@signature.get_global_name}_#{f_name}();\t/* func_id: #{id} */\n"
+      file.print "static ER  tTransparentUnmarshaler_#{@signature.get_global_name}_#{f_name}(CELLCB *p_cellcb);\t/* func_id: #{id} */\n"
     }
     file.print "\n"
   end
@@ -573,7 +577,7 @@ EOT
       return
     end
 
-    file.print "\n/*** アンマーシャラ関数 ***/\n\n"
+    file.print "\n/*** アンマーシャラ関数 (GenTransparentMarshler0401) ***/\n\n"
     @signature.get_function_head_array.each { |f|
       f_name = f.get_name
       f_type = f.get_declarator.get_type
@@ -593,10 +597,9 @@ EOT
  */
 EOT
       file.print "static ER\n"
-      file.print "tTransparentUnmarshaler_#{@signature.get_global_name}_#{f_name}()\n"
+      file.print "tTransparentUnmarshaler_#{@signature.get_global_name}_#{f_name}( CELLCB  *p_cellcb )\n"
       file.print "{\n"
       file.print "	ER  ercd_;\n"
-      file.print "	CELLCB  *p_cellcb;\n"
 
       # 引数を受取る変数の定義
       param_list = f.get_declarator.get_type.get_paramlist.get_items
@@ -629,19 +632,19 @@ EOT
       end
 
       # in 方向の入出力を入力
-      file.print "\n        /* 入力引数受取 */\n"
+      file.print "\n        /* 入力引数受取 (GenTransparentMarshler0402) */\n"
       b_get = true    # unmarshal では get
       b_marshal  = false
       print_params( param_list, file, 1, b_marshal, b_get, true, f.is_oneway? )
       print_params( param_list, file, 1, b_marshal, b_get, false, f.is_oneway? )
       if ! b_void && ! f.is_oneway? then
         ret_ptr_type = PtrType.new( f_type.get_type )
-        print_param_nc( "retval_", ret_ptr_type, file, 2, :RETURN, nil, nil, b_get )
+        print_param_nc( "retval_", ret_ptr_type, file, 1, :RETURN, nil, nil, b_get )
       end
 
       # パケットの受信完了
       # mikan 本当は、対象関数を呼出す後に実施したい．呼出しパケットの使用終わりを宣言する目的として
-      file.print "        /* パケット終わりをチェック */\n"
+      file.print "        /* パケット終わりをチェック (GenTransparentMarshler0403) */\n"
       if ! f.is_oneway? then
         b_continue = "true"
       else
@@ -651,7 +654,7 @@ EOT
       file.print "        goto error_reset;\n\n"
 
       # 対象関数を呼出す
-      file.print "    /* 対象関数の呼出し */\n"
+      file.print "    /* 対象関数の呼出し (GenTransparentMarshler0404) */\n"
       if b_void then
         file.print( "    cServerCall_#{f_name}(" )
       else
@@ -671,7 +674,7 @@ EOT
       # oneway の場合出力、戻り値が無く、受取を待たない（非同期な呼出し）
       if ! f.is_oneway? then
         file.print <<EOT
-    /* 関数処理の終了を通知 */
+    /* 関数処理の終了を通知 (GenTransparentMarshler0405) */
     if( ( ercd_ = cEventflag_set( 0x01 ) ) != E_OK ){
       goto error_reset;
     }

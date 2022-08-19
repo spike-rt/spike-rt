@@ -93,9 +93,10 @@ module TECSCDE
       end
     end
 
-    def modified
+    def modified &proc
       get_model.add_change_set self
-      proc = Proc.new
+      # Ruby3.0: obsolete
+      # proc = Proc.new
       proc.call
     end
 
