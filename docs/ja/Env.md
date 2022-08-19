@@ -28,6 +28,14 @@ docker build tools/ -t spike-rt-builder
 docker run --rm -it -v $(pwd):$(pwd) -w $(pwd) spike-rt-builder /bin/bash
 ```
 
+Windows(非 WSL2 であり、Windows の Docker Desktop を直接使う)の場合(ホスト側と
+コンテナ側のパス表記が異なるため、それぞれをフルパスで指定する。ここではユーザ名を user1 とし、C:\Users\users\repo に spike-rt を git clone したものとする)
+
+```winbatch
++docker run --rm -it -v C:\Users\user1\repo\spike-rt:/home/user1/repo/spike-rt -w /home/user1/repo/spike-rt spike-rt-builder /bin/bash
+```
+
+
 ## 書き込み環境の構築
 Prime Hubへの書き込みをホスト側で行うことを想定．  
 PyUSB(Python3) を用いて書き込みを行う．
