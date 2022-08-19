@@ -51,6 +51,7 @@
  */
 #define USART_SR(x)		(x)
 #define USART_DR(x)		(x + 0x04)
+#undef USART_BRR
 #define USART_BRR(x)	(x + 0x08)
 #define USART_CR1(x)	(x + 0x0C)
 #define USART_CR2(x)	(x + 0x10)
