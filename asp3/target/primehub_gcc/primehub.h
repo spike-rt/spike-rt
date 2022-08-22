@@ -45,9 +45,9 @@
 #define TOPPERS_PRIMEHUB_H
 
 /*
- *  コアのクロック周波数
+ *  コアのクロック周波数（96MHz）
  */
-#define CPU_CLOCK_HZ	84000000
+#define CPU_CLOCK_HZ	96000000
 
 /*
  *  割込み数
