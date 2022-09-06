@@ -15,6 +15,8 @@
 #include <pbsys/light.h>
 #include <pbio/light.h>
 
+#include <cbricks/hub/display.h>
+
 TEST_GROUP(Display);
 
 extern const uint8_t pb_font_5x5[95][5];
@@ -37,9 +39,39 @@ TEST_TEAR_DOWN(Display)
 
 TEST(Display, putc)
 {
-  TEST_ASSERT_EQUAL(pbio_light_matrix_clear(pbsys_hub_light_matrix), PBIO_SUCCESS);
-  TEST_ASSERT_EQUAL(pbio_light_matrix_set_rows(pbsys_hub_light_matrix, pb_font_5x5['a' - 32]), PBIO_SUCCESS);
+  uint8_t i;
 
-  // Wait 10 sec
-  // dly_tsk(10000000);
+  TEST_ASSERT_EQUAL(hub_display_off(), PBIO_SUCCESS);
+  dly_tsk(1000000);
+
+  TEST_ASSERT_EQUAL(hub_display_orientation(PBIO_SIDE_TOP), PBIO_SUCCESS);
+  dly_tsk(1000000);
+  
+  for (i = 0; i < 6; i++) {
+    TEST_ASSERT_EQUAL(hub_display_pixel(i, i, 50+i*10), PBIO_SUCCESS);
+    dly_tsk(1000000);
+  }
+  dly_tsk(5000000);
+
+  uint8_t image[5][5] = {
+    {60, 70, 80, 90, 100},
+    {100, 60, 70, 80, 90},
+    {90, 100, 60, 70, 80},
+    {80, 90, 100, 60, 70},
+    {70, 80, 90, 100, 60}
+  };
+
+  TEST_ASSERT_EQUAL(hub_display_image(image), PBIO_SUCCESS);
+  dly_tsk(5000000);
+
+  TEST_ASSERT_EQUAL(hub_display_number(-12), PBIO_SUCCESS);
+  dly_tsk(5000000);
+
+  TEST_ASSERT_EQUAL(hub_display_char('a'), PBIO_SUCCESS);
+  dly_tsk(5000000);
+
+  TEST_ASSERT_EQUAL(hub_display_char('Z'), PBIO_SUCCESS);
+  dly_tsk(5000000);
+
+  TEST_ASSERT_EQUAL(hub_display_text("TOPPERS", 1000, 500), PBIO_SUCCESS);
 }
