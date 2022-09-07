@@ -3,7 +3,7 @@
  * Tests for the internal LED matrix display.
  *
  * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #include <kernel.h>
@@ -12,14 +12,11 @@
 #include <unity_fixture.h>
 
 #include <pbsys/user_program.h>
-#include <pbsys/light.h>
-#include <pbio/light.h>
+#include <pbio/light_matrix.h>
 
 #include <cbricks/hub/display.h>
 
 TEST_GROUP(Display);
-
-extern const uint8_t pb_font_5x5[95][5];
 
 TEST_GROUP_RUNNER(Display) {
   RUN_TEST_CASE(Display, putc);
