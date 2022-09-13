@@ -47,19 +47,19 @@
 
 //#include <pbsys/user_program.h>
 
-static inline hub_button_t hub_buttons_pressed(void)
+static inline hub_button_t hub_buttons_pressed(hub_button_t buttons)
 {
   hub_button_t pressed;
   hub_button_is_pressed(&pressed);
-  return pressed;
+  return pressed & buttons;
 }
 
 static hub_button_t wait_for_hub_buttons(hub_button_t buttons_to_watch)
 {
   hub_button_t buttons = 0;
   hub_button_t pressed;
-  while ((hub_buttons_pressed() & buttons_to_watch) == 0) dly_tsk(10000);
-  while (pressed = hub_buttons_pressed() & buttons_to_watch, pressed != 0) {
+  while (hub_buttons_pressed(buttons_to_watch) == 0) dly_tsk(10000);
+  while (pressed = hub_buttons_pressed(buttons_to_watch), pressed != 0) {
     buttons |= pressed;
     dly_tsk(10000);
   }
