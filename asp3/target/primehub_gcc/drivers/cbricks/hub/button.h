@@ -41,15 +41,6 @@ typedef enum _hub_button_t {
 
 /**
  * \~English
- * \brief    Initialisation code for the hub built-in buttons.
- *
- * \~Japanese
- * \brief    ハブ内蔵ボタンを初期化する
- */
-void _hub_button_init(void);
-
-/**
- * \~English
  * \brief    Checks which buttons are currently pressed.
  * \param pressed Bitmask-OR of buttons that are pressed (or 0 if none) is written to the variable pointed.
  * \retval err Error number.

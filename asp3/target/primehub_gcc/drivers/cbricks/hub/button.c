@@ -16,10 +16,6 @@
  * We implement button API by just wrapping functions in external/libpybricks/lib/pbio/drv/button/button_gpio.c.
  */
 
-void _hub_button_init(void) {
-  _pbdrv_button_init();
-}
-
 pbio_error_t hub_button_is_pressed(hub_button_t *pressed) {
   return pbdrv_button_is_pressed(pressed);
 }
