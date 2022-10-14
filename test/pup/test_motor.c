@@ -58,15 +58,21 @@ TEST(Motor, Run)
   TEST_ASSERT_NOT_EQUAL(err, PBIO_ERROR_NO_DEV);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
   
+  int32_t old_value = pup_motor_set_duty_limit(motor, 30);
+
   TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_speed(motor, 500));
  
   for (int i = 0; i < 10; i++) { 
     int32_t speed = pup_motor_get_speed(motor);
     int32_t count = pup_motor_get_count(motor);
-    TEST_PRINTF("speed = %d, count = %d\n", (int) speed, (int) count);
+    bool stalled = pup_motor_is_stalled(motor);
+    TEST_PRINTF("speed = %d, count = %d stalled = %c\n", (int) speed, (int) count, stalled ? 'T' : 'F');
+    if (stalled) break;
     // Wait 1 sec
     dly_tsk(1000000);
   }
+  pup_motor_restore_duty_limit(motor, old_value);
+
   TEST_PRINTF("%s\n", "BRAKE");
   TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_brake(motor));
   dly_tsk(3000000);

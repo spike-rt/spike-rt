@@ -172,6 +172,51 @@ pbio_error_t pup_motor_brake(pup_motor_t *motor);
  */
 pbio_error_t pup_motor_hold(pup_motor_t *motor);
 
+/**
+ * \~English
+ * \brief    Check if the motor is stalled.
+ * \details  Call pup_motor_set_duty_limit before actuating the motor to avoid applying the full motor torque.
+ * \param motor PUP motor device pointer.
+ * \return   true or false.
+ *
+ * \~Japanese
+ * \brief    モータがストールしているか調べる．
+ * \detail   モータを動かす前にpup_motor_set_duty_limitを呼んで最大トルクを下げておくと感度を調整することができる．
+ * \param motor PUPモータデバイスポインタ．
+ * \return   true or false．
+ */
+bool pup_motor_is_stalled(pup_motor_t *motor);
+
+/**
+ * \~English
+ * \brief    Lower the duty limit of the motor.
+ * \detail   To restore the limit, call pup_motor_restore_duty_limit with the value returned as its argument.
+ * \param motor PUP motor device pointer.
+ * \param duty_limit new limit (0-100),
+ * \return   max voltage to restore the limit back to the original conditions.
+ *
+ * \~Japanese
+ * \brief    モータのデューティ値を下げる．
+ * \detail   元の状態に戻すにはこの関数の戻り値を使ってpup_motor_restore_duty_limitを呼ぶ．．
+ * \param motor PUPモータデバイスポインタ．
+ * \param duty_limit 新しいデューティ値（0-100）
+ * \return   元の状態に戻すための最大電圧．
+ */
+int32_t pup_motor_set_duty_limit(pup_motor_t *motor, int duty_limit);
+
+/**
+ * \~English
+ * \brief    Restore the duty limit of the motor.
+ * \param motor PUP motor device pointer.
+ * \param old_value Voltage returned from pup_motor_set_duty_limit.
+ *
+ * \~Japanese
+ * \brief    モータのデューティ値を元に戻す．．
+ * \param motor PUPモータデバイスポインタ．
+ * \param old_value pup_motor_set_duty_limitの戻り値．
+ */
+void pup_motor_restore_duty_limit(pup_motor_t *motor, int old_value);
+
 #endif // _PUP_MOTOR_H_
 
 /**
@@ -181,4 +226,5 @@ pbio_error_t pup_motor_hold(pup_motor_t *motor);
 /**
  * @} // End of group
  */
+
 

@@ -13,8 +13,10 @@
 #include <cbricks/cb_error.h>
 #include <cbricks/pup/motor.h>
 #include <pbio/motor_process.h>
-#include <stdio.h>
+#include <pbio/control.h>
+#include <pbio/battery.h>
 
+#include <stdio.h>
 static void errlog(char *name, pbio_port_id_t port, pbio_error_t err) {
   char message[80];
   snprintf(message, sizeof(message), "%s failed for port %c: %s", name, port, pbio_error_str(err));
@@ -98,3 +100,18 @@ pbio_error_t pup_motor_set_speed(pup_motor_t *motor, int speed) {
   return err;
 }
 
+bool pup_motor_is_stalled(pup_motor_t *motor) {
+  return pbio_control_is_stalled(&motor->control);
+}
+
+int32_t pup_motor_set_duty_limit(pup_motor_t *motor, int limit) {
+  int32_t old_value = 0;
+  int32_t new_value = pbio_battery_get_voltage_from_duty(limit*100);
+  pbio_dcmotor_get_settings(motor->dcmotor, &old_value);
+  pbio_dcmotor_set_settings(motor->dcmotor, new_value);
+  return old_value;
+}
+
+void pup_motor_restore_duty_limit(pup_motor_t *motor, int old_value) {
+  pbio_dcmotor_set_settings(motor->dcmotor, old_value);
+}
