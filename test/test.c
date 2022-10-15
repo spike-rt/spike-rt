@@ -22,7 +22,7 @@ static void RunAllTests(void)
 	// RUN_TEST_GROUP(IMU);
 	// RUN_TEST_GROUP(Speaker);
 	// RUN_TEST_GROUP(System);
-	// RUN_TEST_GROUP(Battery);
+	RUN_TEST_GROUP(Battery);
 	// RUN_TEST_GROUP(Charger);
 
   // Tests for Powerd Up Device
