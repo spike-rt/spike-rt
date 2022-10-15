@@ -20,7 +20,7 @@ KERNEL_DIRS += $(TARGETDIR)/drivers \
 							 $(TARGETDIR)/drivers/cbricks/pup
 
 KERNEL_COBJS += light.o display.o display_fonts.o button.o
-KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o
+KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o motor.o
 
 INCLUDES += -I$(TARGETDIR)/drivers \
 						-I$(TARGETDIR)/drivers/cbricks \
