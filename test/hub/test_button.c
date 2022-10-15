@@ -11,7 +11,7 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <pbio/button.h>
+#include <cbricks/hub/button.h>
 
 TEST_GROUP(Button);
 
@@ -33,8 +33,8 @@ TEST_TEAR_DOWN(Button)
 
 TEST(Button, button_is_pressed)
 {
-	pbio_button_flags_t pressed;
-  TEST_ASSERT_EQUAL(pbio_button_is_pressed(&pressed), PBIO_SUCCESS);
+	hub_button_t pressed;
+  TEST_ASSERT_EQUAL(hub_button_is_pressed(&pressed), PBIO_SUCCESS);
 	// if you enable this line, press left button while testing.
-	//TEST_ASSERT_EQUAL(pressed, PBIO_BUTTON_LEFT);
+  TEST_ASSERT_EQUAL(HUB_BUTTON_LEFT, pressed);
 }
