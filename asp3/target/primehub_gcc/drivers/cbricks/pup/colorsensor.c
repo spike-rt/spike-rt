@@ -16,7 +16,7 @@
 #include <pbio/color.h>
 #define CB_COLOR_MAP_SIZE 30
 
-pbio_color_hsv_t cb_color_map_default[] = {
+pup_color_hsv_t cb_color_map_default[] = {
 	{ PBIO_COLOR_HUE_RED, 100, 100 },
   { PBIO_COLOR_HUE_YELLOW, 100, 100	},
   { PBIO_COLOR_HUE_GREEN, 100, 100 },
@@ -26,14 +26,20 @@ pbio_color_hsv_t cb_color_map_default[] = {
 };
 typedef struct {
 	int32_t size;
-	pbio_color_hsv_t colors[CB_COLOR_MAP_SIZE];
+	pup_color_hsv_t colors[CB_COLOR_MAP_SIZE];
 } cb_color_map_t;
 cb_color_map_t color_map;
 
-void cb_color_map_rgb_to_hsv(const pbio_color_rgb_t *rgb, pbio_color_hsv_t *hsv) {
+void cb_color_map_rgb_to_hsv(const pup_color_rgb_t *rgb, pup_color_hsv_t *hsv) {
+
+    const pbio_color_rgb_t rgb8 = {
+      .r = rgb->r == 1024 ? 255 : rgb->r >> 2,
+      .g = rgb->g == 1024 ? 255 : rgb->g >> 2,
+      .b = rgb->b == 1024 ? 255 : rgb->b >> 2,
+    };
 
     // Standard conversion
-    pbio_color_rgb_to_hsv(rgb, hsv);
+    pbio_color_rgb_to_hsv(&rgb8, hsv);
 
     // For very low values, saturation is not reliable
     if (hsv->v <= 3) {
@@ -57,7 +63,7 @@ void cb_color_map_rgb_to_hsv(const pbio_color_rgb_t *rgb, pbio_color_hsv_t *hsv)
     hsv->v = hsv->v * (200 - hsv->v) / 100;
 }
 
-int32_t cb_get_hsv_cost(const pbio_color_hsv_t *x, const pbio_color_hsv_t *c) {
+int32_t cb_get_hsv_cost(const pup_color_hsv_t *x, const pup_color_hsv_t *c) {
 
     // Calculate the hue error
     int32_t hue_error;
@@ -85,10 +91,10 @@ int32_t cb_get_hsv_cost(const pbio_color_hsv_t *x, const pbio_color_hsv_t *c) {
 }
 
 // Get a discrete color that matches the given hsv values most closely
-pbio_color_hsv_t cb_color_map_get_color(cb_color_map_t *color_map, pbio_color_hsv_t *hsv) {
+pup_color_hsv_t cb_color_map_get_color(cb_color_map_t *color_map, pup_color_hsv_t *hsv) {
 
     // Initialize minimal cost to maximum
-    pbio_color_hsv_t match;
+    pup_color_hsv_t match;
     int32_t cost_now = INT32_MAX;
     int32_t cost_min = INT32_MAX;
 
@@ -111,8 +117,21 @@ pbio_color_hsv_t cb_color_map_get_color(cb_color_map_t *color_map, pbio_color_hs
     return match;
 }
 
+pup_color_rgb_t pup_color_sensor_rgb(pup_device_t *pdev) {
+  int32_t data[4];
+  pup_color_rgb_t rgb = { 0, 0, 0 };
+  pbio_error_t err = pup_device_get_values(pdev, PBIO_IODEV_MODE_PUP_COLOR_SENSOR__RGB_I, data);
+  if (err != PBIO_SUCCESS) {
+    syslog(LOG_ERROR, "pup_color_sensor_rgb() failed.");
+    return rgb;
+  }
+  rgb.r = data[0];
+  rgb.g = data[1];
+  rgb.b = data[2];
+  return rgb;
+}
 
-static pbio_error_t pup_color_sensor__get_hsv_reflected(pup_device_t *pdev, pbio_color_hsv_t *hsv){
+static pbio_error_t pup_color_sensor__get_hsv_reflected(pup_device_t *pdev, pup_color_hsv_t *hsv){
 	    // Read RGB
     int32_t data[4];
 		pbio_error_t err;
@@ -121,10 +140,10 @@ static pbio_error_t pup_color_sensor__get_hsv_reflected(pup_device_t *pdev, pbio
 			syslog(LOG_ERROR, "pup_color_sensor__get_hsv_reflected() failed.");
 			return err;
 		}
-    const pbio_color_rgb_t rgb = {
-        .r = data[0] == 1024 ? 255 : data[0] >> 2,
-        .g = data[1] == 1024 ? 255 : data[1] >> 2,
-        .b = data[2] == 1024 ? 255 : data[2] >> 2,
+    const pup_color_rgb_t rgb = {
+        .r = data[0],
+        .g = data[1],
+        .b = data[2],
     };
 
     // Convert to HSV
@@ -132,7 +151,7 @@ static pbio_error_t pup_color_sensor__get_hsv_reflected(pup_device_t *pdev, pbio
 		return err;
 }
 
-static pbio_error_t pup_color_sensor__get_hsv_ambient(pup_device_t *pdev, pbio_color_hsv_t *hsv){
+static pbio_error_t pup_color_sensor__get_hsv_ambient(pup_device_t *pdev, pup_color_hsv_t *hsv){
 	    // Read SHSV mode (light off). This data is not available in RGB format
     int32_t data[4];
 		pbio_error_t err;
@@ -158,14 +177,14 @@ static pbio_error_t pup_color_sensor__get_hsv_ambient(pup_device_t *pdev, pbio_c
 pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port) {
   // Get iodevices
 	pup_device_t *pdev = pup_device_get_device(port, PBIO_IODEV_TYPE_ID_SPIKE_COLOR_SENSOR);
-	pbio_color_hsv_t hsv;
+	pup_color_hsv_t hsv;
 
 	// Do one reading
 	pup_color_sensor__get_hsv_reflected(pdev, &hsv);
 
 	// init color_map
 	// dafault detectable color are {RED, YELLOW, GREEN, BLUE, WHITE, NONE}
-	color_map.size = sizeof(cb_color_map_default) / sizeof(pbio_color_hsv_t);
+	color_map.size = sizeof(cb_color_map_default) / sizeof(pup_color_hsv_t);
 	for(size_t i = 0; i < color_map.size; i++){
 		color_map.colors[i] = cb_color_map_default[i];
 	}
@@ -173,9 +192,9 @@ pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port) {
   return pdev;
 }
 
-pbio_color_hsv_t pup_color_sensor_hsv(pup_device_t *pdev, bool surface) {
+pup_color_hsv_t pup_color_sensor_hsv(pup_device_t *pdev, bool surface) {
   pbio_error_t err;
-	pbio_color_hsv_t hsv;
+	pup_color_hsv_t hsv;
 
 	if(surface){
 		err = pup_color_sensor__get_hsv_reflected(pdev, &hsv);
@@ -190,10 +209,10 @@ pbio_color_hsv_t pup_color_sensor_hsv(pup_device_t *pdev, bool surface) {
 	return hsv;
 }
 
-pbio_color_hsv_t pup_color_sensor_color(pup_device_t *pdev, bool surface) {
+pup_color_hsv_t pup_color_sensor_color(pup_device_t *pdev, bool surface) {
 
   pbio_error_t err;
-	pbio_color_hsv_t hsv;
+	pup_color_hsv_t hsv;
 
 	if(surface){
 		err = pup_color_sensor__get_hsv_reflected(pdev, &hsv);
@@ -252,7 +271,7 @@ pbio_error_t pup_color_sensor_light_off(pup_device_t *pdev) {
   return pup_color_sensor_light_set(pdev, 0, 0, 0);
 }
 
-pbio_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pbio_color_hsv_t *colors){
+pup_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pup_color_hsv_t *colors){
 	if(size > CB_COLOR_MAP_SIZE || size < 1){
 		return color_map.colors;
 	}

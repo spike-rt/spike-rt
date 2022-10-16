@@ -19,6 +19,7 @@ TEST_GROUP(ColorSensor);
 
 TEST_GROUP_RUNNER(ColorSensor) {
   RUN_TEST_CASE(ColorSensor, get_device);
+  RUN_TEST_CASE(ColorSensor, rgb);
   RUN_TEST_CASE(ColorSensor, hsv);
   RUN_TEST_CASE(ColorSensor, color);
   RUN_TEST_CASE(ColorSensor, reflection);
@@ -47,10 +48,21 @@ TEST(ColorSensor, get_device)
   TEST_ASSERT_NOT_NULL(sensor);
 }
 
+TEST(ColorSensor, rgb)
+{
+  pup_color_rgb_t rgb;
+  pup_device_t *sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
+  TEST_ASSERT_NOT_NULL(sensor);
+
+  rgb = pup_color_sensor_rgb(sensor);
+  TEST_PRINTF("rgb : r : %u  g : %u b : %u\n", rgb.r, rgb.g, rgb.b);
+  TEST_ASSERT_FALSE(rgb.r == 0 && rgb.g == 0 && rgb.b == 0);
+}
+
 TEST(ColorSensor, hsv)
 {
   pup_device_t *sensor;
-  pbio_color_hsv_t hsv;
+  pup_color_hsv_t hsv;
 
   sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
   TEST_ASSERT_NOT_NULL(sensor);
@@ -67,7 +79,7 @@ TEST(ColorSensor, hsv)
 TEST(ColorSensor, color)
 {
   pup_device_t *sensor;
-  pbio_color_hsv_t hsv;
+  pup_color_hsv_t hsv;
 
   sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
   TEST_ASSERT_NOT_NULL(sensor);
@@ -133,17 +145,17 @@ TEST(ColorSensor, light)
 TEST(ColorSensor, detectable_colors)
 {
 	pup_device_t *sensor;
-	pbio_color_hsv_t hsv;
-	pbio_color_hsv_t *ret;
+	pup_color_hsv_t hsv;
+	pup_color_hsv_t *ret;
 	//Note pup_color_sensor_color() detects {RED, YELLOW, GREEN, BLUE, WHITE, NONE} as default.
-	pbio_color_hsv_t my_colors[] = {
+	pup_color_hsv_t my_colors[] = {
 		{ PBIO_COLOR_HUE_ORANGE, 100, 100 },
 		{ PBIO_COLOR_HUE_CYAN, 100, 100 },
 		{ PBIO_COLOR_HUE_VIOLET, 100, 100 },
 		{ PBIO_COLOR_HUE_MAGENTA, 100, 100 },
 		{ 17, 78, 15 },//BROWN
 	};
-	int32_t size = sizeof(my_colors) / sizeof(pbio_color_hsv_t);
+	int32_t size = sizeof(my_colors) / sizeof(pup_color_hsv_t);
 
 	sensor = pup_color_sensor_get_device(PBIO_PORT_ID_TEST_COLOR_SENSOR);
 	TEST_ASSERT_NOT_NULL(sensor);

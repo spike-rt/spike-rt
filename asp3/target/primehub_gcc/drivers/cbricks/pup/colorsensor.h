@@ -9,7 +9,7 @@
 /**
  * \file    cbricks/pup/colorsensor.h
  * \brief	  API for color sensors
- * \author	Kajita Shun
+ * \author	Kajita Shun, Makoto Shimojima
  */
 
 /**
@@ -54,6 +54,22 @@ pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port);
 
 /**
  * \~English
+ * \brief				Returns the raw RGB values measured by the color sensor.
+ * \param				pdev	PUP device pointer to be inquired.
+ * \return				Raw 10-bit values of R, G, B.
+ *
+ * \~Japanese
+ * \brief				カラーセンサのRGB値を返す．
+ * \param				PUPデバイスポインタ
+ * \return				RGB値、各色10ビット．
+ */
+typedef struct {
+  uint16_t r, g, b;
+} pup_color_rgb_t;
+pup_color_rgb_t pup_color_sensor_rgb(pup_device_t *pdev);
+
+/**
+ * \~English
  * \brief					Get the color of surface or an extra source by a color sensor.
  * \details				By default, it detects red, yellow, green, blue, white, none. You can choose color detected by pup_detectale_colors()
  * \param				pdev	PUP device pointer to be inquired.
@@ -68,7 +84,8 @@ pup_device_t *pup_color_sensor_get_device(pbio_port_id_t port);
  * \param					trueならば表面の色から、falseならば他の光源の色を検出する。
  * \return				色（hsvによる表現）
  */
-pbio_color_hsv_t pup_color_sensor_color(pup_device_t *pdev, bool surface);
+typedef pbio_color_hsv_t pup_color_hsv_t;
+pup_color_hsv_t pup_color_sensor_color(pup_device_t *pdev, bool surface);
 
 /**
  * \~English
@@ -86,7 +103,7 @@ pbio_color_hsv_t pup_color_sensor_color(pup_device_t *pdev, bool surface);
  * \param					trueならば表面の色から、falseならば他の光源の色を検出する。
  * \return				色（hsvによる表現）
  */
-pbio_color_hsv_t pup_color_sensor_hsv(pup_device_t *pdev, bool surface);
+pup_color_hsv_t pup_color_sensor_hsv(pup_device_t *pdev, bool surface);
 
 /**
  * \~English
@@ -172,7 +189,7 @@ pbio_error_t pup_color_sensor_light_off(pup_device_t *pdev);
  * \param  			カラーの配列とそのサイズ。 
  * \retval err   色。
  */
-pbio_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pbio_color_hsv_t *colors);
+pup_color_hsv_t *pup_color_sensor_detectable_colors(int32_t size, pup_color_hsv_t *colors);
 
 #endif // _PUP_COLOR_SENSOR_H_
 
