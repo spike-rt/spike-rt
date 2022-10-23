@@ -38,16 +38,16 @@ cd ../..
 
 アプリケーション用 Makefile の生成
 ```bash
-mkdir -p build/obj-primehub_app
-cd build/obj-primehub_app
-../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../$appdir/ -A app -m ../../common/app.mk
+mkdir -p build/obj-primehub_$appname
+cd build/obj-primehub_$appname
+../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../$appdir/ -A $appname -m ../../common/app.mk
 cd ../..
 ```
 
 ### ビルド
 ホスト側で以下を実行し，カレントディレクトリをアプリのビルドディレクトに移動する．
 ```bash
-cd build/obj-primehub_app
+cd build/obj-primehub_$appname
 ```
 以下により，
 ```bash
@@ -55,10 +55,32 @@ cd build/obj-primehub_app
 ```
 再ビルド・再リンクする場合もこのコマンドで良い．
 
+### 例
+モータのサンプル・アプリケーション`sample/motor`のビルド例．
+
+```bash
+docker run --rm -it -v $(pwd):$(pwd) -w $(pwd) spike-rt-builder /bin/bash
+
+mkdir -p build/obj-primehub_kernel
+cd build/obj-primehub_kernel
+../../asp3/configure.rb -T primehub_gcc -f -m ../../common/kernel.mk
+cd -
+
+mkdir -p build/obj-primehub_motor
+cd build/obj-primehub_motor
+../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../sample/motor/ -A motor -m ../../common/app.mk
+
+make -j4& make asp.bin
+cd -
+
+exit
+```
+
+
 ## 書き込み
 ホスト側で以下を実行し，カレントディレクトリをアプリのビルドディレクトに移動する．（既に移動している場合は不要）
 ```bash
-cd build/obj-primehub_$appdir
+cd build/obj-primehub_$appname
 ```
 
 ### HubのDFUモードへの遷移
