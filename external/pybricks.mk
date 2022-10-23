@@ -7,6 +7,15 @@
 #
 
 PYBRICKS_DIR := $(EXTERNAL_DIR)/libpybricks
+
+ifeq ("$(wildcard $(PYBRICKS_DIR)/README.md)","")
+$(info GIT cloning pybricks-micropython submodule)
+$(info $(shell git submodule update --init $(PYBRICKS_DIR)))
+ifeq ("$(wildcard $(PYBRICKS_DIR)/README.md)","")
+$(error failed)
+endif
+endif
+
 PYBRICKS_LIB := $(PYBRICKS_OBJDIR)/libpybricks.a
 PYBRICKS_INCLUDES := -I$(PYBRICKS_DIR)/lib/pbio/include \
 										 -I$(PYBRICKS_DIR)/bricks/primehub_asp3 \

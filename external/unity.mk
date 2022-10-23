@@ -8,6 +8,15 @@
 
 # EXTERNAL_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 Unity_DIR := $(EXTERNAL_DIR)/Unity
+
+ifeq ("$(wildcard $(Unity_DIR)/README.md)","")
+$(info GIT cloning Unity submodule)
+$(info $(shell git submodule update --init $(Unity_DIR)))
+ifeq ("$(wildcard $(Unity_DIR)/README.md)","")
+$(error failed)
+endif
+endif
+
 Unity_SRCDIR := $(Unity_DIR)/src \
 	              $(Unity_DIR)/extras/fixture/src \
 	              $(Unity_DIR)/extras/memory/src

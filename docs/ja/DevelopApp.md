@@ -9,6 +9,8 @@ cd spike-rt
 git submodule update --init ./external/
 ```
 以下，特に断りの無い限りトップディレクトリが`spike-rt` のディレクトリであるとする．
+また，アプリケーション・ソースコードのディレクトリが `spike-rt/$appdir`に配置されているとする．
+
 
 ## 開発環境の構築
 [Env.md](Env.md)に従って，開発環境を構築する．
@@ -38,7 +40,7 @@ cd ../..
 ```bash
 mkdir -p build/obj-primehub_app
 cd build/obj-primehub_app
-../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../app/ -A app -m ../../common/app.mk
+../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../$appdir/ -A app -m ../../common/app.mk
 cd ../..
 ```
 
@@ -56,7 +58,7 @@ cd build/obj-primehub_app
 ## 書き込み
 ホスト側で以下を実行し，カレントディレクトリをアプリのビルドディレクトに移動する．（既に移動している場合は不要）
 ```bash
-cd build/obj-primehub_app
+cd build/obj-primehub_$appdir
 ```
 
 ### HubのDFUモードへの遷移
