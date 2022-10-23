@@ -18,7 +18,10 @@
 void
 main_task(intptr_t exinf)
 {
-  //  pbsys_user_program_prepare(NULL); // pbsys_processをユーザプログラム実行状態に遷移させる．
+  // Prepare the pybricks runtime for running a user program.
+  // TODO: integrate pbsys_user_program_prepare() and wup_pybricks into one function. 
+  pbsys_user_program_prepare(NULL);
+  wup_pybricks();
 
   pbio_error_t err;
   pup_motor_t *motor;
@@ -60,5 +63,7 @@ main_task(intptr_t exinf)
   {
     slp_tsk();
   }
-  //  pbsys_user_program_unprepare();
+
+  pbsys_user_program_unprepare();
+  wup_pybricks();
 }
