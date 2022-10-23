@@ -17,6 +17,17 @@
  * @{
  */
 
+/**
+ * \~English
+ * \defgroup Battery Battery
+ * \brief	  APIs for battery
+ * @{
+ *
+ * \~Japanese
+ * \defgroup Battery バッテリー
+ * \brief    バッテリーのAPI．
+ * @{
+ */
 
 #ifndef _HUB_BATTERY_H_
 #define _HUB_BATTERY_H_

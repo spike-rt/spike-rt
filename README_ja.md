@@ -35,7 +35,7 @@ For English document please see [README.md](README.md).
 - C 標準ライブラリ（Newlib）
 - SPIKE API
   - Pybricks の API を参考にした アプリケーションからデバイスを制御するための API．
-  - [ドキュメント](https://envzhu.github.io/spike-rt/ja/html/modules.html) を参照．
+  - [ドキュメント](https://spike-rt.github.io/spike-rt/ja/html/modules.html) を参照．
 
 ## 使い方
 アプリケーションの開発方法などの詳細については，[docs/ja/](docs/ja/) を参照．

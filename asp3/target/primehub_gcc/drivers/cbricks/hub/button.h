@@ -17,6 +17,17 @@
  * @{
  */
 
+/**
+ * \~English
+ * \defgroup Button Button
+ * \brief	   APIs for button
+ * @{
+ *
+ * \~Japanese
+ * \defgroup Button ボタン
+ * \brief    ボタンのAPI．
+ * @{
+ */
 
 #ifndef _HUB_BUTTON_H_
 #define _HUB_BUTTON_H_
