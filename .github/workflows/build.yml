@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - main
+      - $default-branch
       - develop
     paths-ignore:
       - '**.md'
@@ -19,9 +19,10 @@ jobs:
         with:
           submodules: true
       - name: Prepare a docker container for build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          context: tools
+          context: tools/docker
+          file: tools/docker/slim.dockerfile
           tags: spike-rt-builder:latest
           push: false
       - name: Build test
