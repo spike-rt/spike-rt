@@ -12,6 +12,8 @@ jobs:
   push-container:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -33,6 +35,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/spike-rt:latest
             ghcr.io/${{ github.repository_owner }}/spike-rt:slim
+          cache-from: type=gha,scope=slim
+          cache-to: type=gha,mode=max,scope=slim
       - name: Build and push rich
         uses: docker/build-push-action@v3
         with:
@@ -42,3 +46,5 @@ jobs:
             linux/amd64
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/spike-rt:rich
+          cache-from: type=gha,scope=rich
+          cache-to: type=gha,mode=max,scope=rich
