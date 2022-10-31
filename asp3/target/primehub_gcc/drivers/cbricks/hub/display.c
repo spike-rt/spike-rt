@@ -6,6 +6,7 @@
  *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
+#include <kernel.h>
 #include <t_syslog.h>
 #include <cbricks/hub/display.h>
 
@@ -129,3 +130,39 @@ pbio_error_t hub_display_text(const char* text, uint32_t on, uint32_t off) {
 
     return PBIO_SUCCESS;
 }
+
+#define ROWS 5
+#define COLS 5
+pbio_error_t hub_display_text_scroll(const char* text, uint32_t delay) {
+  // Make sure all characters are valid
+  char *p = text;
+  int len = 0;
+  while (*p) {
+    if (*p < 32 || *p > 126) return PBIO_ERROR_INVALID_ARG;
+    p++;
+    len++;
+  }
+  uint8_t mask[COLS+1] = { 0b10000, 0b01000, 0b00100, 0b00010, 0b00001, 0b00000 };
+  uint8_t shift[COLS+1] = { 4, 3, 2, 1, 0, 0 };
+  uint8_t composite[ROWS];
+  for (int k = 0; k < ROWS; k++) {
+    composite[k] = pb_font_5x5[' '-32][k];
+  }
+  // Loop through each character (+ 1 extra space to fade out at the end)
+  for (int i = 0; i < len+1; i++) {
+    uint8_t font[ROWS];
+    for (int k = 0; k < ROWS; k++) {
+      font[k] = pb_font_5x5[i < len ? text[i]-32 : ' '-32][k];
+    }
+    // Add one column at a time (an extra column in between to separate characters)
+    for (int j = 0; j < COLS+1; j++) {
+      for (int k = 0; k < ROWS; k++) {
+        composite[k] = composite[k] << 1 | (font[k]&mask[j]) >> shift[j];
+      }
+      check_pbio_error(pbio_light_matrix_set_rows(pbsys_hub_light_matrix, composite));
+      dly_tsk(delay * 1000);
+    }
+  }
+  return PBIO_SUCCESS;
+}
+

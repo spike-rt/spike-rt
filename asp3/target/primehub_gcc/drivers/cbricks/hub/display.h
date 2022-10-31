@@ -135,6 +135,21 @@ pbio_error_t hub_display_char(const char c);
  */
 pbio_error_t hub_display_text(const char* text, uint32_t on, uint32_t off);
 
+/**
+ * \~English
+ * \brief       Displays a text string in scroll mode.
+ * \param  text (str)   The text to be displayed.
+ * \param  delay (time: ms)   Delay between each scroll.
+ * \retval err  Error number.
+ *
+ * \~Japanese
+ * \brief       文字列をスクロールしながら表示する．
+ * \param  text (str)   表示する文字列．
+ * \param  delay (time: ms) スクロールの間隔．
+ * \retval err  エラー番号．
+ */
+pbio_error_t hub_display_text_scroll(const char* text, uint32_t delay);
+
 #endif // _HUB_DISPLAY_H_
 
 /**
