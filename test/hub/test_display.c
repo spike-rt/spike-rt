@@ -71,4 +71,7 @@ TEST(Display, putc)
   dly_tsk(5000000);
 
   TEST_ASSERT_EQUAL(hub_display_text("TOPPERS", 1000, 500), PBIO_SUCCESS);
+  dly_tsk(5000000);
+
+  TEST_ASSERT_EQUAL(hub_display_text_scroll("TOPPERS", 80), PBIO_SUCCESS);
 }
