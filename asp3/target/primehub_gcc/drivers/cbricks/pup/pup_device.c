@@ -12,7 +12,6 @@
 #include <t_syslog.h>
 
 #include <pbdrv/ioport.h>
-#include <pbdrv/motor.h>
 #include <pbio/color.h>
 #include <pbio/iodev.h>
 
@@ -100,7 +99,6 @@ pup_device_t *pup_device_get_device(pbio_port_id_t port, pbio_iodev_type_id_t va
         check_pbio_error_r(PBIO_ERROR_NO_DEV, NULL);
     }
 
-    iodev->port = port;
     return (pup_device_t *)iodev;
 }
 
@@ -193,5 +191,45 @@ pbio_error_t pup_device_set_values(pup_device_t *pdev, uint8_t mode, int32_t *va
         dly_tsk(delay/10*1000);
     }
 
+    return PBIO_SUCCESS;
+}
+
+pbio_error_t pup_device_setup_motor(pbio_port_id_t port, bool is_servo) {
+    // HACK: Built-in motors on BOOST Move hub do not have I/O ports associated
+    // with them.
+    #if PYBRICKS_HUB_MOVEHUB
+    if (port == PBIO_PORT_ID_A || port == PBIO_PORT_ID_B) {
+        return;
+    }
+    #endif
+
+    // Get the iodevice
+    pbio_iodev_t *iodev;
+    pbio_error_t err;
+
+    // Set up device
+    while ((err = pbdrv_ioport_get_iodev(port, &iodev)) == PBIO_ERROR_AGAIN) {
+        // Wait 50 ms
+        dly_tsk(50*1000);
+    }
+    check_pbio_error(err);
+
+    // Only motors are allowed.
+    if (!PBIO_IODEV_IS_DC_OUTPUT(iodev)) {
+        return PBIO_ERROR_NO_DEV;
+    }
+
+    // If it's a DC motor, no further setup is needed.
+    if (!PBIO_IODEV_IS_FEEDBACK_MOTOR(iodev)) {
+        return PBIO_SUCCESS;
+    }
+
+    // Choose mode based on device capabilities.
+    uint8_t mode_id = PBIO_IODEV_IS_ABS_MOTOR(iodev) ?
+        PBIO_IODEV_MODE_PUP_ABS_MOTOR__CALIB:
+        PBIO_IODEV_MODE_PUP_REL_MOTOR__POS;
+
+    // Activate mode.
+    set_mode(iodev, mode_id);
     return PBIO_SUCCESS;
 }

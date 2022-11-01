@@ -14,6 +14,10 @@
 #include <unity_fixture.h>
 
 #include <pbsys/user_program.h>
+
+#include <pbio/dcmotor.h>
+#include <pbio/math.h>
+#include <pbio/servo.h>
 #include <cbricks/pup/motor.h>
 
 TEST_GROUP(Motor);
@@ -44,7 +48,7 @@ TEST(Motor, Run)
   motor = pup_motor_get_device(PBIO_PORT_ID_A);
   TEST_ASSERT_NOT_NULL(motor);
   
-  // Set up servo
+  // Get pointer to servo and allow tacho to finish syncing
   for(int i = 0; i < 10; i++)
   {
     bool reset_count = true;
@@ -53,9 +57,12 @@ TEST(Motor, Run)
       break;
     
     // Wait 1s and try one more
-    dly_tsk(1000000);
+    dly_tsk(1000*1000);
   }
-  TEST_ASSERT_NOT_EQUAL(err, PBIO_ERROR_NO_DEV);
+  TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
+
+  // Set up servo
+  err = pbio_servo_setup(servo, PBIO_DIRECTION_CLOCKWISE, 1000, false);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
   
   int32_t old_value = pup_motor_set_duty_limit(motor, 30);

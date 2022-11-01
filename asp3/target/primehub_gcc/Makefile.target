@@ -14,6 +14,7 @@ TOOL  = gcc
 #  FPUを使用するか
 #
 FPU_USAGE = FPU_LAZYSTACKING
+FPU_ABI = hard
 
 #
 #  使用するタイマ

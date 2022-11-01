@@ -10,7 +10,7 @@
 #include <pbio/error.h>
 
 #define check_pbio_error_r(err, retval) \
-  if (err != PBIO_SUCCESS) { \
+  if ((err) != PBIO_SUCCESS) { \
     return retval; \
   }
 

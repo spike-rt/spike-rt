@@ -81,7 +81,7 @@ float pup_force_sensor_distance(pup_device_t *pdev) {
 }
 
 bool pup_force_sensor_pressed(pup_device_t *pdev, float force) {
-	int32_t f_arg = pbio_math_mul_i32_fix16(1000, fix16_from_float(force));
+  int32_t f_arg = (int32_t)(force * 1000);
 
 	return pup_force_sensor__force(pdev) >= f_arg;
 }
