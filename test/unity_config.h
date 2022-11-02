@@ -28,8 +28,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-bool pbsys_usb_stdout_put_char(uint8_t c);
-#define UNITY_OUTPUT_CHAR(c)  pbsys_usb_stdout_put_char(c)
+
+extern void tPutLogTarget_ePutLog_putChar(char c);
+#define UNITY_OUTPUT_CHAR(c)  tPutLogTarget_ePutLog_putChar(c)
 #define UNITY_PRINT_EOL() \
     do { UNITY_OUTPUT_CHAR('\r'); UNITY_OUTPUT_CHAR('\n'); } while (0)
 #define UNITY_OUTPUT_COLOR
