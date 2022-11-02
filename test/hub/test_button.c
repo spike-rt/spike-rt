@@ -11,7 +11,7 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <cbricks/hub/button.h>
+#include <spike/hub/button.h>
 
 TEST_GROUP(Button);
 

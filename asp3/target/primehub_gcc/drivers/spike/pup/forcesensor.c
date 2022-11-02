@@ -11,8 +11,8 @@
 
 #include <t_syslog.h>
 
-#include <cbricks/cb_error.h>
-#include <cbricks/pup/forcesensor.h>
+#include <spike/cb_error.h>
+#include <spike/pup/forcesensor.h>
 
 #include <pbio/math.h>
 #include <fixmath.h>

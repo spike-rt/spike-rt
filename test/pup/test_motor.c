@@ -18,7 +18,7 @@
 #include <pbio/dcmotor.h>
 #include <pbio/math.h>
 #include <pbio/servo.h>
-#include <cbricks/pup/motor.h>
+#include <spike/pup/motor.h>
 
 TEST_GROUP(Motor);
 
@@ -61,10 +61,6 @@ TEST(Motor, Run)
   }
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
 
-  // Set up servo
-  err = pbio_servo_setup(servo, PBIO_DIRECTION_CLOCKWISE, 1000, false);
-  TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
-  
   int32_t old_value = pup_motor_set_duty_limit(motor, 30);
 
   TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_speed(motor, 500));

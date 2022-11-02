@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/pup/forcesensor.h
+ * \file    spike/pup/forcesensor.h
  * \brief	  API for force sensors
  * \author	Kajita Shun
  */
@@ -34,7 +34,7 @@
 #define _PUP_FORCE_SENSOR_H_
 
 #include <stdint.h>
-#include <cbricks/pup_device.h>
+#include <spike/pup_device.h>
 
 /**
  * \~English

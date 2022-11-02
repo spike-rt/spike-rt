@@ -12,7 +12,7 @@
 #include <unity_fixture.h>
 
 #include <test_config.h>
-#include <cbricks/pup/ultrasonicsensor.h>
+#include <spike/pup/ultrasonicsensor.h>
 #include <pbsys/user_program.h>
 
 TEST_GROUP(UltrasonicSensor);

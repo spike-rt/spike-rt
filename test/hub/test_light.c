@@ -11,7 +11,7 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <cbricks/hub/light.h>
+#include <spike/hub/light.h>
 
 TEST_GROUP(Light);
 

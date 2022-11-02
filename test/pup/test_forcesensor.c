@@ -12,7 +12,7 @@
 #include <unity_fixture.h>
 
 #include <test_config.h>
-#include <cbricks/pup/forcesensor.h>
+#include <spike/pup/forcesensor.h>
 #include <pbsys/user_program.h>
 
 TEST_GROUP(ForceSensor);

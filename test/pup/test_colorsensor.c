@@ -12,7 +12,7 @@
 #include <unity_fixture.h>
 
 #include <test_config.h>
-#include <cbricks/pup/colorsensor.h>
+#include <spike/pup/colorsensor.h>
 #include <pbsys/user_program.h>
 
 TEST_GROUP(ColorSensor);

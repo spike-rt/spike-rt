@@ -42,7 +42,7 @@ void TestMainTask(intptr_t exinf)
   const char **argv = {"asp3-primehub test", "-v"};
 
   // Wait 1 sec for console connecting.
-  dly_tsk(1000000);
+  dly_tsk(1000*1000);
 
   UnityMain(argc, argv, RunAllTests);
 

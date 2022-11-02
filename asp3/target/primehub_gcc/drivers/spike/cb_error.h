@@ -4,8 +4,8 @@
  *                    Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
-#ifndef _CBRICKS_CB_ERROR_H_
-#define _CBRICKS_CB_ERROR_H_
+#ifndef _SPIKE_CB_ERROR_H_
+#define _SPIKE_CB_ERROR_H_
 
 #include <pbio/error.h>
 
@@ -16,4 +16,4 @@
 
 #define check_pbio_error(err) check_pbio_error_r(err, err)
 
-#endif // _CBRICKS_CB_ERROR_H_
+#endif // _SPIKE_CB_ERROR_H_

@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/hub/display.h
+ * \file    spike/hub/display.h
  * \brief   API for the hub built-in display.
  * \author  Matsubara Yutaka
  */

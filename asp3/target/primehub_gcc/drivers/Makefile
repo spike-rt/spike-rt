@@ -12,18 +12,29 @@
 SYSSVC_COBJS += newlib_stub.o
 
 #
+#  Definitions for Pybricks Task.
+#
+KERNEL_DIRS += $(TARGETDIR)/drivers
+
+#
+#  Definitions for Pybricks-C.
+#
+KERNEL_DIRS += $(TARGETDIR)/drivers/pybricks-c \
+							 $(TARGETDIR)/drivers/pybricks-c/common
+KERNEL_COBJS += pb_type_motor.o pb_type_dcmotor.o
+
+#
 #  Definitions for SPIKE API.
 #
-KERNEL_DIRS += $(TARGETDIR)/drivers \
-							 $(TARGETDIR)/drivers/cbricks \
-							 $(TARGETDIR)/drivers/cbricks/hub \
-							 $(TARGETDIR)/drivers/cbricks/pup
+KERNEL_DIRS += $(TARGETDIR)/drivers/spike \
+							 $(TARGETDIR)/drivers/spike/hub \
+							 $(TARGETDIR)/drivers/spike/pup
 
 KERNEL_COBJS += light.o display.o display_fonts.o button.o battery.o
-KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o
+KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o motor.o
 
 INCLUDES += -I$(TARGETDIR)/drivers \
-						-I$(TARGETDIR)/drivers/cbricks \
+						-I$(TARGETDIR)/drivers/spike \
 
 #
 #  Definitions for Pybricks.

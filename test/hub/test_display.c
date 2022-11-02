@@ -14,7 +14,7 @@
 #include <pbsys/user_program.h>
 #include <pbio/light_matrix.h>
 
-#include <cbricks/hub/display.h>
+#include <spike/hub/display.h>
 
 TEST_GROUP(Display);
 

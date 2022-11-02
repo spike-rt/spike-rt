@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/pup/colorsensor.h
+ * \file    spike/pup/colorsensor.h
  * \brief	  API for color sensors
  * \author	Kajita Shun, Makoto Shimojima
  */
@@ -34,7 +34,7 @@
 #define _PUP_COLOR_SENSOR_H_
 
 #include <stdint.h>
-#include <cbricks/pup_device.h>
+#include <spike/pup_device.h>
 #include <pbio/color.h>
 
 /**
