@@ -13,7 +13,6 @@
 
 #include <test_config.h>
 #include <spike/pup/ultrasonicsensor.h>
-#include <pbsys/user_program.h>
 
 TEST_GROUP(UltrasonicSensor);
 
@@ -26,14 +25,10 @@ TEST_GROUP_RUNNER(UltrasonicSensor) {
 
 TEST_SETUP(UltrasonicSensor)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(UltrasonicSensor)
 {
-  // Perform cleanup/reset after running a user program.
-  // pbsys_user_program_unprepare();
 }
 
 TEST(UltrasonicSensor, get_device)

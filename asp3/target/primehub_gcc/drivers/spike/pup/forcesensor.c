@@ -15,7 +15,6 @@
 #include <spike/pup/forcesensor.h>
 
 #include <pbio/math.h>
-#include <fixmath.h>
 
 typedef struct {
 	int32_t raw_released;

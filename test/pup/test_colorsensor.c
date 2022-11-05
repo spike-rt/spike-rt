@@ -13,7 +13,6 @@
 
 #include <test_config.h>
 #include <spike/pup/colorsensor.h>
-#include <pbsys/user_program.h>
 
 TEST_GROUP(ColorSensor);
 
@@ -30,14 +29,10 @@ TEST_GROUP_RUNNER(ColorSensor) {
 
 TEST_SETUP(ColorSensor)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(ColorSensor)
 {
-  // Perform cleanup/reset after running a user program.
-  // pbsys_user_program_unprepare();
 }
 
 TEST(ColorSensor, get_device)

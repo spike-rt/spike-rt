@@ -13,8 +13,6 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <pbsys/user_program.h>
-
 #include <pbio/dcmotor.h>
 #include <pbio/math.h>
 #include <pbio/servo.h>
@@ -28,15 +26,12 @@ TEST_GROUP_RUNNER(Motor) {
 
 TEST_SETUP(Motor)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(Motor)
 {
-  // Perform cleanup/reset after running a user program.
-  // pbsys_user_program_unprepare();
 }
+
 TEST(Motor, Run)
 {
   pbio_error_t err;

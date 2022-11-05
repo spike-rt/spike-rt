@@ -10,8 +10,7 @@
 
 #include <unity_fixture.h>
 
-#include <pbsys/user_program.h>
-
+#include <pbsys/status.h>
 
 static void RunAllTests(void)
 {
@@ -36,7 +35,9 @@ static void RunAllTests(void)
 void TestMainTask(intptr_t exinf)
 {
   // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
+  // TODO: integrate pbsys_status_set and wup_pybricks into one function. 
+  pbsys_status_set(PBIO_PYBRICKS_STATUS_USER_PROGRAM_RUNNING);
+  wup_pybricks();
 
   int argc = 2;
   const char **argv = {"asp3-primehub test", "-v"};
