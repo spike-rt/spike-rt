@@ -7,6 +7,7 @@
 #
 
 PYBRICKS_DIR := $(EXTERNAL_DIR)/libpybricks
+PYBRICKS_BRICK_DIR := $(abspath $(PYBRICKS_DIR)/bricks/primehub_spike-rt)
 
 ifeq ("$(wildcard $(PYBRICKS_DIR)/README.md)","")
 $(info GIT cloning pybricks-micropython submodule)
@@ -18,9 +19,8 @@ endif
 
 PYBRICKS_LIB := $(PYBRICKS_OBJDIR)/libpybricks.a
 PYBRICKS_INCLUDES := -I$(PYBRICKS_DIR)/lib/pbio/include \
-										 -I$(PYBRICKS_DIR)/bricks/primehub_asp3 \
-										 -I$(PYBRICKS_DIR)/lib/pbio/platform/prime_hub_asp3 \
-										 -I$(PYBRICKS_DIR)/lib/libfixmath/libfixmath \
+										 -I$(PYBRICKS_DIR)/bricks/primehub_spike-rt \
+										 -I$(PYBRICKS_DIR)/lib/pbio/platform/prime_hub_spike-rt \
 										 -I$(PYBRICKS_DIR)/lib/lego
 
 #
@@ -32,4 +32,4 @@ libpybricks.a: $(PYBRICKS_OBJDIR)/libpybricks.a
 # recipe for building pybricks
 .PHONY: $(PYBRICKS_OBJDIR)/libpybricks.a
 $(PYBRICKS_OBJDIR)/libpybricks.a:
-	$(MAKE) -C $(PYBRICKS_DIR)/bricks/primehub_asp3 BUILD=$(abspath $(PYBRICKS_OBJDIR))
+	$(MAKE) -C $(PYBRICKS_BRICK_DIR) BUILD=$(abspath $(PYBRICKS_OBJDIR))
