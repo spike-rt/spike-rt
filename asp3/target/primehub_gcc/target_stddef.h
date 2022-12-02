@@ -75,6 +75,7 @@
 #ifndef TOPPERS_MACRO_ONLY
 #ifndef TECSGEN
 
+void target_abort();
 Inline void
 TOPPERS_assert_abort(void)
 {
