@@ -13,14 +13,15 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <pbio/dcmotor.h>
-#include <pbio/math.h>
-#include <pbio/servo.h>
+#include <test_config.h>
 #include <spike/pup/motor.h>
+
+#include <pbio/main.h>
 
 TEST_GROUP(Motor);
 
-TEST_GROUP_RUNNER(Motor) {
+TEST_GROUP_RUNNER(Motor)
+{
   RUN_TEST_CASE(Motor, Run);
 }
 
@@ -30,6 +31,7 @@ TEST_SETUP(Motor)
 
 TEST_TEAR_DOWN(Motor)
 {
+  pbio_stop_all();
 }
 
 TEST(Motor, Run)
@@ -37,23 +39,15 @@ TEST(Motor, Run)
   pbio_error_t err;
   pup_motor_t *motor;
   
-  dly_tsk(3000000);
+  dly_tsk(3*1000*1000);
 
   // Get pointer to servo
-  motor = pup_motor_get_device(PBIO_PORT_ID_A);
+  motor = pup_motor_get_device(PBIO_PORT_ID_TEST_MOTOR);
   TEST_ASSERT_NOT_NULL(motor);
   
   // Get pointer to servo and allow tacho to finish syncing
-  for(int i = 0; i < 10; i++)
-  {
-    bool reset_count = true;
-    err = pup_motor_setup(motor, PUP_DIRECTION_CLOCKWISE, reset_count);
-    if(err != PBIO_ERROR_AGAIN)
-      break;
-    
-    // Wait 1s and try one more
-    dly_tsk(1000*1000);
-  }
+  bool reset_count = true;
+  err = pup_motor_setup(motor, PUP_DIRECTION_CLOCKWISE, reset_count);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
 
   int32_t old_value = pup_motor_set_duty_limit(motor, 30);

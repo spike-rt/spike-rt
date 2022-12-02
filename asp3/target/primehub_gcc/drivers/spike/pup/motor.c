@@ -28,7 +28,14 @@ pup_motor_t *pup_motor_get_device(pbio_port_id_t port) {
     return NULL;
   }
 
-  err = pbio_servo_get_servo(port, &motor);
+  for(int i = 0; i < 10; i++)
+  {
+    err = pbio_servo_get_servo(port, &motor);
+    if ((err == PBIO_SUCCESS) || (err != PBIO_ERROR_AGAIN)) {
+      break;
+    }
+    dly_tsk(1000*1000);
+  }
   if (err != PBIO_SUCCESS) {
     errlog("pup_motor_get_device()", port, err);
     return NULL;
@@ -39,7 +46,7 @@ pup_motor_t *pup_motor_get_device(pbio_port_id_t port) {
 pbio_error_t pup_motor_setup(pup_motor_t *motor, pup_direction_t positive_direction, bool reset_count) {
   int32_t gear_ratio = 1000; // 1 count == 1 degree.
   pbio_error_t err = pbio_servo_setup(motor, positive_direction, gear_ratio, reset_count);
-  if ((err != PBIO_SUCCESS) && (err != PBIO_ERROR_AGAIN)) { // Do not log PBIO_ERROR_AGAIN
+  if (err != PBIO_SUCCESS) {
     errlog("pup_motor_setup()", motor->dcmotor->port, err);
   }
   return err;
