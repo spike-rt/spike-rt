@@ -3,6 +3,8 @@ include $(EXTERNAL_DIR)/unity.mk
 APPL_DIRS += $(Unity_SRCDIR)
 APPL_COBJS += $(Unity_COBJS)
 
+SERIAL_COBJS = test_usart_serial.o test_bluetooth_serial.o
+APPL_COBJS += $(addprefix serial/, $(SERIAL_COBJS))
 HUB_COBJS = test_light.o test_display.o test_button.o test_battery.o
 APPL_COBJS += $(addprefix hub/, $(HUB_COBJS))
 PUP_COBJS = test_pup.o test_ultrasonicsensor.o test_colorsensor.o test_forcesensor.o test_motor.o

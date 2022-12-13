@@ -22,6 +22,7 @@ import("syssvc/tBanner.cdl");
  *  ターゲット依存部の取り込み
  */
 import("target.cdl");
+import("drivers/tPybricksBluetoothSerialPort.cdl");
 
 /*
  *  「セルの組上げ記述」とは，"cell"で始まる行から，それに対応する"};"
@@ -50,6 +51,7 @@ cell tSysLogAdapter SysLogAdapter {
  */
 cell tSerialAdapter SerialAdapter {
 	cSerialPort[0] = SerialPort1.eSerialPort;
+	cSerialPort[1] = PybricksBluetoothSerialPort.eSerialPort;
 };
 
 /*
@@ -88,6 +90,8 @@ cell tSerialPort SerialPort1 {
 	eiSIOCBR <= SIOPortTarget1.ciSIOCBR;	/* コールバック */
 };
 
+cell tPybricksBluetoothSerialPort PybricksBluetoothSerialPort {
+};
 /*
  *		システムログタスクの組上げ記述
  *

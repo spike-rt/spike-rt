@@ -17,16 +17,13 @@ extern "C" {
 /*
  *  タスクの優先度の定義
  */
-
 #define MAIN_PRIORITY	5		/* メインタスクの優先度 */
 
 /*
- *  ターゲットに依存する可能性のある定数の定義
+ * Definitions of Port ID for Serial Adapter
  */
-
-#ifndef TASK_PORTID
-#define	TASK_PORTID		1			/* 文字入力するシリアルポートID */
-#endif /* TASK_PORTID */
+#define USART_F_PORTID 1
+#define BLUETOOTH_PORTID 2
 
 #ifndef STACK_SIZE
 #define	STACK_SIZE		4096		/* タスクのスタックサイズ */
