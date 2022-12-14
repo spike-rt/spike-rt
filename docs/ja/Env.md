@@ -49,7 +49,7 @@ docker run --rm -it -v $(pwd):$(pwd) -w $(pwd) ghcr.io/spike-rt/spike-rt:rich /b
 ここではユーザ名を user1 とし，C:\Users\users\repo に spike-rt を git clone したものとする
 
 ```winbatch
-+docker run --rm -it -v C:\Users\user1\repo\spike-rt:/home/user1/repo/spike-rt -w /home/user1/repo/spike-rt hcr.io/spike-rt/spike-rt:rich  /bin/bash
++docker run --rm -it -v C:\Users\user1\repo\spike-rt:/home/user1/repo/spike-rt -w /home/user1/repo/spike-rt ghcr.io/spike-rt/spike-rt:rich  /bin/bash
 ```
 
 ## 書き込み環境の構築
