@@ -19,14 +19,15 @@ Unityについては[external/Unity/README.md](https://github.com/ThrowTheSwitch
 ## 書き込み
 [DevelopApp.md#書き込み](DevelopApp.md#書き込み)を参照．ただし，obj-primehub_appを`obj-primehub_test`と読み替える．
 
-## USB シリアルの接続
-一旦，Hub の電源をONにしてからでないと，接続できないことに注意する．
+## シリアル通信
+Port FのUSART経由のシリアル通信でテスト結果を確認可能．
+以下により接続．
 ```bash
 sudo minicom -D /dev/ttyACM0 -b 115200
 ```
 
 ## Hub の再起動& 動作確認
-Hub　の再起動をし，10秒ほど待って，USBシリアルから以下のような表示が得られたら，テストが成功
+Hub　の再起動をし，10秒ほど待って，シリアル出力から以下のような表示が得られたら，テストが成功
 ```bash
 .....
 

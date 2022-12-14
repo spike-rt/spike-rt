@@ -20,7 +20,7 @@ For English document please see [README.md](README.md).
     - [x] スピーカ
     - [x] バッテリ制御
     - [ ] 32 MB 外部フラッシュメモリ（次の Pybricks のリリースで対応予定）
-    - [x] USB Serial
+    - [ ] USB Serial（一時的に未対応）
     - [x] Bluetooth
   - PUP デバイス
     - [x] アンギュラーモータ

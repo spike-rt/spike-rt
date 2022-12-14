@@ -11,7 +11,8 @@
 | コーディング | 任意のエディタ（ホスト） |
 | [ビルド](#ビルド環境の構築) | コンパイラ（コンテナ） |
 | [書き込み](#書き込み環境の構築) | python3（ホスト） |
-| [シリアル接続](#シリアル接続)（任意） | minicomなど（ホスト） |
+| [シリアル通信](#シリアル通信)（任意） | minicomなど（ホスト） |
+| [Bluetoothシリアル通信](#Bluetoothシリアル通信)（任意） | Google Chromeなど（ホスト） |
 
 
 ## ビルド環境の構築
@@ -82,7 +83,10 @@ python3 -m venv ./tools/python
 ./tools/python/bin/pip install pyusb
 ```
 
-## シリアル接続
+## シリアル通信
+USBまたはUSART(Port F)経由のシリアル通信について説明．
+Bluetoothの場合は，[Bluetoothシリアル通信](#Bluetoothシリアル通信)を参照．
+
 `minicom`によりHubとシリアル通信することを想定．  
 以下などの方法により`minicom`をインストールする．
 
@@ -95,3 +99,10 @@ Macの場合
 ```bash
 brew install minicom
 ```
+
+## Bluetoothシリアル通信
+SPIKE-RTでは，Pybricksのデバイスドライバを再利用している．
+現状では，Pybricksの[Web IDE](https://beta.pybricks.com/)経由でのBluetooth接続のみに対応している．
+
+Pybricksの[Web IDE](https://beta.pybricks.com/)は，Firefox等には対応していない．
+Google ChromeやChromiumブラウザを使用する．
