@@ -11,7 +11,7 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <cbricks/hub/battery.h>
+#include <spike/hub/battery.h>
 
 TEST_GROUP(Battery);
 

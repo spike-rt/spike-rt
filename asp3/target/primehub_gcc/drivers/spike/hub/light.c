@@ -7,7 +7,7 @@
  */
 
 #include <t_syslog.h>
-#include <cbricks/hub/light.h>
+#include <spike/hub/light.h>
 
 #include <pbsys/light.h>
 #include <pbio/light.h>

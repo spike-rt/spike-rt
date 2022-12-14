@@ -37,3 +37,11 @@ jobs:
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
             ./scripts/build-test.sh
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: TestApp
+          path: |
+            build/obj-primehub_test/asp
+            build/obj-primehub_test/asp.bin
+            build/obj-primehub_test/asp.syms

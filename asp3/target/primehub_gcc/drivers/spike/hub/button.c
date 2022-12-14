@@ -7,7 +7,7 @@
  */
 
 #include <t_syslog.h>
-#include <cbricks/hub/button.h>
+#include <spike/hub/button.h>
 
 #include <pbdrv/button.h>
 

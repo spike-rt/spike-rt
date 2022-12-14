@@ -7,7 +7,7 @@
  */
 
 #include <t_syslog.h>
-#include <cbricks/hub/battery.h>
+#include <spike/hub/battery.h>
 
 #include <pbdrv/battery.h>
 

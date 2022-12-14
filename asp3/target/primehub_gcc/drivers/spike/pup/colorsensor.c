@@ -11,8 +11,8 @@
  */
 
 #include <t_syslog.h>
-#include <cbricks/cb_error.h>
-#include <cbricks/pup/colorsensor.h>
+#include <spike/cb_error.h>
+#include <spike/pup/colorsensor.h>
 #include <pbio/color.h>
 #define CB_COLOR_MAP_SIZE 30
 

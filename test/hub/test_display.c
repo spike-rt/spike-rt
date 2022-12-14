@@ -11,10 +11,9 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <pbsys/user_program.h>
 #include <pbio/light_matrix.h>
 
-#include <cbricks/hub/display.h>
+#include <spike/hub/display.h>
 
 TEST_GROUP(Display);
 
@@ -24,14 +23,10 @@ TEST_GROUP_RUNNER(Display) {
 
 TEST_SETUP(Display)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(Display)
 {
-  // Perform cleanup/reset after running a user program.
-  // pbsys_user_program_unprepare();
 }
 
 TEST(Display, putc)

@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/pup/motor.h
+ * \file    spike/pup/motor.h
  * \brief   API for motors
  * \author  Makoto Shimojima
  */

@@ -13,51 +13,43 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <pbsys/user_program.h>
-#include <cbricks/pup/motor.h>
+#include <test_config.h>
+#include <spike/pup/motor.h>
+
+#include <pbio/main.h>
 
 TEST_GROUP(Motor);
 
-TEST_GROUP_RUNNER(Motor) {
+TEST_GROUP_RUNNER(Motor)
+{
   RUN_TEST_CASE(Motor, Run);
 }
 
 TEST_SETUP(Motor)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(Motor)
 {
-  // Perform cleanup/reset after running a user program.
-  // pbsys_user_program_unprepare();
+  pbio_stop_all();
 }
+
 TEST(Motor, Run)
 {
   pbio_error_t err;
   pup_motor_t *motor;
   
-  dly_tsk(3000000);
+  dly_tsk(3*1000*1000);
 
   // Get pointer to servo
-  motor = pup_motor_get_device(PBIO_PORT_ID_A);
+  motor = pup_motor_get_device(PBIO_PORT_ID_TEST_MOTOR);
   TEST_ASSERT_NOT_NULL(motor);
   
-  // Set up servo
-  for(int i = 0; i < 10; i++)
-  {
-    bool reset_count = true;
-    err = pup_motor_setup(motor, PUP_DIRECTION_CLOCKWISE, reset_count);
-    if(err != PBIO_ERROR_AGAIN)
-      break;
-    
-    // Wait 1s and try one more
-    dly_tsk(1000000);
-  }
-  TEST_ASSERT_NOT_EQUAL(err, PBIO_ERROR_NO_DEV);
+  // Get pointer to servo and allow tacho to finish syncing
+  bool reset_count = true;
+  err = pup_motor_setup(motor, PUP_DIRECTION_CLOCKWISE, reset_count);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
-  
+
   int32_t old_value = pup_motor_set_duty_limit(motor, 30);
 
   TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_speed(motor, 500));

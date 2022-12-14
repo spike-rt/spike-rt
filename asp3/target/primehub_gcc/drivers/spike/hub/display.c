@@ -8,7 +8,7 @@
 
 #include <kernel.h>
 #include <t_syslog.h>
-#include <cbricks/hub/display.h>
+#include <spike/hub/display.h>
 
 #include <pbsys/light.h>
 #include <pbio/light_matrix.h>

@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/hub/battery.h
+ * \file    spike/hub/battery.h
  * \brief   API for the hub battery.
  * \author  Makoto Shimojima
  */

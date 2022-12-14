@@ -12,8 +12,7 @@
 #include <unity_fixture.h>
 
 #include <test_config.h>
-#include <cbricks/pup/forcesensor.h>
-#include <pbsys/user_program.h>
+#include <spike/pup/forcesensor.h>
 
 TEST_GROUP(ForceSensor);
 
@@ -32,15 +31,11 @@ TEST_GROUP_RUNNER(ForceSensor) {
 
 TEST_SETUP(ForceSensor)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
 	TEST_MESSAGE("Please push force sensor button.");
 }
 
 TEST_TEAR_DOWN(ForceSensor)
 {
-  // Perform cleanup/reset after running a user program.
-  // pbsys_user_program_unprepare();
 }
 
 TEST(ForceSensor, get_device)
@@ -63,6 +58,7 @@ TEST(ForceSensor, force)
   TEST_PRINTF("Force : %f N\n", force);
   TEST_ASSERT_GREATER_THAN(0, force);
 }
+
 TEST(ForceSensor, distance)
 {
   pup_device_t *button;

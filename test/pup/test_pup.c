@@ -12,7 +12,7 @@
 #include <unity_fixture.h>
 
 #include <test_config.h>
-#include <cbricks/pup_device.h>
+#include <spike/pup_device.h>
 
 TEST_GROUP(PUPDevice);
 

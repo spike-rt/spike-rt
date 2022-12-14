@@ -3,7 +3,7 @@
  * A task to run pybricks and functions to call asp3 api from pybricks.
  *
  * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #include <kernel.h>
@@ -17,7 +17,7 @@
  * Task to run pybricks.
  */
 int pb_main_task(int argc, char **argv) {
-	  syslog(LOG_INFO, "pybricks main task start");
+	  syslog(LOG_INFO, "Pybricks main task start");
 
     // Call pybricks platform initialization function.
     pb_SystemInit();

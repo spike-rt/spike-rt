@@ -126,7 +126,6 @@ void
 target_abort(void)
 {
   syslog(LOG_EMERG, "Target abort.");
-
 	/* チップ依存部の終了処理 */
 	core_terminate();
   

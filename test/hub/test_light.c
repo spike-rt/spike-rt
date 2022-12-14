@@ -11,7 +11,9 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <cbricks/hub/light.h>
+#include <spike/hub/light.h>
+
+#include <pbsys/status.h>
 
 TEST_GROUP(Light);
 
@@ -23,18 +25,10 @@ TEST_GROUP_RUNNER(Light) {
 
 TEST_SETUP(Light)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // TODO: integrate pbsys_user_program_prepare() and wup_pybricks into one function. 
-  pbsys_user_program_prepare(NULL);
-  wup_pybricks();
 }
 
 TEST_TEAR_DOWN(Light)
 {
-  // Perform cleanup/reset after running a user program.
-  // TODO: integrate pbsys_user_program_unprepare() and wup_pybricks into one function. 
-  pbsys_user_program_unprepare();
-  wup_pybricks();
 }
 
 TEST(Light, on_hsv)

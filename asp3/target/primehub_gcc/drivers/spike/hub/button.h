@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/hub/button.h
+ * \file    spike/hub/button.h
  * \brief   API for the hub built-in button.
  * \author  Makoto Shimojima
  */

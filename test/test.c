@@ -9,12 +9,18 @@
 #include <kernel.h>
 
 #include <unity_fixture.h>
+#include <stdio.h>
 
-#include <pbsys/user_program.h>
+#include <pbsys/status.h>
 
+#include <test_config.h>
 
 static void RunAllTests(void)
 {
+  // Tests for Serial Output
+	//RUN_TEST_GROUP(UsartSerial);
+	RUN_TEST_GROUP(BluetoothSerial);
+
   // Tests for Hub Device
 	RUN_TEST_GROUP(Light);
 	RUN_TEST_GROUP(Display);
@@ -26,7 +32,7 @@ static void RunAllTests(void)
 	// RUN_TEST_GROUP(Charger);
 
   // Tests for Powerd Up Device
-	RUN_TEST_GROUP(PUPDevice);
+	//RUN_TEST_GROUP(PUPDevice);
 	RUN_TEST_GROUP(Motor);
 	RUN_TEST_GROUP(ColorSensor);
 	RUN_TEST_GROUP(ForceSensor);
@@ -36,15 +42,20 @@ static void RunAllTests(void)
 void TestMainTask(intptr_t exinf)
 {
   // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
+  // TODO: integrate pbsys_status_set and wup_pybricks into one function. 
+  pbsys_status_set(PBIO_PYBRICKS_STATUS_USER_PROGRAM_RUNNING);
+  void wup_pybricks(void);
+  wup_pybricks();
 
   int argc = 2;
-  const char **argv = {"asp3-primehub test", "-v"};
+  const char *argv[] = {"SPIKE-RT test", "-v"};
 
   // Wait 1 sec for console connecting.
-  dly_tsk(1000000);
+  dly_tsk(1*1000*1000);
 
   UnityMain(argc, argv, RunAllTests);
 
-
+  pbsys_status_clear(PBIO_PYBRICKS_STATUS_USER_PROGRAM_RUNNING);
+  void wup_pybricks(void);
+  wup_pybricks();
 }

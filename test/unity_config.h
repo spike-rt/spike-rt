@@ -13,6 +13,7 @@
 #define UNITY_CONFIG_H
 
 #include <unity.h>
+#include <test_config.h>
 
 #define UNITY_INT_WIDTH      32
 #define UNITY_POINTER_WIDTH  32
@@ -28,10 +29,22 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-bool pbsys_usb_stdout_put_char(uint8_t c);
-#define UNITY_OUTPUT_CHAR(c)  pbsys_usb_stdout_put_char(c)
+
+#if UNITY_OUTPUT_VIA_PutLogTarget
+extern void tPutLogTarget_ePutLog_putChar(char c);
+#define UNITY_OUTPUT_CHAR(c)  tPutLogTarget_ePutLog_putChar(c)
 #define UNITY_PRINT_EOL() \
     do { UNITY_OUTPUT_CHAR('\r'); UNITY_OUTPUT_CHAR('\n'); } while (0)
+#elif UNITY_OUTPUT_VIA_SERIAL_ADAPTER 
+#include "syssvc/serial.h"
+
+Inline void
+serial_putchar(const char c) {
+  serial_wri_dat(UNITY_SERIAL_PORTID, &c, 1);
+}
+#define UNITY_OUTPUT_CHAR(c)  serial_putchar(c);
+#endif
+
 #define UNITY_OUTPUT_COLOR
 
 #endif

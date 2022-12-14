@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/pup/ultrasonicsensor.h
+ * \file    spike/pup/ultrasonicsensor.h
  * \brief   API for ultrasonic sensors
  * \author  Shu Yoshifumi
  */
@@ -34,7 +34,7 @@
 #define _PUP_ULTRASONIC_SENSOR_H_
 
 #include <stdint.h>
-#include <cbricks/pup_device.h>
+#include <spike/pup_device.h>
 
 /**
  * \~English

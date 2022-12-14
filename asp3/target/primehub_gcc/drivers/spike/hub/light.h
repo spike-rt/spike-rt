@@ -7,7 +7,7 @@
  */
 
 /**
- * \file    cbricks/hub/light.h
+ * \file    spike/hub/light.h
  * \brief   API for the hub built-in status light.
  * \author  Shu Yoshifumi
  */
