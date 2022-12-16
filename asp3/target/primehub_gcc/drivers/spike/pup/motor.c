@@ -118,7 +118,7 @@ bool pup_motor_is_stalled(pup_motor_t *motor) {
 
 int32_t pup_motor_set_duty_limit(pup_motor_t *motor, int limit) {
   int32_t old_value = 0;
-  int32_t new_value = pbio_battery_get_voltage_from_duty(limit*100);
+  int32_t new_value = pbio_battery_get_voltage_from_duty_pct(limit);
   pbio_dcmotor_get_settings(motor->dcmotor, &old_value);
   pbio_dcmotor_set_settings(motor->dcmotor, new_value);
   return old_value;
