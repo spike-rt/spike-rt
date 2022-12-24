@@ -371,7 +371,30 @@ default_exc_handler(void *p_excinf)
 	syslog(LOG_EMERG, "Excno = %08x PC = %08x XPSR = %08x basepri = %08X, p_excinf = %08X",
 		   excno, pc, xpsr, basepri, p_excinf);
 
-	target_exit();
+  if(excno == 3) {
+	  syslog(LOG_EMERG, "\nHard Fault!");
+    syslog(LOG_EMERG, "\nHFSR = %02x", SCB->HFSR);
+  }
+
+  if(excno == 4) {
+	  syslog(LOG_EMERG, "\nMemManage!");
+    syslog(LOG_EMERG, "\nMMFR = %02x", SCB->MMFR);
+  }
+
+  if(excno == 5) {
+	  syslog(LOG_EMERG, "\nBus Fault!");
+    syslog(LOG_EMERG, "\nBFSR = %02x", (SCB->CFSR & SCB_CFSR_BUSFAULTSR_Msk) >> SCB_CFSR_BUSFAULTSR_Pos);
+    if(SCB->CFSR  & SCB_CFSR_BFARVALID_Msk) {
+	    syslog(LOG_EMERG, "\n  BFAR = %08x", SCB->BFAR);
+    }
+  }
+
+  if(excno == 6) {
+	  syslog(LOG_EMERG, "\nUsage Fault!");
+    syslog(LOG_EMERG, "\nBFSR = %02x", (SCB->CFSR & SCB_CFSR_USGFAULTSR_Msk) >> SCB_CFSR_USGFAULTSR_Pos);
+  }
+
+	target_abort();
 }
 #endif /* OMIT_DEFAULT_EXC_HANDLER */
 
@@ -387,6 +410,6 @@ default_int_handler(void)
 	syslog(LOG_EMERG, "\nUnregistered Interrupt occurs.");
 	syslog(LOG_EMERG, "Intno = %08x", intno);
 
-	target_exit();
+	target_abort();
 }
 #endif /* OMIT_DEFAULT_INT_HANDLER */

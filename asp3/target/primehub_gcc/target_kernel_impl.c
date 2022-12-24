@@ -119,6 +119,17 @@ target_initialize(void)
 	usart_early_init();
 }
 
+void
+dump_sp(uint32_t *sp)
+{
+  // syslog(LOG_EMERG, "sp : %08x", sp);
+  sp = (uint32_t *)((uint32_t)sp & 0xfffffff0 - 0x10);
+  for(int i = 0; i < 0x100/16 ; i++) {
+	  syslog(LOG_EMERG, "%08x:  %08x %08x %08x %08x",
+           sp, *(sp++), *(sp++), *(sp++), *(sp++));
+  }
+}
+
 /*
  * ターゲット依存部 終了処理
  */
@@ -126,6 +137,16 @@ void
 target_abort(void)
 {
   syslog(LOG_EMERG, "Target abort.");
+
+  syslog(LOG_EMERG, "Dump stack from top");
+  uint32_t msp = get_msp(); 
+  uint32_t psp = get_psp(); 
+  syslog(LOG_EMERG, "sp %08x", get_sp());
+  syslog(LOG_EMERG, "msp %08x", msp);
+  dump_sp(msp);
+  syslog(LOG_EMERG, "psp %08x", psp);
+  dump_sp(psp);
+
 	/* チップ依存部の終了処理 */
 	core_terminate();
   

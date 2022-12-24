@@ -160,6 +160,33 @@ get_ipsr(void)
 }
 
 /*
+ *  スタックポインタ（sp）の現在値の読出し
+ */
+Inline uint32_t
+get_sp(void)
+{
+    uint32_t sr;
+    Asm("mov  %0, sp" : "=r"(sr));
+    return(sr);
+}
+
+Inline uint32_t
+get_msp(void)
+{
+    uint32_t sr;
+    Asm("mrs  %0, msp" : "=r"(sr));
+    return(sr);
+}
+
+Inline uint32_t
+get_psp(void)
+{
+    uint32_t sr;
+    Asm("mrs  %0, psp" : "=r"(sr));
+    return(sr);
+}
+
+/*
  *  データ同期バリア
  */
 Inline void
