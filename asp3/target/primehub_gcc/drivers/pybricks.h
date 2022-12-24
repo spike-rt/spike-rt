@@ -19,12 +19,12 @@
 
 #define INHNO_DMA1_STREAM3  (DMA1_Stream3_IRQn + 16)	/* 割込みハンドラ番号 */
 #define INTNO_DMA1_STREAM3  (DMA1_Stream3_IRQn + 16)	/* 割込み番号 */
-#define INTPRI_DMA1_STREAM3 (TMIN_INTPRI + 4)	/* 割込み優先度 */
+#define INTPRI_DMA1_STREAM3 (TMIN_INTPRI + 5)	/* 割込み優先度 */
 #define INTATR_DMA1_STREAM3 TA_NULL				/* 割込み属性 */
 
 #define INHNO_DMA1_STREAM4  (DMA1_Stream4_IRQn + 16)	/* 割込みハンドラ番号 */
 #define INTNO_DMA1_STREAM4  (DMA1_Stream4_IRQn + 16)	/* 割込み番号 */
-#define INTPRI_DMA1_STREAM4 (TMIN_INTPRI + 4)	/* 割込み優先度 */
+#define INTPRI_DMA1_STREAM4 (TMIN_INTPRI + 5)	/* 割込み優先度 */
 #define INTATR_DMA1_STREAM4 TA_NULL				/* 割込み属性 */
 
 #define INHNO_DMA1_STREAM5	(DMA1_Stream5_IRQn + 16)	/* 割込みハンドラ番号 */
@@ -99,7 +99,7 @@
 
 #define INHNO_SPI2	(SPI2_IRQn + 16)	/* 割込みハンドラ番号 */
 #define INTNO_SPI2	(SPI2_IRQn + 16)	/* 割込み番号 */
-#define INTPRI_SPI2	(TMIN_INTPRI + 7)	/* 割込み優先度 */
+#define INTPRI_SPI2	(TMIN_INTPRI + 6)	/* 割込み優先度 */
 #define INTATR_SPI2	TA_NULL				/* 割込み属性 */
 
 #define INHNO_OTG_FS	(OTG_FS_IRQn + 16)	/* 割込みハンドラ番号 */
@@ -119,7 +119,7 @@
 
 #define INHNO_EXTI9_5	(EXTI9_5_IRQn + 16)	/* 割込みハンドラ番号 */
 #define INTNO_EXTI9_5	(EXTI9_5_IRQn + 16)	/* 割込み番号 */
-#define INTPRI_EXTI9_5	(TMIN_INTPRI + 3)	/* 割込み優先度 */
+#define INTPRI_EXTI9_5	(TMIN_INTPRI + 6)	/* 割込み優先度 */
 #define INTATR_EXTI9_5	TA_NULL				/* 割込み属性 */
 
 
