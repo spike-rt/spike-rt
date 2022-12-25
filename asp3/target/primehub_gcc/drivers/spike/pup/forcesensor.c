@@ -1,5 +1,6 @@
-// SPDX-License-Identifier: MIT
 /*
+ * SPDX-License-Identifier: MIT
+ *
  * API for force sensors
  *
  *  Based on https://github.com/pybricks/pybricks-micropython/blob/master/pybricks/pupdevices/pb_type_pupdevices_forcesensor.c
@@ -14,7 +15,7 @@
 #include <spike/cb_error.h>
 #include <spike/pup/forcesensor.h>
 
-#include <pbio/math.h>
+#include <pbio/int_math.h>
 
 typedef struct {
 	int32_t raw_released;

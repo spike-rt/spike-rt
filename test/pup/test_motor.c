@@ -1,5 +1,6 @@
-// SPDX-License-Identifier: MIT
 /*
+ * SPDX-License-Identifier: MIT
+ *
  * Tests for servo motors.
  *
  * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
@@ -31,7 +32,7 @@ TEST_SETUP(Motor)
 
 TEST_TEAR_DOWN(Motor)
 {
-  pbio_stop_all();
+  pbio_dcmotor_stop_all(true);
 }
 
 TEST(Motor, Run)

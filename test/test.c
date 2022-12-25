@@ -41,12 +41,6 @@ static void RunAllTests(void)
 
 void TestMainTask(intptr_t exinf)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // TODO: integrate pbsys_status_set and wup_pybricks into one function. 
-  pbsys_status_set(PBIO_PYBRICKS_STATUS_USER_PROGRAM_RUNNING);
-  void wup_pybricks(void);
-  wup_pybricks();
-
   int argc = 2;
   const char *argv[] = {"SPIKE-RT test", "-v"};
 

@@ -1,5 +1,6 @@
-// SPDX-License-Identifier: MIT
 /*
+ * SPDX-License-Identifier: MIT
+ *
  * Based on https://github.com/pybricks/pybricks-micropython/tree/v3.2.0b3/pybricks/common/pb_type_motor.c
  *
  * Original code Copyright (c) 2018-2022 The Pybricks Authors
@@ -10,7 +11,7 @@
 #include <pbio/battery.h>
 
 #include <pbio/dcmotor.h>
-#include <pbio/math.h>
+#include <pbio/int_math.h>
 #include <pbio/servo.h>
 
 #include <pup_device.h>
@@ -152,6 +153,8 @@ pbio_error_t pybricks_c_common_motor_hold(pbio_servo_t *srv) {
  *  wait = true
  */
 pbio_error_t pybricks_c_common_motor_run_time(pbio_servo_t *srv, int32_t speed, int32_t time, pbio_control_on_completion_t then, bool wait) {
+
+    time = pbio_int_math_max(time, 0);
 
     // Call pbio with parsed user/default arguments
     check_pbio_error(pbio_servo_run_time(srv, speed, time, then));
