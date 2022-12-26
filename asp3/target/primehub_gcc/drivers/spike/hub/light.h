@@ -20,12 +20,12 @@
 
 /**
  * \~English
- * \defgroup  Hub Light
+ * \defgroup  Light Light
  * \brief     API for the hub built-in status light.
  * @{
  *
  * \~Japanese
- * \defgroup  Hub Light
+ * \defgroup  Light ライト
  * \brief     ハブ内蔵ステータ・スライト向けAPI．
  * @{
  */

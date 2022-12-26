@@ -19,12 +19,12 @@
 
 /**
  * \~English
- * \defgroup  Hub Display
+ * \defgroup  Display Display
  * \brief     API for the hub built-in display.
  * @{
  *
  * \~Japanese
- * \defgroup  Hub Display 
+ * \defgroup  Display ディスプレイ
  * \brief     ハブ内蔵ディスプレイ向けAPI．
  * @{
  */
