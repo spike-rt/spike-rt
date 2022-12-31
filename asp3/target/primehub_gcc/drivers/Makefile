@@ -30,7 +30,7 @@ KERNEL_DIRS += $(TARGETDIR)/drivers/spike \
 							 $(TARGETDIR)/drivers/spike/hub \
 							 $(TARGETDIR)/drivers/spike/pup
 
-KERNEL_COBJS += light.o display.o display_fonts.o button.o battery.o
+KERNEL_COBJS += light.o display.o display_fonts.o button.o battery.o imu.o
 KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o motor.o
 
 INCLUDES += -I$(TARGETDIR)/drivers \

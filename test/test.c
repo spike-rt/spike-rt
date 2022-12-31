@@ -25,7 +25,7 @@ static void RunAllTests(void)
 	RUN_TEST_GROUP(Light);
 	RUN_TEST_GROUP(Display);
 	RUN_TEST_GROUP(Button);
-	// RUN_TEST_GROUP(IMU);
+	RUN_TEST_GROUP(IMU);
 	// RUN_TEST_GROUP(Speaker);
 	// RUN_TEST_GROUP(System);
 	RUN_TEST_GROUP(Battery);
