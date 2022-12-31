@@ -33,7 +33,6 @@ jobs:
             linux/amd64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/spike-rt:latest
             ghcr.io/${{ github.repository_owner }}/spike-rt:slim
           cache-from: type=gha,scope=slim
           cache-to: type=gha,mode=max,scope=slim
@@ -45,6 +44,8 @@ jobs:
           platforms: |
             linux/amd64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/spike-rt:rich
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/spike-rt:latest
+            ghcr.io/${{ github.repository_owner }}/spike-rt:rich
           cache-from: type=gha,scope=rich
           cache-to: type=gha,mode=max,scope=rich
