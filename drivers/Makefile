@@ -2,9 +2,8 @@
 #
 #  Makefile for driver.
 #
-#  Copyright (C) 2022 by Embedded and Real-Time Systems Laboratory,
-#            	Graduate School of Information Science, Nagoya Univ., JAPAN
-#
+#  Copyright (C) 2022-2023 by Embedded and Real-Time Systems Laboratory,
+#          		Graduate School of Information Science, Nagoya Univ., JAPAN
 
 #
 #  Definition for Newlib.
@@ -14,27 +13,27 @@ SYSSVC_COBJS += newlib_stub.o
 #
 #  Definitions for Pybricks Task.
 #
-KERNEL_DIRS += $(TARGETDIR)/drivers
+KERNEL_DIRS += $(DRIVERS_DIR)
 
 #
 #  Definitions for Pybricks-C.
 #
-KERNEL_DIRS += $(TARGETDIR)/drivers/pybricks-c \
-							 $(TARGETDIR)/drivers/pybricks-c/common
+KERNEL_DIRS += $(DRIVERS_DIR)/pybricks-c \
+							 $(DRIVERS_DIR)/pybricks-c/common
 KERNEL_COBJS += pb_type_motor.o pb_type_dcmotor.o
 
 #
 #  Definitions for SPIKE API.
 #
-KERNEL_DIRS += $(TARGETDIR)/drivers/spike \
-							 $(TARGETDIR)/drivers/spike/hub \
-							 $(TARGETDIR)/drivers/spike/pup
+KERNEL_DIRS += $(DRIVERS_DIR)/spike \
+							 $(DRIVERS_DIR)/spike/hub \
+							 $(DRIVERS_DIR)/spike/pup
 
 KERNEL_COBJS += light.o display.o display_fonts.o button.o battery.o imu.o
 KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o motor.o
 
-INCLUDES += -I$(TARGETDIR)/drivers \
-						-I$(TARGETDIR)/drivers/spike \
+INCLUDES += -I$(DRIVERS_DIR) \
+						-I$(DRIVERS_DIR)/spike \
 
 #
 #  Definitions for Pybricks.

@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2023 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -129,9 +129,19 @@ OBJDIR = @(OBJDIR)
 DEPDIR = @(OBJDIR)
 
 #
+# SPIKE-RTのトップディレクトリの定義
+#
+SPIKE_RT_DIR = $(SRCDIR)/..
+
+#
+# ドライバのディレクトリの定義
+#
+DRIVERS_DIR = $(SPIKE_RT_DIR)/drivers
+
+#
 # 外部モジュールのディレクトリの定義
 #
-EXTERNAL_DIR = $(SRCDIR)/../external/
+EXTERNAL_DIR = $(SPIKE_RT_DIR)/external
 
 #
 #  ターゲット依存部のディレクトリの定義

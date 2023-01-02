@@ -31,16 +31,16 @@ jobs:
           submodules: false
  
       - name: Prepare build directory for Doxygen
-        run: mkdir -p asp3/target/primehub_gcc/drivers/build/
+        run: mkdir -p drivers/build-doxygen/
       - name: Build Doxygen-en
         uses: mattnotmitt/doxygen-action@v1.9.4
         with:
-          working-directory: asp3/target/primehub_gcc/drivers/
+          working-directory: drivers/
           doxyfile-path: Doxyfile-en
       - name: Build Doxygen-ja
         uses: mattnotmitt/doxygen-action@v1.9.4
         with:
-          working-directory: asp3/target/primehub_gcc/drivers/
+          working-directory: drivers/
           doxyfile-path: Doxyfile-ja
 
       - name: Setup Pages
@@ -48,7 +48,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: 'asp3/target/primehub_gcc/drivers/build/'
+          path: 'drivers/build-doxygen/'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1

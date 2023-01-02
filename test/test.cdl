@@ -22,7 +22,7 @@ import("syssvc/tBanner.cdl");
  *  ターゲット依存部の取り込み
  */
 import("target.cdl");
-import("drivers/tPybricksBluetoothSerialPort.cdl");
+import("tPybricksBluetoothSerialPort.cdl");
 
 /*
  *  「セルの組上げ記述」とは，"cell"で始まる行から，それに対応する"};"

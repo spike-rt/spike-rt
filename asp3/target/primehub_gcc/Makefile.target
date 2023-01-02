@@ -65,7 +65,7 @@ KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
 #
 #  ドライバ関連のインクルード
 #
-include $(TARGETDIR)/drivers/Makefile
+include $(DRIVERS_DIR)/Makefile
 
 #
 #  システムサービスに関する定義
