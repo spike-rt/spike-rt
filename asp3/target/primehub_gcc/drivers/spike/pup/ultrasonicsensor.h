@@ -1,9 +1,10 @@
-// SPDX-License-Identifier: MIT
 /*
+ * SPDX-License-Identifier: MIT
+ *
  * API for ultrasonic sensors
  *
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 /**
@@ -92,8 +93,7 @@ bool pup_ultrasonic_sensor_presence(pup_device_t *pdev);
  * \retval err   Error number.
  *
  * \~Japanese
- * \brief 	     超音波センサで超音波信号を検出する．
- * \details      失敗した場合，\a false を返す．
+ * \brief 	     超音波センサ内臓の4つのライトの輝度をセットする．
  * \param  pdev  PUP デバイスポインタ．
  * \param  bv1   輝度.
  * \retval err   エラー番号．
