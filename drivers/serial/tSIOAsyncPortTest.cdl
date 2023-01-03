@@ -1,0 +1,25 @@
+/*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright (c) 2023 Embedded and Real-Time Systems Laboratory,
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
+
+/*
+ *  Pybricks USB用SIOドライバ
+ */
+
+[singleton]
+celltype tSIOAsyncPortTest {
+  entry   sSIOAsyncPort eSIOPort;
+  entry   sSIOAsyncCBR  eSIOCBR;
+  call    sSIOAsyncCBR  cSIOCBR;
+};
+
+
+/*
+ *  シリアルインタフェースドライバのプロトタイプ
+ */
+[prototype]
+cell tSIOAsyncPortTest SIOAsyncPortTest1 {
+};

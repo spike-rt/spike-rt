@@ -88,6 +88,24 @@ cell tSerialPort SerialPort1 {
 	eiSIOCBR <= SIOPortTarget1.ciSIOCBR;	/* コールバック */
 };
 
+cell tSerialAsyncPort SerialPortUSB1 {
+	receiveBufferSize = 256;			/* 受信バッファのサイズ */
+	sendBufferSize    = 256;			/* 送信バッファのサイズ */
+
+	/* ターゲット依存部との結合 */
+	cSIOPort = SIOPortPybricksUSB1.eSIOPort;
+	eSIOCBR <= SIOPortPybricksUSB1.cSIOCBR;	/* コールバック */
+};
+
+cell tSerialAsyncPort SerialPortBluetooth1 {
+	receiveBufferSize = 256;			/* 受信バッファのサイズ */
+	sendBufferSize    = 256;			/* 送信バッファのサイズ */
+
+	/* ターゲット依存部との結合 */
+	cSIOPort = SIOPortPybricksBluetooth1.eSIOPort;
+	eSIOCBR <= SIOPortPybricksBluetooth1.cSIOCBR;	/* コールバック */
+};
+
 /*
  *		システムログタスクの組上げ記述
  *

@@ -4,7 +4,7 @@
 
 DOXYGEN=${DOXYGEN:-doxygen}
 pushd drivers/
-mkdir -p build
+mkdir -p build-doxygen
 $DOXYGEN Doxyfile-en
 $DOXYGEN Doxyfile-ja
 popd

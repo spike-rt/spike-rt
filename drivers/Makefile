@@ -56,3 +56,9 @@ LIBS += $(PYBRICKS_LIB)
 #  so that pybricks.c is compiled while application building.
 #
 SYSSVC_COBJS += pybricks.o
+
+
+#
+#  Definitions for Serial.
+#
+KERNEL_DIRS += $(DRIVERS_DIR)/serial

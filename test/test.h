@@ -18,12 +18,15 @@ extern "C" {
  *  タスクの優先度の定義
  */
 #define MAIN_PRIORITY	5		/* メインタスクの優先度 */
+#define SIO_TEST_CBR_PRIORITY	4
 
 /*
  * Definitions of Port ID for Serial Adapter
  */
-#define USART_F_PORTID 1
-#define BLUETOOTH_PORTID 2
+#define SIO_USART_F_PORTID    1
+#define SIO_USB_PORTID        2
+#define SIO_BLUETOOTH_PORTID  3
+#define SIO_TEST_PORTID       4
 
 #ifndef STACK_SIZE
 #define	STACK_SIZE		4096		/* タスクのスタックサイズ */
@@ -35,6 +38,7 @@ extern "C" {
 #ifndef TOPPERS_MACRO_ONLY
 
 extern void TestMainTask(intptr_t exinf);
+extern void SIOTestCBRTask(intptr_t exinf);
 
 #ifdef __cplusplus
 }

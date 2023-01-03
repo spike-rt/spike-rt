@@ -1,0 +1,25 @@
+/*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright (c) 2023 Embedded and Real-Time Systems Laboratory,
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
+
+/*
+ *  Pybricks Bluetooth用SIOドライバ
+ */
+
+[singleton]
+celltype tSIOAsyncPortPybricksBluetooth {
+  entry   sSIOAsyncPort eSIOPort;
+  entry   sSIOAsyncCBR  eSIOCBR;
+  call    sSIOAsyncCBR  cSIOCBR;
+};
+
+
+/*
+ *  シリアルインタフェースドライバのプロトタイプ
+ */
+[prototype]
+cell tSIOAsyncPortPybricksBluetooth SIOAsyncPortPybricksBluetooth1 {
+};

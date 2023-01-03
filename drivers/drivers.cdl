@@ -1,0 +1,20 @@
+/*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright (c) 2023 by Embedded and Real-Time Systems Laboratory
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
+ * 
+ */
+
+/*
+ *  ターゲット依存のセルタイプの定義
+ */
+import("serial/tSerialAsyncPort.cdl");
+import("serial/tSIOAsyncPortPybricksUSB.cdl");
+import("serial/tSIOAsyncPortPybricksBluetooth.cdl");
+
+cell tSIOAsyncPortPybricksUSB SIOPortPybricksUSB1 {
+};
+
+cell tSIOAsyncPortPybricksBluetooth SIOPortPybricksBluetooth1 {
+};

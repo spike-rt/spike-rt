@@ -2,8 +2,8 @@
 /*
  * Configurations for tests.
  *
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #ifndef TEST_CONFIG_H
@@ -14,11 +14,12 @@
 #include <pbio/port.h>
 
 // Configurations for Unity output.
-#define UNITY_OUTPUT_VIA_PutLogTarget   (1)
-//#define UNITY_OUTPUT_VIA_SERIAL_ADAPTER (1)
-//#define UNITY_SERIAL_PORTID   USART_F_PORTID
+#define UNITY_OUTPUT_VIA_PutLogTarget               (0)
+#define UNITY_OUTPUT_VIA_PybricksSystemUSBSerial    (0)
+#define UNITY_OUTPUT_VIA_SERIAL_ADAPTER             (1)
+#define SIO_UNITY_PORTID                            SIO_USB_PORTID
 
-#define USART_TEST_PORTID     USART_F_PORTID
+#define USART_TEST_PORTID     SIO_USART_F_PORTID
 
 // Configurations for PUP device test.
 #define PBIO_PORT_ID_TEST_PUP_DEVICE        PBIO_PORT_ID_B

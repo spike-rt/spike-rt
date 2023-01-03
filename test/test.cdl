@@ -1,5 +1,5 @@
 /*
- *		サンプルプログラム(1)のコンポーネント記述ファイル
+ *    サンプルプログラム(1)のコンポーネント記述ファイル
  *
  *  $Id: sample1.cdl 839 2017-10-17 02:48:52Z ertl-hiro $
  */
@@ -22,7 +22,8 @@ import("syssvc/tBanner.cdl");
  *  ターゲット依存部の取り込み
  */
 import("target.cdl");
-import("tPybricksBluetoothSerialPort.cdl");
+
+import("serial/tSIOAsyncPortTest.cdl");
 
 /*
  *  「セルの組上げ記述」とは，"cell"で始まる行から，それに対応する"};"
@@ -30,7 +31,7 @@ import("tPybricksBluetoothSerialPort.cdl");
  */
 
 /*
- *		システムログ機能のアダプタの組上げ記述
+ *    システムログ機能のアダプタの組上げ記述
  *
  *  システムログ機能のアダプタは，C言語で記述されたコードから，TECSベー
  *  スのシステムログ機能を呼び出すためのセルである．システムログ機能の
@@ -38,11 +39,11 @@ import("tPybricksBluetoothSerialPort.cdl");
  *  出さない場合には，以下のセルの組上げ記述を削除してよい．
  */
 cell tSysLogAdapter SysLogAdapter {
-	cSysLog = SysLog.eSysLog;
+  cSysLog = SysLog.eSysLog;
 };
 
 /*
- *		シリアルインタフェースドライバのアダプタの組上げ記述
+ *    シリアルインタフェースドライバのアダプタの組上げ記述
  *
  *  シリアルインタフェースドライバのアダプタは，C言語で記述されたコー
  *  ドから，TECSベースのシリアルインタフェースドライバを呼び出すための
@@ -50,12 +51,14 @@ cell tSysLogAdapter SysLogAdapter {
  *  さない場合には，以下のセルの組上げ記述を削除してよい．
  */
 cell tSerialAdapter SerialAdapter {
-	cSerialPort[0] = SerialPort1.eSerialPort;
-	cSerialPort[1] = PybricksBluetoothSerialPort.eSerialPort;
+  cSerialPort[0] = SerialPort1.eSerialPort;
+  cSerialPort[1] = SerialPortUSB1.eSerialPort;
+  cSerialPort[2] = SerialPortBluetooth1.eSerialPort;
+  cSerialPort[3] = SerialPortTest1.eSerialPort;
 };
 
 /*
- *		システムログ機能の組上げ記述
+ *    システムログ機能の組上げ記述
  *
  *  システムログ機能を外す場合には，以下のセルの組上げ記述を削除し，コ
  *  ンパイルオプションに-DTOPPERS_OMIT_SYSLOGを追加すればよい．ただし，
@@ -64,17 +67,17 @@ cell tSerialAdapter SerialAdapter {
  *  い．tecsgenが警告メッセージを出すが，無視してよい．
  */
 cell tSysLog SysLog {
-	logBufferSize = 32;					/* ログバッファのサイズ */
-	initLogMask = C_EXP("LOG_UPTO(LOG_NOTICE)");
-										/* ログバッファに記録すべき重要度 */
-	initLowMask = C_EXP("LOG_UPTO(LOG_WARNING)");
-									   	/* 低レベル出力すべき重要度 */
-	/* 低レベル出力との結合 */
-	cPutLog = PutLogTarget.ePutLog;
+  logBufferSize = 32;          /* ログバッファのサイズ */
+  initLogMask = C_EXP("LOG_UPTO(LOG_NOTICE)");
+                    /* ログバッファに記録すべき重要度 */
+  initLowMask = C_EXP("LOG_UPTO(LOG_WARNING)");
+                       /* 低レベル出力すべき重要度 */
+  /* 低レベル出力との結合 */
+  cPutLog = PutLogTarget.ePutLog;
 };
 
 /*
- *		シリアルインタフェースドライバの組上げ記述
+ *    シリアルインタフェースドライバの組上げ記述
  *
  *  シリアルインタフェースドライバを外す場合には，以下のセルの組上げ記
  *  述を削除すればよい．ただし，システムログタスクはシリアルインタフェー
@@ -82,45 +85,73 @@ cell tSysLog SysLog {
  *  ルインタフェースドライバのアダプタも外さなければならない．
  */
 cell tSerialPort SerialPort1 {
-	receiveBufferSize = 256;			/* 受信バッファのサイズ */
-	sendBufferSize    = 256;			/* 送信バッファのサイズ */
+  receiveBufferSize = 256;      /* 受信バッファのサイズ */
+  sendBufferSize    = 256;      /* 送信バッファのサイズ */
 
-	/* ターゲット依存部との結合 */
-	cSIOPort = SIOPortTarget1.eSIOPort;
-	eiSIOCBR <= SIOPortTarget1.ciSIOCBR;	/* コールバック */
+  /* ターゲット依存部との結合 */
+  cSIOPort = SIOPortTarget1.eSIOPort;
+  eiSIOCBR <= SIOPortTarget1.ciSIOCBR;  /* コールバック */
 };
 
-cell tPybricksBluetoothSerialPort PybricksBluetoothSerialPort {
+cell tSerialAsyncPort SerialPortUSB1 {
+  receiveBufferSize = 256;      /* 受信バッファのサイズ */
+  sendBufferSize    = 256;      /* 送信バッファのサイズ */
+
+  /* ターゲット依存部との結合 */
+  cSIOPort = SIOPortPybricksUSB1.eSIOPort;
+  eSIOCBR <= SIOPortPybricksUSB1.cSIOCBR;  /* コールバック */
 };
+
+cell tSerialAsyncPort SerialPortBluetooth1 {
+  receiveBufferSize = 256;      /* 受信バッファのサイズ */
+  sendBufferSize    = 256;      /* 送信バッファのサイズ */
+
+  /* ターゲット依存部との結合 */
+  cSIOPort = SIOPortPybricksBluetooth1.eSIOPort;
+  eSIOCBR <= SIOPortPybricksBluetooth1.cSIOCBR;  /* コールバック */
+};
+
+cell tSIOAsyncPortTest SIOPortTest1 {
+};
+
+cell tSerialAsyncPort SerialPortTest1 {
+  receiveBufferSize = 10;     /* 受信バッファのサイズ */
+  sendBufferSize    = 10;     /* 送信バッファのサイズ */
+
+  /* ターゲット依存部との結合 */
+  cSIOPort = SIOPortTest1.eSIOPort;
+  eSIOCBR <= SIOPortTest1.cSIOCBR;  /* コールバック */
+};
+
 /*
- *		システムログタスクの組上げ記述
+ *    システムログタスクの組上げ記述
  *
  *  システムログタスクを外す場合には，以下のセルの組上げ記述を削除すれ
  *  ばよい．
  */
 cell tLogTask LogTask {
-	priority  = 3;					/* システムログタスクの優先度 */
-	stackSize = LogTaskStackSize;	/* システムログタスクのスタックサイズ */
+  priority  = 3;          /* システムログタスクの優先度 */
+  stackSize = LogTaskStackSize;  /* システムログタスクのスタックサイズ */
 
-	/* シリアルインタフェースドライバとの結合 */
-	cSerialPort        = SerialPort1.eSerialPort;
-	cnSerialPortManage = SerialPort1.enSerialPortManage;
+  /* シリアルインタフェースドライバとの結合 */
+  cSerialPort        = SerialPort1.eSerialPort;
+  cnSerialPortManage = SerialPort1.enSerialPortManage;
 
-	/* システムログ機能との結合 */
-	cSysLog = SysLog.eSysLog;
+  /* システムログ機能との結合 */
+  cSysLog = SysLog.eSysLog;
 
-	/* 低レベル出力との結合 */
-	cPutLog = PutLogTarget.ePutLog;
+  /* 低レベル出力との結合 */
+  cPutLog = PutLogTarget.ePutLog;
 };
 
 /*
- *		カーネル起動メッセージ出力の組上げ記述
+ *    カーネル起動メッセージ出力の組上げ記述
  *
  *  カーネル起動メッセージの出力を外す場合には，以下のセルの組上げ記述
  *  を削除すればよい．
  */
 cell tBanner Banner {
-	/* 属性の設定 */
-	targetName      = BannerTargetName;
-	copyrightNotice = BannerCopyrightNotice;
+  /* 属性の設定 */
+  targetName      = BannerTargetName;
+  copyrightNotice = BannerCopyrightNotice;
 };

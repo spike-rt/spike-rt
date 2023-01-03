@@ -75,3 +75,5 @@ cell tPutLogTarget PutLogTarget {
 	/* SIOドライバとの結合 */
 	cSIOPort = SIOPortTarget1.eSIOPort;
 };
+
+import("drivers.cdl");
