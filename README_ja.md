@@ -1,4 +1,5 @@
 [![Build](https://github.com/spike-rt/spike-rt/workflows/Build/badge.svg?branch=main)](https://github.com/spike-rt/spike-rt/workflows/Build/badge.svg?branch=main)
+[![Slack(Japanese)](https://img.shields.io/badge/spike--rt-slack--ja-blue?logo=slack)](https://join.slack.com/t/spike-rt/shared_invite/zt-1lzsqg9zm-_C3sPe_hFsXAWErdSVXKjg)
 
 For English document please see [README.md](README.md).
 
@@ -43,6 +44,9 @@ For English document please see [README.md](README.md).
 ## 貢献方法
 バグ報告は，GitHub Issuesへ．
 パッチの提供などの貢献は，[docs/ja/CONTRIBUTING.md](docs/ja/CONTRIBUTING.md)を参照．
+
+## Slackコミュニティ
+[Slack](https://join.slack.com/t/spike-rt/shared_invite/zt-1lzsqg9zm-_C3sPe_hFsXAWErdSVXKjg) （日本語のみ）にて，質問や議論を受け付けています．
 
 ## 言語
 IssuesやPull RequestsなどのGitHub上では，日本語と英語を受け付けます．
