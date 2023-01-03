@@ -16,11 +16,11 @@ For English document please see [README.md](README.md).
     - [x] 5x5 LED マトリックスディスプレイ
     - [x] ライト
     - [x] ボタン
-    - [ ] 加速度センサ及びジャイロスコープ
+    - [x] 加速度センサ及びジャイロスコープ
     - [x] スピーカ
     - [x] バッテリ制御
-    - [ ] 32 MB 外部フラッシュメモリ（次の Pybricks のリリースで対応予定）
-    - [ ] USB Serial（一時的に未対応）
+    - [ ] 32 MB 外部フラッシュメモリ
+    - [x] USB Serial
     - [x] Bluetooth
   - PUP デバイス
     - [x] アンギュラーモータ
