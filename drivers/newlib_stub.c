@@ -1,11 +1,12 @@
-// SPDX-License-Identifier: MIT
 /*
+ * SPDX-License-Identifier: MIT
+ *
  * Stubs for Newlib.
  * For details, please see the official document
  *  - https://sourceware.org/newlib/libc.html#Stubs
  *
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #include <errno.h>
@@ -14,8 +15,11 @@
 #undef errno
 extern int errno;
 
+#include <spike/hub/system.h>
+
 void _exit(int status) {
-  ext_ker();
+  hub_system_shutdown();
+  /* Never come back here */
 }
 
 int close(int file) {

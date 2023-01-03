@@ -1,12 +1,13 @@
-// SPDX-License-Identifier: MIT
 /*
+ * SPDX-License-Identifier: MIT
+ *
  * Configurations for Unity, a test framework.
  * For more information, please see 
  *  - http://www.throwtheswitch.org/build/cross
  *  - https://github.com/ThrowTheSwitch/Unity/blob/master/docs/UnityConfigurationGuide.md
  *
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #ifndef UNITY_CONFIG_H
@@ -26,9 +27,6 @@
 #define UNITY_INCLUDE_PRINT_FORMATTED
 
 #define UNITY_FIXTURE_NO_EXTRAS
-
-#include <stdbool.h>
-#include <stdint.h>
 
 #if UNITY_OUTPUT_VIA_PutLogTarget
 

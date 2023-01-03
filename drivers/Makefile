@@ -20,7 +20,7 @@ KERNEL_DIRS += $(DRIVERS_DIR)
 #
 KERNEL_DIRS += $(DRIVERS_DIR)/pybricks-c \
 							 $(DRIVERS_DIR)/pybricks-c/common
-KERNEL_COBJS += pb_type_motor.o pb_type_dcmotor.o
+KERNEL_COBJS += pb_type_system.o pb_type_motor.o pb_type_dcmotor.o
 
 #
 #  Definitions for SPIKE API.
@@ -29,7 +29,7 @@ KERNEL_DIRS += $(DRIVERS_DIR)/spike \
 							 $(DRIVERS_DIR)/spike/hub \
 							 $(DRIVERS_DIR)/spike/pup
 
-KERNEL_COBJS += light.o display.o display_fonts.o button.o battery.o imu.o
+KERNEL_COBJS += system.o light.o display.o display_fonts.o button.o battery.o imu.o
 KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o motor.o
 
 INCLUDES += -I$(DRIVERS_DIR) \

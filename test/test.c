@@ -9,12 +9,13 @@
 
 #include <kernel.h>
 
+#include <unity.h>
 #include <unity_fixture.h>
-#include <stdio.h>
 
-#include <pbsys/status.h>
+#include <spike/hub/system.h>
 
 #include <test_config.h>
+
 
 static void RunAllTests(void)
 {
@@ -56,7 +57,6 @@ void TestMainTask(intptr_t exinf)
 
   UnityMain(argc, argv, RunAllTests);
 
-  pbsys_status_clear(PBIO_PYBRICKS_STATUS_USER_PROGRAM_RUNNING);
-  void wup_pybricks(void);
-  wup_pybricks();
+  exit(0);
+  //hub_system_shutdown();
 }
