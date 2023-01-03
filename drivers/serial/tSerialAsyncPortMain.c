@@ -249,8 +249,10 @@ eSerialPort_close(CELLIDX idx)
 Inline void
 serialPort_writeBegin(CELLCB *p_cellcb)
 {
-  cSIOPort_putNotify();
-  // cSIOPort_enableCBR(SIOAsyncSendPop);
+  if (VAR_sendCount > 0) {
+    cSIOPort_putNotify();
+    // cSIOPort_enableCBR(SIOAsyncSendPop);
+  }
 }
 
 /*
