@@ -34,7 +34,7 @@
 
 #include <stdint.h>
 #include <pbio/error.h>
-#include <pbio/color.h>
+#include <pbio/light_matrix.h>
 
 /**
  * \~English
