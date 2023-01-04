@@ -38,7 +38,7 @@ extern "C" {
 #ifndef TOPPERS_MACRO_ONLY
 
 extern void TestMainTask(intptr_t exinf);
-extern void SIOTestCBRTask(intptr_t exinf);
+extern void SIOTestCBRHandler(intptr_t exinf);
 
 #ifdef __cplusplus
 }

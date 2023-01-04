@@ -17,9 +17,6 @@
 void
 eSIOPort_open(void)
 {
-  /*
-   *  USB が接続されるまで待つ．
-   */
   // TODO:
 }
 

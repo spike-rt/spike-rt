@@ -20,9 +20,8 @@
 #define SEND_BUFFER_SIZE      (10)
 #define RECEIVE_BUFFER_SIZE   (10)
 
-static char *output_buf[1000];
+static char output_buf[1000];
 static int output_size = 0;
-static bool_t output_reset = false;
 
 
 TEST_GROUP(SerialAsyncPort);
@@ -48,11 +47,15 @@ static test_write(const char *input, int input_len, const char *expected, int ex
 {
   ER ercd;
   
+  output_size = 0;
+
 	ercd = serial_opn_por(SIO_TEST_PORTID);
   TEST_ASSERT_EQUAL(E_OK, ercd);
   
-  output_reset = true;
-  // Wait 2 msec for reset.
+  ercd = sta_cyc(SIO_TEST_CBR_CYCHDR);
+  TEST_ASSERT_EQUAL(E_OK, ercd);
+
+  // Wait 2 msec.
   ercd = dly_tsk(2*1000);
   TEST_ASSERT_EQUAL(E_OK, ercd);
 
@@ -62,6 +65,11 @@ static test_write(const char *input, int input_len, const char *expected, int ex
   // Wait 1 sec.
   ercd = dly_tsk(1000*1000);
   TEST_ASSERT_EQUAL(E_OK, ercd);
+
+  ercd = stp_cyc(SIO_TEST_CBR_CYCHDR);
+  TEST_ASSERT_EQUAL(E_OK, ercd);
+
+  TEST_ASSERT_EQUAL(expected_len, output_size);
 
   TEST_ASSERT_EQUAL_STRING_LEN(expected, output_buf, expected_len);
 
@@ -116,7 +124,7 @@ TEST(SerialAsyncPort, writeEqualToBufferLF)
 {
   const char input[SEND_BUFFER_SIZE] = "12345678\n";
   int input_len = sizeof(input);
-  const char expected[SEND_BUFFER_SIZE] = "12345678\r\n";
+  const char expected[] = "12345678\r\n";
   int expected_len = sizeof(expected);
 
   test_write(input, input_len, expected, expected_len);
@@ -133,19 +141,12 @@ TEST(SerialAsyncPort, writeLongerThanBufferLF)
   test_write(input, input_len, expected, expected_len);
 }
 
-void SIOTestCBRTask(intptr_t exinf)
+void SIOTestCBRHandler(intptr_t exinf)
 {
-  extern int tSIOAsyncPortTest_eSIOCBR_lenSend(void);
+  extern int tSIOAsyncPortTest_eSIOCBR_sizeSend(void);
   extern int tSIOAsyncPortTest_eSIOCBR_popSend(char *dst);
 
   int send_size;
-  while(1) {
-    // Handle the callback in 1 ms cycle.
-    dly_tsk(1000);
-    if (output_reset) {
-      output_reset = false;
-      output_size = 0;
-    }
 
   if (tSIOAsyncPortTest_eSIOCBR_sizeSend() > 0)
   {
@@ -154,28 +155,20 @@ void SIOTestCBRTask(intptr_t exinf)
       output_size++;
     }
   }
-  }
 }
 
 #if 0
-void SIOTestCBRTask(intptr_t exinf)
+// Handle the callback in 1 ms cycle.
+void SIOTestCBRHandler(intptr_t exinf)
 {
   extern int tSIOAsyncPortTest_eSIOCBR_lenSend(void);
   extern int tSIOAsyncPortTest_eSIOCBR_popSend(char *dst_data, uint32_t size);
 
   int send_size;
-  while(1) {
-    // Handle the callback in 1 ms cycle.
-    dly_tsk(1000);
-    if (output_reset) {
-      output_reset = false;
-      output_size = 0;
-    }
-    send_size = tSIOAsyncPortTest_eSIOCBR_popSend(
-                &output_buf[output_size], SEND_BUFFER_SIZE);
-    if (send_size >= 0) {
-      output_size += send_size;
-    }
+  send_size = tSIOAsyncPortTest_eSIOCBR_popSend(
+              &output_buf[output_size], SEND_BUFFER_SIZE);
+  if (send_size >= 0) {
+    output_size += send_size;
   }
 }
 #endif
