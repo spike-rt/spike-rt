@@ -34,6 +34,7 @@ KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o moto
 
 INCLUDES += -I$(DRIVERS_DIR) \
 						-I$(DRIVERS_DIR)/spike \
+						-I$(DRIVERS_DIR)/include \
 
 #
 #  Definitions for Pybricks.
