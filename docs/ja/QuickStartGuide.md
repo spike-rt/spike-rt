@@ -4,7 +4,7 @@
 
 ## ソースコードの入手
 ```bash
-git clone --recursive https://github.com/spike-rt/spike-rt.git
+git clone https://github.com/spike-rt/spike-rt.git
 cd spike-rt
 ```
 
