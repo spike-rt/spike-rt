@@ -25,6 +25,8 @@ static void RunAllTests(void)
   RUN_TEST_GROUP(USBSerial);
   RUN_TEST_GROUP(BluetoothSerial);
 
+  RUN_TEST_GROUP(NewlibSTDLIB);
+
   // Tests for Hub Device
   RUN_TEST_GROUP(Light);
   RUN_TEST_GROUP(Display);
@@ -46,6 +48,7 @@ static void RunAllTests(void)
 static void RunTestsOnQEMU(void)
 {
   RUN_TEST_GROUP(SerialAsyncPort);
+  RUN_TEST_GROUP(NewlibSTDLIB);
 }
 
 void TestMainTask(intptr_t exinf)

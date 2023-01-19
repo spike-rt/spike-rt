@@ -17,9 +17,11 @@
 extern int errno;
 
 #include <kernel.h>
+#include <kernel_cfg.h>
 #include <t_syslog.h>
 #include <spike/hub/system.h>
 #include <tlsf.h>
+
 
 void _exit(int status) {
   hub_system_shutdown();
@@ -79,6 +81,8 @@ int read(int file, char *ptr, int len) {
   return 0;
 }
 
+
+// TODO: make configurable
 #define HEAP_AREA_SIZE 32*1024
 
 tlsf_t newlib_tlsf;
@@ -92,17 +96,34 @@ void newlib_tlsf_init(void) {
 }
 
 void *_malloc_r(void *reent, size_t nbytes) {
-  return tlsf_malloc(newlib_tlsf, nbytes);
+  void *mem;
+
+  wai_sem(APP_HEAP_SEM);
+  mem = tlsf_malloc(newlib_tlsf, nbytes);
+  sig_sem(APP_HEAP_SEM);
+  return mem;
 }
 
 void *_realloc_r(void *reent, void *aptr, size_t nbytes){
-  return tlsf_realloc(newlib_tlsf, aptr, nbytes);
+  void *mem;
+
+  wai_sem(APP_HEAP_SEM);
+  mem = tlsf_realloc(newlib_tlsf, aptr, nbytes);
+  sig_sem(APP_HEAP_SEM);
+  return mem;
 }
 
-void *_free_r(void *reent, void *aptr) {
+void _free_r(void *reent, void *aptr) {
+  wai_sem(APP_HEAP_SEM);
   tlsf_free(newlib_tlsf, aptr);
+  sig_sem(APP_HEAP_SEM);
 }
 
 void *_memalign_r(void *reent, size_t align, size_t nbytes) {
-  return tlsf_memalign(newlib_tlsf, align, nbytes);
+  void *mem;
+
+  wai_sem(APP_HEAP_SEM);
+  mem = tlsf_memalign(newlib_tlsf, align, nbytes);
+  sig_sem(APP_HEAP_SEM);
+  return mem;
 }
