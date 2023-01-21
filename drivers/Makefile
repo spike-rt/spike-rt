@@ -34,7 +34,7 @@ KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o moto
 
 INCLUDES += -I$(DRIVERS_DIR) \
 						-I$(DRIVERS_DIR)/spike \
-						-I$(DRIVERS_DIR)/include \
+						-I$(DRIVERS_DIR)/include
 
 #
 #  Definitions for Pybricks.
@@ -63,3 +63,12 @@ SYSSVC_COBJS += pybricks.o
 #  Definitions for Serial.
 #
 KERNEL_DIRS += $(DRIVERS_DIR)/serial
+
+
+#
+#  Definitions for TLSF.
+#
+include $(DRIVERS_DIR)/tlsf.mk
+KERNEL_DIRS += $(TLSF_DIR)
+KERNEL_COBJS += $(TLSF_COBJS)
+INCLUDES +=  $(TLSF_INCLUDES)

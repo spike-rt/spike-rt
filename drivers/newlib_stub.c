@@ -11,11 +11,15 @@
 
 #include <errno.h>
 #include <sys/stat.h>
+#include <reent.h>
 
 #undef errno
 extern int errno;
 
+#include <kernel.h>
+#include <t_syslog.h>
 #include <spike/hub/system.h>
+#include <tlsf.h>
 
 void _exit(int status) {
   hub_system_shutdown();
@@ -75,6 +79,30 @@ int read(int file, char *ptr, int len) {
   return 0;
 }
 
-caddr_t _sbrk(int nbytes) {
-  return NULL;
+#define HEAP_AREA_SIZE 32*1024
+
+tlsf_t newlib_tlsf;
+
+static uint8_t heap_area[HEAP_AREA_SIZE] __attribute__((aligned(4096)));
+
+void newlib_tlsf_init(void) {
+  newlib_tlsf = tlsf_create_with_pool(heap_area, HEAP_AREA_SIZE);
+  //TODO: hang if newlib_tlsf == NULL
+  assert(newlib_tlsf != NULL);
+}
+
+void *_malloc_r(void *reent, size_t nbytes) {
+  return tlsf_malloc(newlib_tlsf, nbytes);
+}
+
+void *_realloc_r(void *reent, void *aptr, size_t nbytes){
+  return tlsf_realloc(newlib_tlsf, aptr, nbytes);
+}
+
+void *_free_r(void *reent, void *aptr) {
+  tlsf_free(newlib_tlsf, aptr);
+}
+
+void *_memalign_r(void *reent, size_t align, size_t nbytes) {
+  return tlsf_memalign(newlib_tlsf, align, nbytes);
 }
