@@ -14,6 +14,7 @@ TOOL  = gcc
 #  FPUを使用するか
 #
 FPU_USAGE = FPU_LAZYSTACKING
+FPU_ABI = hard
 
 #
 #  使用するタイマ
@@ -26,11 +27,10 @@ KERNEL_TIMER = SYSTICK
 #
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TARGETDIR)/stm32fcube
 CDEFS := $(CDEFS) -DSTM32F413xx
-COPTS := $(COPTS) -mthumb -mtune=cortex-m4 -mcpu=cortex-m4 -msoft-float
+COPTS := $(COPTS) -mtune=cortex-m4
 COPTS := $(COPTS) -DUSE_FULL_LL_DRIVER
-LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
-LDFLAGS := $(LDFLAGS) -L$(SRCDIR)/../asp3-app-pybricks/bricks/primehub_asp3 
-LIBS := -lpybricks
+#LDFLAGS := -nostdlib -nostartfiles $(LDFLAGS)
+LDFLAGS := -nostartfiles $(LDFLAGS)
 
 #
 # ファイルサイズ削減のためのオプション
@@ -45,6 +45,11 @@ KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR) $(TARGETDIR)/stm32fcube
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) start.o
 KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o \
                 system_stm32f4xx.o stm32f4xx_nucleo.o systemclock_config.o
+
+#
+#  ドライバ関連のインクルード
+#
+include $(DRIVERS_DIR)/Makefile
 
 #
 #  システムサービスに関する定義

@@ -127,7 +127,7 @@ target_initialize(void)
 void 
 target_abort(void)
 {
-  // syslog(LOG_EMERG, "Target abort.");
+  syslog(LOG_EMERG, "Target abort.");
 
 	/* チップ依存部の終了処理 */
 	core_terminate();
@@ -145,7 +145,8 @@ target_abort(void)
 void
 target_exit(void)
 {
-  // syslog(LOG_EMERG, "Target exit.");
+  syslog(LOG_EMERG, "Target exit.");
+
 	/* チップ依存部の終了処理 */
 	core_terminate();
 
