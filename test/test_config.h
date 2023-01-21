@@ -17,7 +17,12 @@
 #define UNITY_OUTPUT_VIA_PutLogTarget               (0)
 #define UNITY_OUTPUT_VIA_PybricksSystemUSBSerial    (0)
 #define UNITY_OUTPUT_VIA_SERIAL_ADAPTER             (1)
+
+#ifndef TOPPERS_USE_QEMU
 #define SIO_UNITY_PORTID                            SIO_USB_PORTID
+#else
+#define SIO_UNITY_PORTID                            SIO_USART_F_PORTID
+#endif
 
 #define USART_TEST_PORTID     SIO_USART_F_PORTID
 

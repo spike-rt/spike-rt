@@ -43,6 +43,11 @@ static void RunAllTests(void)
   RUN_TEST_GROUP(UltrasonicSensor);
 }
 
+static void RunTestsOnQEMU(void)
+{
+  RUN_TEST_GROUP(SerialAsyncPort);
+}
+
 void TestMainTask(intptr_t exinf)
 {
   int argc = 2;
@@ -52,11 +57,15 @@ void TestMainTask(intptr_t exinf)
   serial_opn_por(SIO_UNITY_PORTID);
 #endif
 
-  // Wait 1 sec for console connecting.
-  dly_tsk(1*1000*1000);
+  // Wait 3 sec for console connecting.
+  dly_tsk(3*1000*1000);
 
+#ifndef TOPPERS_USE_QEMU
   UnityMain(argc, argv, RunAllTests);
+#else
+  UnityMain(argc, argv, RunTestsOnQEMU);
+#endif
 
-  exit(0);
-  //hub_system_shutdown();
+  //exit(0);
+  hub_system_shutdown();
 }
