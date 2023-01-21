@@ -51,10 +51,11 @@ cell tSysLogAdapter SysLogAdapter {
  *  さない場合には，以下のセルの組上げ記述を削除してよい．
  */
 cell tSerialAdapter SerialAdapter {
-  cSerialPort[0] = SerialPort1.eSerialPort;
-  cSerialPort[1] = SerialPortUSB1.eSerialPort;
-  cSerialPort[2] = SerialPortBluetooth1.eSerialPort;
-  cSerialPort[3] = SerialPortTest1.eSerialPort;
+  cSerialPort[0] = SerialPortUSB1.eSerialPort;
+  cSerialPort[1] = SerialPortBluetooth1.eSerialPort;
+  cSerialPort[2] = SerialPortTest1.eSerialPort;
+  cSerialPort[3] = SerialPortUART_F.eSerialPort;
+  //cSerialPort[4] = SerialPortUART_E.eSerialPort;
 };
 
 /*
@@ -84,7 +85,7 @@ cell tSysLog SysLog {
  *  スドライバを使用するため，それも外すことが必要である．また，シリア
  *  ルインタフェースドライバのアダプタも外さなければならない．
  */
-cell tSerialPort SerialPort1 {
+cell tSerialPort SerialPortUART_F {
   receiveBufferSize = 256;      /* 受信バッファのサイズ */
   sendBufferSize    = 256;      /* 送信バッファのサイズ */
 
@@ -134,8 +135,8 @@ cell tLogTask LogTask {
   stackSize = LogTaskStackSize;  /* システムログタスクのスタックサイズ */
 
   /* シリアルインタフェースドライバとの結合 */
-  cSerialPort        = SerialPort1.eSerialPort;
-  cnSerialPortManage = SerialPort1.enSerialPortManage;
+  cSerialPort        = SerialPortUART_F.eSerialPort;
+  cnSerialPortManage = SerialPortUART_F.enSerialPortManage;
 
   /* システムログ機能との結合 */
   cSysLog = SysLog.eSysLog;

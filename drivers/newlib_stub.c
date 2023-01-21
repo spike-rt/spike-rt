@@ -19,8 +19,64 @@ extern int errno;
 #include <kernel.h>
 #include <kernel_cfg.h>
 #include <t_syslog.h>
+#include <syssvc/serial.h>
+#include <serial/serial.h>
 #include <spike/hub/system.h>
+
 #include <tlsf.h>
+
+#include <stdio.h>
+
+//#define STDIN_FILENO  0
+//#define STDOUT_FILENO 1
+//#define STDERR_FILENO 2
+enum {
+  SIO_USB_FILENO = 3,
+  SIO_BLUETOOTH_FILENO,
+  SIO_TEST_FILENO,
+  SIO_UART_F_FILENO,
+  SIO_UART_E_FILENO,
+};
+
+static inline int _get_fd_from_sio_portid(ID portid) {
+  switch(portid) {
+  case SIO_USB_PORTID:
+    return SIO_USB_FILENO;
+  case SIO_BLUETOOTH_PORTID:
+    return SIO_BLUETOOTH_FILENO;
+  case SIO_TEST_PORTID:
+    return SIO_TEST_FILENO;
+  case SIO_UART_E_PORTID:
+    return SIO_UART_F_FILENO;
+  case SIO_UART_F_PORTID:
+    return SIO_UART_F_FILENO;
+  }
+
+  return 0;
+}
+
+static inline ID _get_sio_portid_from_fd(int fd) {
+  switch(fd) {
+  //case STDIN_FILENO:
+  //  return SIO_STDIN_PORTID;
+  //case STDOUT_FILENO:
+  //  return SIO_STDOUT_PORTID;
+  //case STDERR_FILENO:
+  //  return SIO_STDERR_PORTID;
+  case SIO_USB_FILENO:
+    return SIO_USB_PORTID;
+  case SIO_BLUETOOTH_FILENO:
+    return SIO_BLUETOOTH_PORTID;
+  case SIO_TEST_FILENO:
+    return SIO_TEST_PORTID;
+  case SIO_UART_E_FILENO:
+    return SIO_UART_E_PORTID;
+  case SIO_UART_F_FILENO:
+    return SIO_UART_F_PORTID;
+  }
+
+  return 0;
+}
 
 
 void _exit(int status) {
@@ -28,57 +84,97 @@ void _exit(int status) {
   /* Never come back here */
 }
 
-int close(int file) {
+int _close(int fd) {
   return -1;
 }
 
-char *__env[1] = { 0 };
-char **environ = __env;
+int _fstat(int file, struct stat *st) {
+  ID portid = _get_sio_portid_from_fd(file);
+  if (portid > 0) {
+    st->st_mode = S_IFCHR;
+    return 0;
+  }
 
-int execve(char *name, char **argv, char **env) {
-  errno = ENOMEM;
+  errno = EBADF;
   return -1;
 }
 
-int fork(void) {
-  errno = EAGAIN;
-  return -1;
-}
-
-int fstat(int file, struct stat *st) {
-  st->st_mode = S_IFCHR;
-  return 0;
-}
-
-int getpid(void) {
+int _getpid(void) {
   return 1;
 }
 
-int isatty(int file) {
-  return 1;
-}
-
-int kill(int pid, int sig) {
+int _kill(int pid, int sig) {
   errno = EINVAL;
   return -1;
 }
 
 
-int link(char *old, char *new) {
+int link(const char *old, const char *new) {
   errno = EMLINK;
   return -1;
 }
 
-int lseek(int file, int ptr, int dir) {
+int _lseek(int file, int ptr, int dir) {
   return 0;
 }
 
-int open(const char *name, int flags, int mode) {
+int _isatty(int file) {
+  ID portid = _get_sio_portid_from_fd(file);
+  if (portid > 0) {
+    return 1;
+  }
+
+  errno = EBADF;
   return -1;
 }
 
-int read(int file, char *ptr, int len) {
-  return 0;
+
+FILE* serial_open_newlib_file(ID portid) {
+  int fd = _get_fd_from_sio_portid(portid);
+  if (fd <= 0) {
+    //API_ERROR("Invalid port id %d.", port);
+    return NULL;
+  }
+
+  FILE *fp = fdopen(fd, "a+");
+  if (fp != NULL)
+    setbuf(fp, NULL); /* IMPORTANT! */
+    //API_ERROR("fdopen() failed, fd: %d.", fd);
+  return fp;
+}
+
+int _open(const char *name, int flags, int mode) {
+  return -1;
+}
+
+int _write(int fd, const void *buf, size_t cnt) {
+  ID portid = _get_sio_portid_from_fd(fd);
+  if (portid > 0) {
+    // Serial Port
+    ER_UINT erlen = serial_wri_dat(portid, (const char *)buf, cnt);
+    if (erlen < 0) {
+      return -1;
+    }
+    return erlen;
+  } else {
+    errno = EBADF;
+    return -1;
+  }
+}
+
+int _read(int fd, char *buf, int cnt) {
+  ID portid = _get_sio_portid_from_fd(fd);
+  if (portid > 0) {
+    // Serial Port
+    ER_UINT erlen = serial_rea_dat(portid, (char *)buf, cnt);
+    if (erlen < 0) {
+      return -1;
+    }
+    return erlen;
+  } else {
+    errno = EBADF;
+    return -1;
+  }
 }
 
 

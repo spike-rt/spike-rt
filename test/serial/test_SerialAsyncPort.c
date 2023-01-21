@@ -75,8 +75,6 @@ static test_write(const char *input, int input_len, const char *expected, int ex
 
 	ercd = serial_cls_por(SIO_TEST_PORTID);
   TEST_ASSERT_EQUAL(E_OK, ercd);
-
-  TEST_ASSERT_EQUAL(E_OK, ercd);
 }
 
 TEST(SerialAsyncPort, writeShort)

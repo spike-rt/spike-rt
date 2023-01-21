@@ -10,7 +10,7 @@ APPL_COBJS += $(addprefix hub/, $(HUB_COBJS))
 PUP_COBJS = test_pup.o test_ultrasonicsensor.o test_colorsensor.o test_forcesensor.o test_motor.o
 APPL_COBJS += $(addprefix pup/, $(PUP_COBJS))
 
-NEWLIB_COBJS = test_stdlib.o
+NEWLIB_COBJS = test_stdlib.o test_stdio.o
 APPL_COBJS += $(addprefix newlib/, $(NEWLIB_COBJS))
 
 APPL_CFLAGS += $(Unity_CFLAGS) -DUNITY_INCLUDE_CONFIG_H 
