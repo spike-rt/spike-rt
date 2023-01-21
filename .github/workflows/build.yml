@@ -29,6 +29,13 @@ jobs:
           push: false
           cache-from: type=gha,scope=slim
           cache-to: type=gha,mode=max,scope=slim
+      - name: Build test(QEMU)
+        uses: addnab/docker-run-action@v3
+        with:
+          image: spike-rt:slim
+          options: -v ${{ github.workspace }}:/work -w /work
+          run: |
+            ./scripts/build-test-qemu.sh
       - name: Build test
         uses: addnab/docker-run-action@v3
         with:
