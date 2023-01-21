@@ -1,7 +1,7 @@
 #!/bin/bash -xe
 
-QEMU=${QEMU:-"qemu-system-arm"}
-FIRMWARE=${FIRMWARE:-"$(pwd)/build/obj-discovery_f413xx_gcc/asp"}
+QEMU=${QEMU:-"$(pwd)/qemu-system-arm"}
+FIRMWARE=${FIRMWARE:-"$(pwd)/build-qemu/obj-discovery_f413xx_test/asp"}
 
 $QEMU -cpu cortex-m4 -machine legospike \
   -nographic \

@@ -1,9 +1,9 @@
 #!/bin/bash -xe
 
 QEMU=${QEMU:-"qemu-system-arm"}
-FIRMWARE=${FIRMWARE:-"$(pwd)/build/obj-discovery_f413xx_gcc/asp"}
+FIRMWARE=${FIRMWARE:-"$(pwd)/build-qemu/obj-discovery_f413xx_test/asp"}
 
-$QEMU -cpu cortex-m4 -machine legospike \
+$QEMU -cpu cortex-m4 -machine lego-spike \
   -nographic \
   -kernel $FIRMWARE \
   -semihosting \
