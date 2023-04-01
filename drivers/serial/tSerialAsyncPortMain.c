@@ -426,9 +426,8 @@ eSerialPort_read(CELLIDX idx, char *buffer, uint_t length)
     reacnt++;
     buffer_empty = (bool_t) rercd;
 
-#if 0
     /*
-     * TODO: エコーバック処理．
+     *  エコーバック処理．
      */
     if ((VAR_ioControl & IOCTL_ECHO) != 0U) {
       SVC(rercd = cSendSemaphore_wait(),
@@ -437,9 +436,8 @@ eSerialPort_read(CELLIDX idx, char *buffer, uint_t length)
       if (!((bool_t) rercd)) {
         SVC(cSendSemaphore_signal(), gen_ercd_sys(p_cellcb));
       }
-      //TODO: serialPort_writeBegin();
+      serialPort_writeBegin(p_cellcb);
     }
-#endif
   }
   if (!buffer_empty) {
     /* 
