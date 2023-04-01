@@ -35,6 +35,8 @@ jobs:
           image: spike-rt:slim
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
+            # Avoid a git error saying "fatal: detected dubious ownership in repository at ..."
+            git config --global --add safe.directory \* 
             ./scripts/build-test-qemu.sh
       - name: Build test
         uses: addnab/docker-run-action@v3
@@ -42,6 +44,8 @@ jobs:
           image: spike-rt:slim
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
+            # Avoid a git error saying "fatal: detected dubious ownership in repository at ..."
+            git config --global --add safe.directory \* 
             ./scripts/build-test.sh
       - name: Upload
         uses: actions/upload-artifact@v3
