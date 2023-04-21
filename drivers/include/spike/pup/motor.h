@@ -35,6 +35,12 @@
 #include <pbio/port.h>
 #include <pbio/servo.h>
 
+typedef pbio_servo_t pup_motor_t;
+typedef enum {
+  PUP_DIRECTION_CLOCKWISE        = PBIO_DIRECTION_CLOCKWISE,
+  PUP_DIRECTION_COUNTERCLOCKWISE = PBIO_DIRECTION_COUNTERCLOCKWISE,
+} pup_direction_t;
+
 /**
  * \~English
  * \brief    Get the PUP motor device pointer of the motor specified by the port ID.
@@ -48,7 +54,6 @@
  * \param port PUPポートID．
  * \return   PUPモータデバイスポインタ．
  */
-typedef pbio_servo_t pup_motor_t;
 pup_motor_t *pup_motor_get_device(pbio_port_id_t port);
 
 /**
@@ -72,10 +77,6 @@ pup_motor_t *pup_motor_get_device(pbio_port_id_t port);
  * \param reset_count trueかfalseでエンコーダの値をリセットするか示す．
  * \return   PBIO_SUCCESSまたはエラー番号．
  */
-typedef enum {
-  PUP_DIRECTION_CLOCKWISE        = PBIO_DIRECTION_CLOCKWISE,
-  PUP_DIRECTION_COUNTERCLOCKWISE = PBIO_DIRECTION_COUNTERCLOCKWISE,
-} pup_direction_t;
 pbio_error_t pup_motor_setup(pup_motor_t *motor, pup_direction_t positive_direction, bool reset_count);
 
 /**
@@ -130,8 +131,35 @@ int32_t pup_motor_get_speed(pup_motor_t *motor);
  * \param speed モータの回転速度 [°/秒]．
  * \return   PBIO_SUCCESSまたはエラー番号．
  */
-
 pbio_error_t pup_motor_set_speed(pup_motor_t *motor, int speed);
+
+/**
+ * \~English
+ * \brief    Get the power of the motor.
+ * \param motor PUP motor device pointer.
+ * \return   PWM (between -100 and +100).
+ *
+ * \~Japanese
+ * \brief    モータのパワー値を取得する．
+ * \param motor PUPモータデバイスポインタ．
+ * \return   パワー値（-100 ～ +100）．
+ */
+int32_t pup_motor_get_power(pup_motor_t *motor);
+
+/**
+ * \~English
+ * \brief    Set the power of the motor.
+ * \param motor PUP motor device pointer.
+ * \param power Power between -100 and +100.
+ * \return   PBIO_SUCCESS or error number.
+ *
+ * \~Japanese
+ * \brief    モータのパワー値を設定する．
+ * \param motor PUPモータデバイスポインタ．
+ * \param power モータのパワー値（-100 ～ +100）．
+ * \return   PBIO_SUCCESSまたはエラー番号．
+ */
+pbio_error_t pup_motor_set_power(pup_motor_t *motor, int power);
 
 /**
  * \~English

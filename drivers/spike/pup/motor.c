@@ -6,18 +6,29 @@
  *                    Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
+#include <kernel.h>
 #include <t_syslog.h>
 #include <spike/cb_error.h>
+#include <spike/pup_device.h>
 #include <spike/pup/motor.h>
 #include <pbio/servo.h>
 #include <pbio/control.h>
 #include <pbio/battery.h>
+#include <pbio/dcmotor.h>
+
+pbio_error_t pybricks_c_common_motor_angle(pbio_servo_t *srv, int32_t *p_angle);
+pbio_error_t pybricks_c_common_motor_speed(pbio_servo_t *srv, int32_t *p_speed);
+pbio_error_t pybricks_c_common_motor_run(pbio_servo_t *srv, int32_t speed);
+pbio_error_t pybricks_c_common_motor_hold(pbio_servo_t *srv);
+pbio_error_t pybricks_c_common_motor_stalled(pbio_servo_t *srv, bool *p_stalled);
+pbio_error_t pybricks_c_common_dcmotor_duty(pbio_dcmotor_t *dcmotor, int32_t duty);
+pbio_error_t pybricks_c_common_dcmotor_stop(pbio_dcmotor_t *dcmotor);
+pbio_error_t pybricks_c_common_dcmotor_brake(pbio_dcmotor_t *dcmotor);
+pbio_error_t pybricks_c_common_dcmotor_dc_settings(pbio_dcmotor_t *dcmotor, int32_t max_voltage_in, int32_t *p_max_voltage_now);
 
 #include <stdio.h>
 static void errlog(char *name, pbio_port_id_t port, pbio_error_t err) {
-  char message[80];
-  snprintf(message, sizeof(message), "%s failed for port %c: %s", name, port, pbio_error_str(err));
-  syslog(LOG_ERROR, message);
+  syslog(LOG_ERROR, "%s failed for port %c: %s", name, port, pbio_error_str(err));
 }
 
 pup_motor_t *pup_motor_get_device(pbio_port_id_t port) {
@@ -98,6 +109,24 @@ pbio_error_t pup_motor_hold(pup_motor_t *motor) {
   pbio_error_t err = pybricks_c_common_motor_hold(motor);
   if (err != PBIO_SUCCESS) {
     errlog("pup_motor_hold()", motor->dcmotor->port, err);
+  } 
+  return err;
+}
+
+int32_t pup_motor_get_power(pup_motor_t *motor) {
+  int32_t voltage    = motor->dcmotor->voltage_now; // retrieve the cached value
+  int32_t duty_cycle = pbio_battery_get_duty_from_voltage(voltage);
+  duty_cycle = (duty_cycle + 5) / 10; // 0 .. 100
+  if (motor->dcmotor->direction == PUP_DIRECTION_COUNTERCLOCKWISE) {
+    duty_cycle = -duty_cycle;         // -100 .. 0
+  }
+  return duty_cycle;
+}
+
+pbio_error_t pup_motor_set_power(pup_motor_t *motor, int power) {
+  pbio_error_t err = pybricks_c_common_dcmotor_duty(motor->dcmotor, power);
+  if (err != PBIO_SUCCESS) {
+    errlog("pup_motor_set_power()", motor->dcmotor->port, err);
   } 
   return err;
 }

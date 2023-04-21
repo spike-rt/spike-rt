@@ -51,6 +51,19 @@ TEST(Motor, Run)
   err = pup_motor_setup(motor, PUP_DIRECTION_CLOCKWISE, reset_count);
   TEST_ASSERT_EQUAL(err, PBIO_SUCCESS);
 
+  TEST_PRINTF("%s\n", "RUN");
+  TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_speed(motor, 500));
+  dly_tsk(3*1000*1000);
+  TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_speed(motor,   0));
+  dly_tsk(1*1000*1000);
+
+  TEST_PRINTF("%s\n", "POWER");
+  TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_power(motor,  50));
+  dly_tsk(3*1000*1000);
+  TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_power(motor,   0));
+  dly_tsk(1*1000*1000);
+
+  TEST_PRINTF("%s\n", "RUN UNTIL STALLED");
   int32_t old_value = pup_motor_set_duty_limit(motor, 30);
 
   TEST_ASSERT_EQUAL(PBIO_SUCCESS, pup_motor_set_speed(motor, 500));
