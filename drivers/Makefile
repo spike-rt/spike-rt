@@ -29,7 +29,7 @@ KERNEL_DIRS += $(DRIVERS_DIR)/spike \
 							 $(DRIVERS_DIR)/spike/hub \
 							 $(DRIVERS_DIR)/spike/pup
 
-KERNEL_COBJS += system.o light.o display.o display_fonts.o button.o battery.o imu.o
+KERNEL_COBJS += system.o light.o display.o display_fonts.o button.o battery.o imu.o speaker.o
 KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o motor.o
 
 INCLUDES += -I$(DRIVERS_DIR) \
@@ -48,7 +48,7 @@ endif
 include $(EXTERNAL_DIR)/pybricks.mk
 
 INCLUDES +=  $(PYBRICKS_INCLUDES)
-LIBS += $(PYBRICKS_LIB)
+LIBS += $(PYBRICKS_LIB) -lm
 
 #
 #  pybricks.c has to be compiled after TOPPERS configurator (asp3/cfg/cfg.rb) has been executed
