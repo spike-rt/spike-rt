@@ -21,9 +21,18 @@ void hub_speaker_set_volume(uint8_t volume)
   if (volume == waveform_volume) return;
   uint16_t C = INT16_MAX;
   uint16_t A = (pow(10, volume / 100.0) - 1) / 9 * INT16_MAX;
+#ifdef GENERATE_SINE_WAVES
   for (int i = 0; i < WAVEFORM_LENGTH; i++) {
     waveform_data[i] = C + A * sin(M_PI * 2.0 * i / WAVEFORM_LENGTH); 
   }
+#else // SQUARE_WAVES
+  for (int i = 0; i < WAVEFORM_LENGTH/2; i++) {
+    waveform_data[i] = C - A;
+  }
+  for (int i = WAVEFORM_LENGTH/2; i < WAVEFORM_LENGTH; i++) {
+    waveform_data[i] = C + A;
+  }
+#endif
 }
 
 void hub_speaker_play_tone(uint16_t frequency, int32_t duration)
