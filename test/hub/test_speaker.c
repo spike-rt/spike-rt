@@ -37,6 +37,9 @@ TEST(Speaker, beep)
   hub_speaker_play_tone(NOTE_C5, 200); dly_tsk(800000);
   hub_speaker_play_tone(NOTE_C5, 200); dly_tsk(800000);
   hub_speaker_play_tone(NOTE_C6, SOUND_MANUAL_STOP);
-  dly_tsk(1000000);
+  for (int i = 0; i < 100; i++) {
+    dly_tsk(10000);
+    hub_speaker_set_volume(100-i);
+  }
   hub_speaker_stop();
 }
