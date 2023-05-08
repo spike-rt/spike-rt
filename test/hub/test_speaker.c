@@ -25,8 +25,6 @@ TEST_SETUP(Speaker)
 
 TEST_TEAR_DOWN(Speaker)
 {
-  // Perform cleanup/reset after running a user program.
-  // pbsys_user_program_unprepare();
 }
 
 TEST(Speaker, beep)
