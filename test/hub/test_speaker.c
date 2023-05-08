@@ -21,8 +21,6 @@ TEST_GROUP_RUNNER(Speaker) {
 
 TEST_SETUP(Speaker)
 {
-  // Prepare the pybricks runtime for running a user program.
-  // pbsys_user_program_prepare(NULL);
 }
 
 TEST_TEAR_DOWN(Speaker)
