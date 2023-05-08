@@ -19,6 +19,7 @@ static uint8_t  waveform_volume = 0;
 void hub_speaker_set_volume(uint8_t volume)
 {
   if (volume == waveform_volume) return;
+  waveform_volume = volume;
   uint16_t C = INT16_MAX;
   uint16_t A = (pow(10, volume / 100.0) - 1) / 9 * INT16_MAX;
 #ifdef GENERATE_SINE_WAVES
