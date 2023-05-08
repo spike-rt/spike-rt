@@ -2,7 +2,7 @@
 /*
  * API for the hub built-in speaker.
  *
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
+ * Copyright (c) 2023 Embedded and Real-Time Systems Laboratory,
  *                    Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
