@@ -1,17 +1,14 @@
 /*
  * SPDX-License-Identifier: MIT
  * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
- *            Graduate School of Information Science, Nagoya Univ., JAPAN
+ *                         Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
-#include <kernel.h>
-#include <kernel_cfg.h>
-#include <t_syslog.h>
 #include <stdio.h>
+#include <syssvc/syslog.h>
 #include <serial/serial.h>
 #include <spike/hub/system.h>
 #include <spike/pup/motor.h>
-#include "app_config.h"
 #include "motor.h"
 
 
@@ -34,13 +31,13 @@ main_task(intptr_t exinf)
   syslog(LOG_NOTICE, "Set Up Motor\n");
 
   // Get pointer to servo
-  motor = pup_motor_get_device(PBIO_PORT_ID_MOTOR);
+  motor = pup_motor_get_device(PBIO_PORT_ID_B);
   if(motor == NULL) {
     hub_system_shutdown();
   }
   
   bool reset_count = true;
-  err = pup_motor_setup(motor, PUP_DIRECTION_CLOCKWISE, reset_count);
+  err = pup_motor_setup(motor, PUP_DIRECTION_COUNTERCLOCKWISE, reset_count);
   if(motor == NULL) {
     hub_system_shutdown();
   }

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
+ *                         Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
-#include <t_syslog.h>
-#include "kernel_cfg.h"
+#include <spike/hub/system.h>
+#include <spike/hub/button.h>
+#include <serial/serial.h>
+#include <stdio.h>
 #include "button.h"
-#include "cbricks/hub/button.h"
-
-//#include <pbsys/user_program.h>
+extern FILE *serial_open_newlib_file(ID portid);
 
 static inline hub_button_t hub_buttons_pressed(hub_button_t buttons)
 {
@@ -33,23 +33,28 @@ static hub_button_t wait_for_hub_buttons(hub_button_t buttons_to_watch)
 /*
  *  メインタスク
  */
-#include <stdio.h>
 void
 main_task(intptr_t exinf)
 {
-//  pbsys_user_program_prepare(NULL); // pbsys_processをユーザプログラム実行状態に遷移させる．
-  dly_tsk(3000000);
-  printf("BUTTON\n");
-  while (1) {
+  dly_tsk(1000000);
+
+  FILE *fd = serial_open_newlib_file(SIO_USB_PORTID);
+  fprintf(fd, "BUTTON: Press RIGHT, or LEFT buttons; press both to terminate.\n");
+  fprintf(fd, "CENTER and BT buttons are ignored.\n");
+
+  bool done = false;
+  while (!done) {
     SYSTIM st;
     hub_button_t buttons = wait_for_hub_buttons(HUB_BUTTON_RIGHT|HUB_BUTTON_LEFT);
     get_tim(&st);
-    printf("%u: %d ", (unsigned int) st, buttons);
-    if (buttons&HUB_BUTTON_LEFT)   printf("LEFT ");
-    if (buttons&HUB_BUTTON_RIGHT)  printf("RIGHT ");
-    if (buttons&HUB_BUTTON_CENTER) printf("CENTER ");
-    if (buttons&HUB_BUTTON_BT)     printf("BT ");
-    printf("\n");
+    fprintf(fd, "%u: %d ", (unsigned int) st, buttons);
+    if (buttons&HUB_BUTTON_LEFT)   fprintf(fd, "LEFT ");
+    if (buttons&HUB_BUTTON_RIGHT)  fprintf(fd, "RIGHT ");
+    if (buttons&HUB_BUTTON_CENTER) fprintf(fd, "CENTER ");
+    if (buttons&HUB_BUTTON_BT)     fprintf(fd, "BT ");
+    fprintf(fd, "\n");
+    done = (buttons == (HUB_BUTTON_LEFT|HUB_BUTTON_RIGHT));
   }
-//  pbsys_user_program_unprepare();
+  fprintf(fd, "Terminating...\n");
+  hub_system_shutdown();
 }

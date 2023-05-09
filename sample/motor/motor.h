@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: MIT
- * Copyright (c) 2022 Embedded and Real-Time Systems Laboratory,
- *                    Graduate School of Information Science, Nagoya Univ., JAPAN
+ * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
+ *                         Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
 #ifndef __MOTOR_H__
