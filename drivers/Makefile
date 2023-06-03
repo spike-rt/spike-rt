@@ -29,7 +29,7 @@ KERNEL_DIRS += $(DRIVERS_DIR)/spike \
 							 $(DRIVERS_DIR)/spike/hub \
 							 $(DRIVERS_DIR)/spike/pup
 
-KERNEL_COBJS += system.o light.o display.o display_fonts.o button.o battery.o imu.o speaker.o
+KERNEL_COBJS += system.o light.o display.o display_fonts.o button.o battery.o imu.o speaker.o bluetooth.o
 KERNEL_COBJS += pup_device.o ultrasonicsensor.o colorsensor.o forcesensor.o motor.o
 
 INCLUDES += -I$(DRIVERS_DIR) \

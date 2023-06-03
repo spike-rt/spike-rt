@@ -11,7 +11,7 @@
 
 #include "tSIOAsyncPortPybricksBluetooth_tecsgen.h"
 
-#include "pbdrv/bluetooth.h"
+#include <pbdrv/bluetooth.h>
 
 bool_t pybricksBluetooth_sendCBREnabled;
 bool_t pybricksBluetooth_receiveCBREnabled;
