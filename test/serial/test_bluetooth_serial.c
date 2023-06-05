@@ -12,12 +12,14 @@
 #include <unity.h>
 #include <unity_fixture.h>
 
-#include <pbsys/status.h>
+#include <spike/hub/bluetooth.h>
 #include <test.h>
 
 TEST_GROUP(BluetoothSerial);
 
 TEST_GROUP_RUNNER(BluetoothSerial) {
+  hub_bluetooth_enable_advertising();
+
   RUN_TEST_CASE(BluetoothSerial, Write);
   RUN_TEST_CASE(BluetoothSerial, WriteLargerThanBuffer);
   RUN_TEST_CASE(BluetoothSerial, Read);

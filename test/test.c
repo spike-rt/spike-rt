@@ -23,6 +23,8 @@ static void RunAllTests(void)
   //RUN_TEST_GROUP(UsartSerial);
   //RUN_TEST_GROUP(SerialAsyncPort);
   RUN_TEST_GROUP(USBSerial);
+
+  RUN_TEST_GROUP(Bluetooth);
   RUN_TEST_GROUP(BluetoothSerial);
 
   RUN_TEST_GROUP(NewlibSTDLIB);
@@ -55,8 +57,8 @@ static void RunTestsOnQEMU(void)
 
 void TestMainTask(intptr_t exinf)
 {
-  int argc = 2;
   const char *argv[] = {"SPIKE-RT test", "-v"};
+  const int argc = sizeof(argv)/sizeof(argv[0]);
 
 #if UNITY_OUTPUT_VIA_SERIAL_ADAPTER
   serial_opn_por(SIO_UNITY_PORTID);
