@@ -21,11 +21,13 @@
  * \~English
  * \defgroup Bluetooth Bluetooth
  * \brief    API for bluetooth.
+ * \details  Normally, you don't need to be aware of these APIs.
  * @{
  *
  * \~Japanese
  * \defgroup Bluetooth Bluetooth
  * \brief    BluetoothのAPI．
+ * \details  通常はこれらのAPIを意識する必要はない。
  * @{
  */
 
@@ -39,11 +41,13 @@
  * \~English
  * \brief   Enable the bluetooth advertising.
  * \details Advertising is active if and only if it is enabled and the bluetooth is not connected.
+ *          Calling serial_opn_por() on the bluetooth serial executes this API, so normally you don't need to manually call this API.
  * \return  Error number.
  *
  * \~Japanese
  * \brief   Bluetoothのアドバタイジング（接続待ち）を許可する.
  * \details 許可されており，未接続のとき，かつそのときに限り，Bluetoothのアドバタイジングは有効化される.
+ *          Bluetoothに対してserial_opn_por()を実行すると，このAPIが呼び出されるので，通常はこのAPIは手動で呼び出す必要はない。
  * \return  エラー番号．
  */
 pbio_error_t hub_bluetooth_enable_advertising(void);

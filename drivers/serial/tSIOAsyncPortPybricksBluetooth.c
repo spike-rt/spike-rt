@@ -11,6 +11,7 @@
 
 #include "tSIOAsyncPortPybricksBluetooth_tecsgen.h"
 
+#include <spike/hub/bluetooth.h>
 #include <pbdrv/bluetooth.h>
 
 bool_t pybricksBluetooth_sendCBREnabled;
@@ -24,8 +25,10 @@ void
 eSIOPort_open(void)
 {
   /*
+   *  Bluetoothアドバタイジングを有効化し， 
    *  Bluetooth が接続されるまで待つ．
    */
+  hub_bluetooth_enable_advertising();
   while (!pbdrv_bluetooth_is_connected(PBDRV_BLUETOOTH_CONNECTION_UART)) {
     dly_tsk(1000*1000);
   }
