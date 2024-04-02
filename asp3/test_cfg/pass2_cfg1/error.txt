@@ -1,0 +1,4 @@
+../../test_cfg/pass2_cfg1.cfg:13: error: E_OBJ: inhno `4' is duplicated in DEF_INH
+../../test_cfg/pass2_cfg1.cfg:17: error: E_OBJ: intno `4' is duplicated in CFG_INT
+../../test_cfg/pass2_cfg1.cfg:22: error: E_OBJ: excno `1' is duplicated in DEF_EXC
+make: *** [kernel_cfg.timestamp] Error 1

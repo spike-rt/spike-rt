@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2011 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: log_output.h 117 2014-05-13 19:41:44Z ertl-hiro $
+ *  $Id: log_output.h 1483 2020-10-27 05:54:52Z ertl-hiro $
  */
 
 /*
@@ -59,7 +59,7 @@ extern "C" {
  *  formatで指定されるフォーマット記述とp_argsで指定される引数列から作
  *  成したメッセージを，1文字出力関数putcを用いて出力する．
  */
-extern void	syslog_printf(const char *format, const intptr_t *p_args,
+extern void	syslog_printf(const char *format, const LOGPAR args[],
 										void (*putc)(char)) throw();
 
 /*

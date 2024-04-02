@@ -4,10 +4,6 @@ MEMORY
   SRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 320K
 }
 
-PROVIDE(hardware_init_hook = 0);
-PROVIDE(software_init_hook = 0);
-PROVIDE(software_term_hook = 0);
-
 ENTRY(_kernel_start)
 
 SECTIONS

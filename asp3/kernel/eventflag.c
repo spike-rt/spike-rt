@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: eventflag.c 1030 2018-11-01 12:40:36Z ertl-hiro $
+ *  $Id: eventflag.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -232,7 +232,7 @@ clr_flg(ID flgid, FLGPTN clrptn)
 	p_flgcb = get_flgcb(flgid);
 
 	lock_cpu();
-	p_flgcb->flgptn &= clrptn; 
+	p_flgcb->flgptn &= clrptn;
 	ercd = E_OK;
 	unlock_cpu();
 
@@ -396,7 +396,7 @@ ini_flg(ID flgid)
 {
 	FLGCB	*p_flgcb;
 	ER		ercd;
-    
+
 	LOG_INI_FLG_ENTER(flgid);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_FLGID(flgid));
@@ -428,7 +428,7 @@ ref_flg(ID flgid, T_RFLG *pk_rflg)
 {
 	FLGCB	*p_flgcb;
 	ER		ercd;
-    
+
 	LOG_REF_FLG_ENTER(flgid, pk_rflg);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_FLGID(flgid));

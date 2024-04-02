@@ -87,6 +87,11 @@ void
 target_initialize(void)
 {
 	/*
+	 *  コア依存部の初期化
+	 */
+	core_initialize();
+
+	/*
 	 *  HALによる初期化
 	 *  HAL_Init() : stm32f4xx_hal.c の内容から必要な初期化のみ呼び出す．
 	 */
@@ -98,13 +103,8 @@ target_initialize(void)
 	 *  クロックの初期化
 	 */
 #if !defined(TOPPERS_USE_QEMU)
-  SystemClock_Config();
+	SystemClock_Config();
 #endif
-
-	/*
-	 *  コア依存部の初期化
-	 */
-	core_initialize();
 
 	/*
 	 *  使用するペリフェラルにクロックを供給
@@ -209,4 +209,12 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 uint32_t HAL_GetTick(void)
 {
   return current_hrtcnt/1000;
+}
+
+/*
+ *  デフォルトのsoftware_term_hook（weak定義）
+ */
+__attribute__((weak))
+void software_term_hook(void)
+{
 }

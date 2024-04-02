@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,13 +34,14 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: tPutLogSIOPort.c 1047 2018-11-19 13:39:06Z ertl-hiro $
+ *  $Id: tPutLogSIOPort.c 1337 2019-12-06 02:04:43Z ertl-hiro $
  */
 
 /*
  *		SIOドライバによるシステムログの低レベル出力
  */
 
+#include <sil.h>
 #include "tPutLogSIOPort_tecsgen.h"
 
 /*
@@ -64,7 +65,11 @@ void
 ePutLog_putChar(char c)
 {
 	if(c == '\n'){
-		while (!cSIOPort_putChar('\r')) ;
+		while (!cSIOPort_putChar('\r')) {
+			sil_dly_nse(100);
+		}
 	}
-	while (!cSIOPort_putChar(c)) ;
+	while (!cSIOPort_putChar(c)) {
+		sil_dly_nse(100);
+	}
 }

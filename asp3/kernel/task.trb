@@ -5,7 +5,7 @@
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: task.trb 1167 2019-02-03 17:06:17Z ertl-hiro $
+#   $Id: task.trb 1437 2020-05-20 12:12:16Z ertl-hiro $
 # 
 
 #
@@ -100,7 +100,7 @@ class TaskObject < KernelObject
     else
       tskinictxb = "#{params[:tinib_stksz]}, #{params[:tinib_stk]}"
     end
-    return("(#{params[:tskatr]}), (intptr_t)(#{params[:exinf]}), " \
+    return("(#{params[:tskatr]}), (EXINF)(#{params[:exinf]}), " \
 			"(TASK)(#{params[:task]}), INT_PRIORITY(#{params[:itskpri]}), " \
 			+ tskinictxb)
   end

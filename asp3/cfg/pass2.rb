@@ -3,7 +3,7 @@
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2022 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: pass2.rb 175 2019-06-19 01:51:58Z ertl-hiro $
+#  $Id: pass2.rb 197 2022-10-22 12:25:44Z ertl-hiro $
 #
 
 #
@@ -71,15 +71,19 @@ module Cfg1Out
   end
 
   #
-  #  パス1の生成物の読み込み（メインの処理）
+  #  パス1の生成物（静的API以外の部分）の読み込み
   #
   def self.Read
     # cfg1_out.symsの読み込み
     @symbolAddress = ReadSymbolFile(CFG1_OUT_SYMS)
 
-    # cfg1_out.srecの読み込み
+    # cfg1_out.srecまたはcfg1_out.dumpの読み込み
     begin
-      @cfg1SRec = SRecord.new(CFG1_OUT_SREC)
+      if File.exist?(CFG1_OUT_SREC)
+        @cfg1SRec = SRecord.new(CFG1_OUT_SREC, :srec)
+      else
+        @cfg1SRec = SRecord.new(CFG1_OUT_DUMP, :dump)
+      end
     rescue Errno::ENOENT, Errno::EACCES => ex
       abort(ex.message)
     end
@@ -94,6 +98,7 @@ module Cfg1Out
     else
       error_exit("`#{CFG1_MAGIC_NUM}' is not found in `#{CFG1_OUT_SYMS}'")
     end
+    $globalVars.push("asmLabel")
 
     magicNumberData = @cfg1SRec.get_data(@symbolAddress \
 							[$asmLabel + CFG1_MAGIC_NUM], 4)
@@ -102,8 +107,10 @@ module Cfg1Out
     elsif (magicNumberData == "78563412")
       $endianLittle = true
     else
-      error_exit("`#{CFG1_MAGIC_NUM}' is invalid in `#{CFG1_OUT_SREC}'")
+      error_exit("`#{CFG1_MAGIC_NUM}' is invalid " \
+							"in `#{CFG1_OUT_SREC}' or `#{CFG1_OUT_DUMP}'")
     end
+    $globalVars.push("endianLittle")
 
     # 固定出力した変数の取得
     $sizeOfSigned = GetSymbolValue($asmLabel + CFG1_SIZEOF_SIGNED, 4, false)
@@ -153,7 +160,7 @@ module Cfg1Out
     end
 
     #
-    #  ハッシュの初期化
+    #  コンフィギュレーション情報を格納するハッシュの初期化
     #
     $cfgData = {}
     @objidValues = {}
@@ -169,20 +176,7 @@ module Cfg1Out
         end
       end
     end
-
-    #
-    #  ドメインデータ（$domData）を生成
-    #
-    if $supportDomain
-      $domData = {}
-      $domainId.each do |domainName, domainVal|
-        domid = NumStr.new(domainVal, domainName)
-        $domData[domainVal] = { :domid => domid }
-      end
-      $globalVars.push("domData")
-    end
-
-    ReadPhase(nil)
+    $globalVars.push("cfgData")
   end
 
   #
@@ -257,8 +251,8 @@ module Cfg1Out
 
     # ID番号割り当ての前処理
     $cfgFileInfo.each do |cfgInfo|
-      # プリプロセッサディレクティブは読み飛ばす
-      next if cfgInfo.has_key?(:DIRECTIVE)
+      # 静的API以外は読み飛ばす
+      next unless cfgInfo.has_key?(:APINAME)
 
       apiDef = $apiDefinition[cfgInfo[:APINAME]]
       # 異なるフェーズの静的APIは読み飛ばす
@@ -318,8 +312,8 @@ module Cfg1Out
     #  静的APIデータをコンフィギュレーションデータ（$cfgData）に格納
     #
     $cfgFileInfo.each do |cfgInfo|
-      # プリプロセッサディレクティブは読み飛ばす
-      next if cfgInfo.has_key?(:DIRECTIVE)
+      # 静的API以外は読み飛ばす
+      next unless cfgInfo.has_key?(:APINAME)
 
       apiDef = $apiDefinition[cfgInfo[:APINAME]]
       # 異なるフェーズの静的APIは読み飛ばす
@@ -361,14 +355,8 @@ module Cfg1Out
       end
 
       # クラスIDを追加
-      if cfgInfo.has_key?(:CLASS)
-        if !apiIndex.nil?
-          symbol = "#{$cfg1_prefix}valueof_CLASS_#{apiIndex}"
-          value = GetSymbolValue(symbol, $sizeOfSigned, true)
-          params[:class] = NumStr.new(value, cfgInfo[:CLASS])
-        else
-          params[:class] = cfgInfo[:CLASS]
-        end
+      if cfgInfo.has_key?(:CLSIDX) && $classId.has_key?(cfgInfo[:CLSIDX])
+        params[:class] = $classId[cfgInfo[:CLSIDX]]
       end
 
       # API名，ファイル名，行番号を追加
@@ -414,6 +402,71 @@ module Cfg1Out
 end
 
 #
+#  ドメイン関連の処理
+#
+def DomainProc
+  #
+  #  ドメインデータ（$domData）を生成
+  #
+  $domData = {}
+  $domainId.each do |domainName, domainVal|
+    domid = NumStr.new(domainVal, domainName)
+    $domData[domainVal] = { :domid => domid }
+  end
+  $globalVars.push("domData")
+end
+
+#
+#  クラス関連の処理
+#
+def ClassProc
+  #
+  #  クラス定義ファイルを実行する
+  #
+  $classFileNames.each do |classFileName|
+    IncludeTrb(classFileName)
+  end
+
+  #
+  #  クラスのリストの加工
+  #
+  $clsData.each do |_, params|
+    bitmap = 0
+    params[:affinityPrcList].each do |prcid|
+      bitmap |= (1 << (prcid - 1))
+    end
+    params[:affinityPrcBitmap] = bitmap
+  end
+
+  #
+  #  クラス記述がエラーの場合に以降のエラーを防ぐために使用するクラス
+  #
+  $TCLS_ERROR = NumStr.new($clsData.keys.first, "")
+
+  #
+  #  クラスID情報（$classId）の生成
+  #
+  $classId = {}
+  $cfgFileInfo.each do |cfgInfo|
+    if cfgInfo.has_key?(:CLSSTR)
+      symbol = "#{$cfg1_prefix}clsid_#{cfgInfo[:CLSIDX]}"
+      value = Cfg1Out.GetSymbolValue(symbol, $sizeOfSigned, true)
+      if !value.nil?
+        if $clsData.has_key?(value)
+          $classId[cfgInfo[:CLSIDX]] = NumStr.new(value, cfgInfo[:CLSSTR])
+        else
+          error("E_ID: illegal class `#{cfgInfo[:CLSSTR]}'",
+								"#{cfgInfo[:_FILE_]}:#{cfgInfo[:_LINE_]}:")
+          # 以降のエラーの抑止
+          $classId[cfgInfo[:CLSIDX]] = $TCLS_ERROR
+        end
+      end
+    end
+  end
+  $globalVars.push("classId")
+end
+
+#
 #  パス2の処理
 #
 def Pass2
@@ -428,18 +481,7 @@ def Pass2
   end
 
   #
-  #  パス3以降に引き渡す情報の定義
-  #
-  $globalVars = [ "globalVars",
-                  "apiDefinition",
-                  "symbolValueTable",
-                  "cfgFileInfo",
-                  "cfgData",
-                  "asmLabel",
-                  "endianLittle" ]
-
-  #
-  #  パス1の生成物を読み込む
+  #  パス1の生成物（静的API以外の部分）を読み込む
   #
   Cfg1Out.Read()
   abort if $errorFlag					# エラー発生時はabortする
@@ -450,8 +492,23 @@ def Pass2
   DefineSymbolValue()
 
   #
+  #  ドメイン関連の処理
+  #
+  if $supportDomain
+    DomainProc()
+  end
+
+  #
+  #  クラス関連の処理
+  #
+  if $supportClass
+    ClassProc()
+  end
+
+  #
   #  生成スクリプト（trbファイル）を実行する
   #
+  Cfg1Out.ReadPhase(nil)
   $trbFileNames.each do |trbFileName|
     if /^(.+):(\w+)$/ =~ trbFileName
       trbFileName = $1

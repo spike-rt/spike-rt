@@ -41,13 +41,10 @@ messagebuf/kernel/taskhook.h
 messagebuf/kernel/wait.c
 messagebuf/kernel/wait.h
 
-messagebuf/test/tBitKernel.c
 messagebuf/test/test_messagebuf1.c
 messagebuf/test/test_messagebuf1.cfg
-messagebuf/test/test_messagebuf1.h
 messagebuf/test/test_messagebuf2.c
 messagebuf/test/test_messagebuf2.cfg
-messagebuf/test/test_messagebuf2.h
 
 ovrhdr/include/kernel.h
 
@@ -121,7 +118,7 @@ subprio/kernel/kernel_api.def
 subprio/kernel/kernel_rename.def
 subprio/kernel/kernel_rename.h
 subprio/kernel/kernel_unrename.h
-subprio/kernel/mutex.trb
+subprio/kernel/mutex.c
 subprio/kernel/sys_manage.c
 subprio/kernel/task.c
 subprio/kernel/task.h
@@ -129,12 +126,49 @@ subprio/kernel/task.trb
 subprio/kernel/task_manage.c
 subprio/kernel/task_refer.c
 
+subprio/test/test_subprio.txt
 subprio/test/test_subprio1.c
 subprio/test/test_subprio1.cfg
-subprio/test/test_subprio1.h
 subprio/test/test_subprio2.c
 subprio/test/test_subprio2.cfg
-subprio/test/test_subprio2.h
+subprio/test/test_subprio3.c
+subprio/test/test_subprio3.cfg
+
+subprio/test_cfg/pass2_subprio1.cfg
+subprio/test_cfg/pass2_subprio1/error.txt
+
+inherit/include/kernel.h
+
+inherit/kernel/Makefile.kernel
+inherit/kernel/allfunc.h
+inherit/kernel/kernel_rename.def
+inherit/kernel/kernel_rename.h
+inherit/kernel/kernel_sym.def
+inherit/kernel/kernel_unrename.h
+inherit/kernel/mutex.c
+inherit/kernel/mutex.h
+inherit/kernel/mutex.trb
+inherit/kernel/task.c
+inherit/kernel/task_manage.c
+inherit/kernel/taskhook.c
+inherit/kernel/taskhook.h
+inherit/kernel/wait.h
+
+inherit/test/test_inherit.txt
+inherit/test/test_inherit1.c
+inherit/test/test_inherit1.cfg
+inherit/test/test_inherit2.c
+inherit/test/test_inherit2.cfg
+inherit/test/test_inherit3.c
+inherit/test/test_inherit3.cfg
+inherit/test/test_inherit4.c
+inherit/test/test_inherit4.cfg
+inherit/test/test_inherit5.c
+inherit/test/test_inherit5.cfg
+inherit/test/test_inherit6.c
+inherit/test/test_inherit6.cfg
+inherit/test/test_inherit7.c
+inherit/test/test_inherit7.cfg
 
 dcre/include/kernel.h
 
@@ -215,13 +249,6 @@ non_tecs/doc/non_tecs.txt
 
 non_tecs/arch/simtimer/sim_timer_cntl.h
 
-non_tecs/target/macosx_xcode/target_serial.c
-non_tecs/target/macosx_xcode/target_serial.cfg
-non_tecs/target/macosx_xcode/target_serial.h
-non_tecs/target/macosx_xcode/target_syssvc.h
-non_tecs/target/macosx_xcode/unix_sigio.cfg
-non_tecs/target/macosx_xcode/unix_sigio.h
-
 non_tecs/target/ct11mpcore_gcc/target_kernel_impl.c
 non_tecs/target/ct11mpcore_gcc/target_serial.c
 non_tecs/target/ct11mpcore_gcc/target_serial.cfg
@@ -242,25 +269,21 @@ non_tecs/arch/arm_gcc/rza1/chip_serial.h
 non_tecs/arch/arm_gcc/rza1/scif.c
 non_tecs/arch/arm_gcc/rza1/scif.h
 
-non_tecs/target/zybo_gcc/target_kernel_impl.c
-non_tecs/target/zybo_gcc/target_serial.cfg
-non_tecs/target/zybo_gcc/target_serial.h
-non_tecs/target/zybo_gcc/target_syssvc.h
+non_tecs/target/macos_xcode/target_serial.cfg
+non_tecs/target/macos_xcode/target_serial.h
+non_tecs/target/macos_xcode/target_syssvc.h
 
-non_tecs/arch/arm_gcc/zynq7000/chip_serial.c
-non_tecs/arch/arm_gcc/zynq7000/chip_serial.cfg
-non_tecs/arch/arm_gcc/zynq7000/chip_serial.h
-non_tecs/arch/arm_gcc/zynq7000/xuartps.c
-non_tecs/arch/arm_gcc/zynq7000/xuartps.h
+non_tecs/target/linux_gcc/target_serial.cfg
+non_tecs/target/linux_gcc/target_serial.h
+non_tecs/target/linux_gcc/target_syssvc.h
+
+non_tecs/arch/posix_gcc/posix_serial.c
+non_tecs/arch/posix_gcc/posix_serial.cfg
+non_tecs/arch/posix_gcc/posix_serial.h
+non_tecs/arch/posix_gcc/posix_sigio.cfg
+non_tecs/arch/posix_gcc/posix_sigio.h
 
 non_tecs/target/dummy_gcc/target_serial.c
 non_tecs/target/dummy_gcc/target_serial.cfg
 non_tecs/target/dummy_gcc/target_serial.h
 non_tecs/target/dummy_gcc/target_syssvc.h
-
-non_tecs/arch/arm_m_gcc/lpc5500/chip_serial.c
-non_tecs/arch/arm_m_gcc/lpc5500/chip_serial.cfg
-non_tecs/arch/arm_m_gcc/lpc5500/chip_serial.h
-
-non_tecs/target/lpc55s69evk_gcc/target_serial.cfg
-non_tecs/target/lpc55s69evk_gcc/target_serial.h

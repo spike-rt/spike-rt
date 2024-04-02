@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_mutex7.c 882 2018-02-01 09:55:37Z ertl-hiro $
+ *  $Id: test_mutex7.c 1614 2022-09-16 20:21:17Z ertl-hiro $
  */
 
 /* 
@@ -57,9 +57,9 @@
  *			  れること．
  *		(A-5) ロックしていたミューテックス（複数）がロック解除され，ロッ
  *			  クを待っていたタスク（複数）がそれをロックし，優先度が変
- *			  化し，待ち解除されること．その時に，後でミューテックスを
- *			  ロックしたタスク（先にロックしていたミューテックスを待っ
- *			  ていたタスク）の方が，優先順位が高くなること．
+ *			  化し，待ち解除されること．その時に，後にロックしていた
+ *			  ミューテックスを待っていたタスクの方が，優先順位が高くな
+ *			  ること．
  *		(A-6) (A-5)の結果，タスクディスパッチが起こること．
  *
  * 【テスト項目の実現方法】
@@ -87,9 +87,8 @@
  *		MTX2）をこの順でロックさせ，別の低優先度タスク2つ（TASK3，
  *		TASK4）にそれぞれのロックを待たせた状態で，高優先度タスク
  *		（TASK1）からTASK2をter_tskすると，TASK3とTASK4が中優先度になっ
- *		て待ち解除されることを確認する．また，先にロックしていたミュー
- *		テックス（MTX1）を待っていたタスク（TASK3）が，TASK4よりも優先
- *		順位が高くなることを確認する．
+ *		て待ち解除されることを確認する．また，後にロックしていたMTX2を
+ *		待っていたTASK4が，TASK3よりも優先順位が高くなることを確認する．
  *	(A-6)
  *		低優先度タスク（TASK2）に高優先度上限ミューテックス2つ（MTX1，
  *		MTX2）をこの順でロックさせ，別の低優先度タスク2つ（TASK3，
@@ -292,7 +291,7 @@
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	PRI		tskpri;
@@ -470,7 +469,7 @@ task1(intptr_t exinf)
 static uint_t	task2_count = 0;
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -567,7 +566,7 @@ task2(intptr_t exinf)
 static uint_t	task3_count = 0;
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 	PRI		tskpri;
@@ -633,7 +632,7 @@ task3(intptr_t exinf)
 static uint_t	task4_count = 0;
 
 void
-task4(intptr_t exinf)
+task4(EXINF exinf)
 {
 	ER_UINT	ercd;
 	PRI		tskpri;

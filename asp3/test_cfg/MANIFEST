@@ -1,0 +1,24 @@
+PACKAGE asp3
+
+MANIFEST
+cfg_all1.c
+cfg_all1.cfg
+cfg_all1/kernel_cfg.c
+cfg_all1/kernel_cfg.h
+cfg_common.h
+pass1_cfg1.cfg
+pass1_cfg1/error.txt
+pass2_cfg1.cfg
+pass2_cfg1/error.txt
+pass2_int1.cfg
+pass2_int1/error.txt
+pass2_obj1.cfg
+pass2_obj1/error.txt
+pass2_obj2.cfg
+pass2_obj2/error.txt
+pass2_task1.cfg
+pass2_task1/error.txt
+pass3_all1.c
+pass3_all1.cfg
+pass3_all1/error.txt
+testcfg.rb

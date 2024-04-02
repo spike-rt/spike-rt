@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2014-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2014-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_messagebuf1.c 949 2018-04-19 13:29:51Z ertl-hiro $
+ *  $Id: test_messagebuf1.c 1718 2022-10-22 14:45:54Z ertl-hiro $
  */
 
 /* 
@@ -80,8 +80,11 @@
  *	TASK1: 高優先度タスク，メインタスク，最初から起動
  *	TASK2: 中優先度タスク
  *	TASK3: 低優先度タスク
- *	MBF1: メッセージバッファ（TA_NULL属性，最大メッセージサイズ：26，メッ
- *		  セージバッファ管理領域のサイズ：26→実際には28）
+ *	MBF1: メッセージバッファ（TA_NULL属性，最大メッセージサイズ：23，メッ
+ *		  セージバッファ管理領域のサイズ：23→実際には24）
+ *	 ※ メッセージバッファ管理領域のサイズは，MB_T型（＝intptr_t型）の
+ *		サイズの倍数に切り上げられるため，intptr_t型のサイズが4でも8で
+ *		も同じになるようなサイズを選んでいる．
  *
  * 【テストシーケンス】
  *
@@ -93,7 +96,7 @@
  *		assert(rmbf.rtskid == TSK_NONE)
  *		assert(rmbf.smbfcnt == 0)
  *		snd_mbf(MBF1, string1, 9)		... (A-3)(C-1)，使用：0〜15
- *	2:	snd_mbf(MBF1, string2, 5)		... (A-3)(C-4)，使用：0〜27
+ *	2:	snd_mbf(MBF1, string2, 3)		... (A-3)(C-4)，使用：0〜23
  *	3:	snd_mbf(MBF1, string3, 4)		... (A-5)
  *	== TASK2（優先度：中）==
  *	4:	ref_mbf(MBF1, &rmbf)
@@ -102,17 +105,17 @@
  *		assert(rmbf.smbfcnt == 2)
  *	5:	snd_mbf(MBF1, string1, 4)		... (A-4)
  *	== TASK3（優先度：低）==
- *	6:	rcv_mbf(MBF1, buf1) -> 9		... (B-3)(D-1)(C-1)，使用：16〜27,0〜15
+ *	6:	rcv_mbf(MBF1, buf1) -> 9		... (B-3)(D-1)(C-1)，使用：16〜23,0〜15
  *	== TASK1（続き）==
- *	7:	assert(strncmp(buf1, string1, 9) == 0)
+ *	7:	assert(memcmp(buf1, string1, 9) == 0)
  *		slp_tsk()
  *	== TASK2（続き）==
- *	8:	rcv_mbf(MBF1, buf1) -> 5		... (B-1)(D-4)，使用：0〜15
- *		assert(strncmp(buf1, string2, 5) == 0)
+ *	8:	rcv_mbf(MBF1, buf1) -> 3		... (B-1)(D-4)，使用：0〜15
+ *		assert(memcmp(buf1, string2, 3) == 0)
  *		rcv_mbf(MBF1, buf1) -> 4		... (B-1)(D-1)，使用：8〜15
- *		assert(strncmp(buf1, string3, 4) == 0)
+ *		assert(memcmp(buf1, string3, 4) == 0)
  *		rcv_mbf(MBF1, buf1) -> 4		... (B-1)(D-1)，使用：なし
- *		assert(strncmp(buf1, string1, 4) == 0)
+ *		assert(memcmp(buf1, string1, 4) == 0)
  *	9:	rcv_mbf(MBF1, buf1) -> 10		... (B-6)
  *	== TASK3（続き）==
  *	10:	ref_mbf(MBF1, &rmbf)
@@ -121,45 +124,45 @@
  *		assert(rmbf.smbfcnt == 0)
  *	11:	snd_mbf(MBF1, string2, 10)		... (A-2)
  *	== TASK2（続き）==
- *	12:	assert(strncmp(buf1, string2, 10) == 0)
+ *	12:	assert(memcmp(buf1, string2, 10) == 0)
  *		rcv_mbf(MBF1, buf1) -> 11		... (B-6)
  *	== TASK3（続き）==
  *	13:	wup_tsk(TASK1)
  *	== TASK1（続き）==
  *	14:	snd_mbf(MBF1, string3, 11)		... (A-1)
- *		assert(strncmp(buf1, string3, 11) == 0)
- *		snd_mbf(MBF1, string1, 16)		... (A-3)(C-3)，使用：16〜27,0〜7
+ *		assert(memcmp(buf1, string3, 11) == 0)
+ *		snd_mbf(MBF1, string1, 12)		... (A-3)(C-3)，使用：16〜23,0〜7
  *		tslp_tsk(2 * TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
  *	== TASK2（続き）==
  *	15:	slp_tsk()
  *	== TASK3（続き）==
- *	16:	snd_mbf(MBF1, string2, 12)		... (A-5)
+ *	16:	snd_mbf(MBF1, string2, 8)		... (A-5)
  *	== TASK1（続き）==
  *	17:	wup_tsk(TASK2)
  *		tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
  *	== TASK2（続き）==
  *	18:	snd_mbf(MBF1, string3, 4)		... (A-4)
  *	== TASK1（続き）==
- *	19:	rcv_mbf(MBF1, buf1) -> 16		... (B-2)(D-3)(C-1)(C-2)，
- *										... 				使用：8〜27,0〜3
- *		assert(strncmp(buf1, string1, 16) == 0)
+ *	19:	rcv_mbf(MBF1, buf1) -> 12		... (B-2)(D-3)(C-1)(C-2)，
+ *										... 				使用：8〜23,0〜3
+ *		assert(memcmp(buf1, string1, 12) == 0)
  *		slp_tsk()
  *	== TASK2（続き）==
- *	20:	rcv_mbf(MBF1, buf1) -> 12		... (B-1)(D-1)，使用：24〜27，0〜3
- *		assert(strncmp(buf1, string2, 12) == 0)
- *	21:	snd_mbf(MBF1, string1, 25)		... (A-5)
+ *	20:	rcv_mbf(MBF1, buf1) -> 8		... (B-1)(D-1)，使用：24〜27，0〜3
+ *		assert(memcmp(buf1, string2, 8) == 0)
+ *	21:	snd_mbf(MBF1, string1, 23)		... (A-5)
  *	== TASK3（続き）==
  *	22:	rcv_mbf(MBF1, buf1) -> 4		... (B-1)(D-2)，使用：なし
- *		assert(strncmp(buf1, string3, 4) == 0)
- *		rcv_mbf(MBF1, buf1) -> 25		... (B-5)
+ *		assert(memcmp(buf1, string3, 4) == 0)
+ *		rcv_mbf(MBF1, buf1) -> 23		... (B-5)
  *	== TASK2（続き）==
- *	23:	assert(strncmp(buf1, string1, 25) == 0)
- *		snd_mbf(MBF1, string2, 26)		... (A-5)
+ *	23:	assert(memcmp(buf1, string1, 23) == 0)
+ *		snd_mbf(MBF1, string2, 23)		... (A-5)
  *	== TASK3（続き）==
  *	24:	wup_tsk(TASK1)
  *	== TASK1（続き）==
- *	25:	rcv_mbf(MBF1, buf1) -> 26		... (B-4)
- *		assert(strncmp(buf1, string2, 26) == 0)
+ *	25:	rcv_mbf(MBF1, buf1) -> 23		... (B-4)
+ *		assert(memcmp(buf1, string2, 23) == 0)
  *		slp_tsk()
  *	== TASK2（続き）==
  *	26:	slp_tsk()
@@ -171,21 +174,19 @@
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_messagebuf1.h"
+#include "test_common.h"
 #include <string.h>
 
-const char string1[26] = "abcdefghijklmnopqrstuvwxyz";
-const char string2[26] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char string1[23] = "abcdefghijklmnopqrstuvw";
+const char string2[23] = "ABCDEFGHIJKLMNOPQRSTUVW";
 const char string3[16] = "0123456789abcdef";
 
-char buf1[26];
-
-extern ER	bit_kernel(void);
+char buf1[23];
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RMBF	rmbf;
@@ -212,7 +213,7 @@ task1(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_point(2);
-	ercd = snd_mbf(MBF1, string2, 5);
+	ercd = snd_mbf(MBF1, string2, 3);
 	check_ercd(ercd, E_OK);
 
 	check_point(3);
@@ -220,7 +221,7 @@ task1(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_point(7);
-	check_assert(strncmp(buf1, string1, 9) == 0);
+	check_assert(memcmp(buf1, string1, 9) == 0);
 
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
@@ -229,9 +230,9 @@ task1(intptr_t exinf)
 	ercd = snd_mbf(MBF1, string3, 11);
 	check_ercd(ercd, E_OK);
 
-	check_assert(strncmp(buf1, string3, 11) == 0);
+	check_assert(memcmp(buf1, string3, 11) == 0);
 
-	ercd = snd_mbf(MBF1, string1, 16);
+	ercd = snd_mbf(MBF1, string1, 12);
 	check_ercd(ercd, E_OK);
 
 	ercd = tslp_tsk(2 * TEST_TIME_CP);
@@ -246,27 +247,27 @@ task1(intptr_t exinf)
 
 	check_point(19);
 	ercd = rcv_mbf(MBF1, buf1);
-	check_ercd(ercd, 16);
+	check_ercd(ercd, 12);
 
-	check_assert(strncmp(buf1, string1, 16) == 0);
+	check_assert(memcmp(buf1, string1, 12) == 0);
 
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
 
 	check_point(25);
 	ercd = rcv_mbf(MBF1, buf1);
-	check_ercd(ercd, 26);
+	check_ercd(ercd, 23);
 
-	check_assert(strncmp(buf1, string2, 26) == 0);
+	check_assert(memcmp(buf1, string2, 23) == 0);
 
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RMBF	rmbf;
@@ -287,26 +288,26 @@ task2(intptr_t exinf)
 
 	check_point(8);
 	ercd = rcv_mbf(MBF1, buf1);
-	check_ercd(ercd, 5);
+	check_ercd(ercd, 3);
 
-	check_assert(strncmp(buf1, string2, 5) == 0);
-
-	ercd = rcv_mbf(MBF1, buf1);
-	check_ercd(ercd, 4);
-
-	check_assert(strncmp(buf1, string3, 4) == 0);
+	check_assert(memcmp(buf1, string2, 3) == 0);
 
 	ercd = rcv_mbf(MBF1, buf1);
 	check_ercd(ercd, 4);
 
-	check_assert(strncmp(buf1, string1, 4) == 0);
+	check_assert(memcmp(buf1, string3, 4) == 0);
+
+	ercd = rcv_mbf(MBF1, buf1);
+	check_ercd(ercd, 4);
+
+	check_assert(memcmp(buf1, string1, 4) == 0);
 
 	check_point(9);
 	ercd = rcv_mbf(MBF1, buf1);
 	check_ercd(ercd, 10);
 
 	check_point(12);
-	check_assert(strncmp(buf1, string2, 10) == 0);
+	check_assert(memcmp(buf1, string2, 10) == 0);
 
 	ercd = rcv_mbf(MBF1, buf1);
 	check_ercd(ercd, 11);
@@ -321,29 +322,29 @@ task2(intptr_t exinf)
 
 	check_point(20);
 	ercd = rcv_mbf(MBF1, buf1);
-	check_ercd(ercd, 12);
+	check_ercd(ercd, 8);
 
-	check_assert(strncmp(buf1, string2, 12) == 0);
+	check_assert(memcmp(buf1, string2, 8) == 0);
 
 	check_point(21);
-	ercd = snd_mbf(MBF1, string1, 25);
+	ercd = snd_mbf(MBF1, string1, 23);
 	check_ercd(ercd, E_OK);
 
 	check_point(23);
-	check_assert(strncmp(buf1, string1, 25) == 0);
+	check_assert(memcmp(buf1, string1, 23) == 0);
 
-	ercd = snd_mbf(MBF1, string2, 26);
+	ercd = snd_mbf(MBF1, string2, 23);
 	check_ercd(ercd, E_OK);
 
 	check_point(26);
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RMBF	rmbf;
@@ -371,22 +372,22 @@ task3(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_point(16);
-	ercd = snd_mbf(MBF1, string2, 12);
+	ercd = snd_mbf(MBF1, string2, 8);
 	check_ercd(ercd, E_OK);
 
 	check_point(22);
 	ercd = rcv_mbf(MBF1, buf1);
 	check_ercd(ercd, 4);
 
-	check_assert(strncmp(buf1, string3, 4) == 0);
+	check_assert(memcmp(buf1, string3, 4) == 0);
 
 	ercd = rcv_mbf(MBF1, buf1);
-	check_ercd(ercd, 25);
+	check_ercd(ercd, 23);
 
 	check_point(24);
 	ercd = wup_tsk(TASK1);
 	check_ercd(ercd, E_OK);
 
 	check_finish(27);
-	check_point(0);
+	check_assert(false);
 }

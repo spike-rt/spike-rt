@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_sem1.c 1139 2019-01-04 16:27:31Z ertl-hiro $
+ *  $Id: test_sem1.c 1785 2023-01-15 11:44:24Z ertl-hiro $
  */
 
 /* 
@@ -52,6 +52,8 @@
  *		(A-2) semidが不正（小さすぎる）［NGKI1502］
  *		(A-3) semidが不正（大きすぎる）［NGKI1502］
  *	(B) sig_semによりセマフォ待ち状態のタスクが待ち解除される［NGKI1505］
+ *		＊この時，対象セマフォの資源数は変化しない［NGKI1506］
+ *		＊待ち解除されたタスクにはE_OKが返る［NGKI1507］
  *		(B-1) 待ち解除されたタスクに切り換わる
  *		(B-2) ディスパッチ保留状態で，切り換わらない
  *		(B-3) 待ち解除されたタスクが強制待ち状態で，切り換わらない
@@ -81,10 +83,18 @@
  *		(G-6) TA_TPRI属性のセマフォで，優先度が低いタスクが待っている場合
  *	(H) セマフォ待ち状態が強制解除される［NGKI1522］
  *	(I) セマフォ待ち状態の間にセマフォが初期化される［NGKI1523］
- *	(J) セマフォの資源数の初期値が正しく設定される［NGKI1485］
- *		(J-1) セマフォの資源数の初期値が0
- *		(J-2) セマフォの資源数の初期値が1
- *		(J-3) セマフォの資源数の初期値が2
+ *	(J) 生成されたセマフォの資源数は初期資源数に，待ち行列は空の状態に
+ *	    初期化される［NGKI1464］
+ *		(J-1) セマフォの初期資源数が0
+ *		(J-2) セマフォの初期資源数が1
+ *		(J-3) セマフォの初期資源数が2
+ *	(K) タスクに終了要求があると待ち状態にならない［NGKI3457］
+ *		(K-1) タスク終了要求フラグとタスク終了禁止フラグがセットされた
+ *		      タスクが，wai_semを呼んで待ち状態になろうとした場合
+ *		(K-2) タスク終了禁止フラグがセットされておらず，セマフォ待ち状
+ *		      態になっているタスクに，終了要求が出された場合
+ *		(K-3) タスク終了禁止フラグがセットされ，セマフォ待ち状態になっ
+ *		      ているタスクに，終了要求が出された場合
  *
  * 【使用リソース】
  *
@@ -101,162 +111,183 @@
  * 【テストシーケンス】
  *
  *	== TASK1（優先度：中）==
- *  1:	ref_sem(SEM1, &rsem)
+ *	1:	ref_sem(SEM1, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 1)			... (J-2)
- *  	ref_sem(SEM2, &rsem)
+ *		ref_sem(SEM2, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 2)			... (J-3)
- *  	ref_sem(SEM3, &rsem)
+ *		ref_sem(SEM3, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 0)			... (J-1)
  *	2:	loc_cpu()
  *		sig_sem(SEM1) -> E_CTX				... (A-1)
  *		wai_sem(SEM1) -> E_CTX				... (E-2)
  *		unl_cpu()
- *		dis_dsp()
+ *	3:	dis_dsp()
  *		wai_sem(SEM1) -> E_CTX				... (E-3)
  *		ena_dsp()
- *		chg_ipm(TMAX_INTPRI)
+ *	4:	chg_ipm(TMAX_INTPRI)
  *		wai_sem(SEM1) -> E_CTX				... (E-4)
  *		chg_ipm(TIPM_ENAALL)
  *		sig_sem(0) -> E_ID					... (A-2)
  *		wai_sem(0) -> E_ID					... (E-5)
  *		sig_sem(TNUM_SEMID+1) -> E_ID		... (A-3)
  *		wai_sem(TNUM_SEMID+1) -> E_ID		... (E-6)
- *	3:	act_tsk(TASK3)
- *	4:	slp_tsk()
+ *	5:	act_tsk(TASK3)
+ *	6:	slp_tsk()
  *	== TASK3（優先度：低）==
- *	5:	wai_sem(SEM1)						... (F-1)
- *  6:	ref_sem(SEM1, &rsem)
+ *	7:	wai_sem(SEM1)						... (F-1)
+ *		ref_sem(SEM1, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 0)
- *	7:	sta_alm(ALM1, TEST_TIME_CP) ... ALM1が実行開始するまで
- *	8:	wai_sem(SEM1)						... (G-1)
+ *	8:	sta_alm(ALM1, TEST_TIME_CP) ... ALM1が実行開始するまで
+ *	9:	wai_sem(SEM1)						... (G-1)
  *	== ALM1 ==
- *	9:	wai_sem(SEM1) -> E_CTX				... (E-1)
- *	10:	wup_tsk(TASK1)
+ *	10:	wai_sem(SEM1) -> E_CTX				... (E-1)
+ *		wup_tsk(TASK1)
  *	11:	RETURN
  *	== TASK1（続き）==
  *	12:	act_tsk(TASK2)
  *	== TASK2（優先度：高）==
  *	13:	wai_sem(SEM1)						... (G-2)
  *	== TASK1（続き）==
- *  14:	ref_sem(SEM1, &rsem)
+ *	14:	ref_sem(SEM1, &rsem)
  *		assert(rsem.wtskid == TASK3)
  *		assert(rsem.semcnt == 0)
  *	15:	sig_sem(SEM1)						... (B-4)
+ *		ref_sem(SEM1, &rsem)
+ *		assert(rsem.wtskid == TASK2)
+ *		assert(rsem.semcnt == 0)
  *	16:	sig_sem(SEM1)						... (B-1)
  *	== TASK2（続き）==
- *	17:	wai_sem(SEM1)						... (G-1)
+ *	17:	ref_sem(SEM1, &rsem)
+ *		assert(rsem.wtskid == TSK_NONE)
+ *		assert(rsem.semcnt == 0)
+ *	18:	wai_sem(SEM1)						... (G-1)
  *	== TASK1（続き）==
- *	18: dis_dsp()
- *	19:	sig_sem(SEM1)						... (B-2)
+ *	19:	dis_dsp()
+ *		sig_sem(SEM1)						... (B-2)
+ *		ref_sem(SEM1, &rsem)
+ *		assert(rsem.wtskid == TSK_NONE)
+ *		assert(rsem.semcnt == 0)
  *	20:	ena_dsp()
  *	== TASK2（続き）==
  *	21:	wai_sem(SEM1)						... (G-1)
  *	== TASK1（続き）==
- *	22: sus_tsk(TASK2)
- *	23:	sig_sem(SEM1)						... (B-3)
- *	24: sig_sem(SEM1)						... (C-1)
- *	25: sig_sem(SEM1) -> E_QOVR				... (D-1)
- *  26:	ref_sem(SEM1, &rsem)
+ *	22:	sus_tsk(TASK2)
+ *		sig_sem(SEM1)						... (B-3)
+ *		ref_sem(SEM1, &rsem)
+ *		assert(rsem.wtskid == TSK_NONE)
+ *		assert(rsem.semcnt == 0)
+ *	23:	sig_sem(SEM1)						... (C-1)
+ *		sig_sem(SEM1) -> E_QOVR				... (D-1)
+ *		ref_sem(SEM1, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 1)
- *	27:	rsm_tsk(TASK2)
+ *	24:	rsm_tsk(TASK2)
  *	== TASK2（続き）==
- *	28:	wai_sem(SEM2)						... (F-2)
- *  29:	ref_sem(SEM2, &rsem)
+ *	25:	wai_sem(SEM2)						... (F-2)
+ *		ref_sem(SEM2, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 1)
- *	30:	wai_sem(SEM2)						... (F-1)
- *	31: wai_sem(SEM2)						... (G-1)
+ *		wai_sem(SEM2)						... (F-1)
+ *	26:	wai_sem(SEM2)						... (G-1)
  *	== TASK1（続き）==
- *	32:	sig_sem(SEM2)						... (B-1)
+ *	27:	sig_sem(SEM2)						... (B-1)
  *	== TASK2（続き）==
- *	33:	wai_sem(SEM3)						... (G-3)
+ *	28:	wai_sem(SEM3)						... (G-3)
  *	== TASK1（続き）==
- *	34:	sig_sem(SEM2)						... (C-1)
- *	35:	sig_sem(SEM2)						... (C-2)
- *  36:	ref_sem(SEM2, &rsem)
+ *	29:	sig_sem(SEM2)						... (C-1)
+ *		sig_sem(SEM2)						... (C-2)
+ *  	ref_sem(SEM2, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 2)
- *	37:	sig_sem(SEM2) -> E_QOVR				... (D-2)
- *  38:	ref_sem(SEM2, &rsem)
+ *	30:	sig_sem(SEM2) -> E_QOVR				... (D-2)
+ *  	ref_sem(SEM2, &rsem)
  *		assert(rsem.wtskid == TSK_NONE)
  *		assert(rsem.semcnt == 2)
- *	39:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
+ *	31:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
  *	== TASK3（続き）==
- *	40:	wai_sem(SEM3)						... (G-4)
+ *	32:	wai_sem(SEM3)						... (G-4)
  *	== TASK1（続き）==
- *	41:	act_tsk(TASK4)
- *	42:	act_tsk(TASK5)
- *	43:	rot_rdq(TPRI_SELF)
+ *	33:	act_tsk(TASK4)
+ *		act_tsk(TASK5)
+ *	34:	rot_rdq(TPRI_SELF)
  *	== TASK4（優先度：中）==
- *	44:	wai_sem(SEM3)						... (G-6)
+ *	35:	dis_ter()
+ *	36:	wai_sem(SEM3)						... (G-6)
  *	== TASK5（優先度：中）==
- *	45:	wai_sem(SEM3)						... (G-5)
+ *	37:	wai_sem(SEM3)						... (G-5)
  *	== TASK1（続き）==
- *	46:	sig_sem(SEM3)						... (B-1)
+ *	38:	sig_sem(SEM3)						... (B-1)
  *	== TASK2（続き）==
- *	47:	wai_sem(SEM1)
- *		wai_sem(SEM1) -> E_RLWAI
+ *	39:	wai_sem(SEM1)
+ *	40:	wai_sem(SEM1) -> E_RLWAI
  *	== TASK1（続き）==
- *	48:	sig_sem(SEM3)						... (B-4)
- *	49:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
+ *	41:	sig_sem(SEM3)						... (B-4)
+ *		ras_ter(TASK4)
+ *	42:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
  *	== TASK4（続き）==
- *	50:	ext_tsk() -> noreturn
+ *	43:	wai_sem(SEM1) -> E_RASTER			... (K-1)
+ *	44:	ena_ter() -> noreturn
  *	== TASK1（続き）==
- *	51:	sig_sem(SEM3)						... (B-4)
- *	52:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
+ *	45:	sig_sem(SEM3)						... (B-4)
+ *	46:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
  *	== TASK5（続き）==
- *	53:	ext_tsk() -> noreturn
+ *	47:	wai_sem(SEM3) -> noreturn			... (K-2)
  *	== TASK1（続き）==
- *	54:	sig_sem(SEM3)						... (B-4)
- *	55:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
+ *	48:	ras_ter(TASK5)
+ *		sig_sem(SEM3)						... (B-4)
+ *	49:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
  *	== TASK3（続き）==
- *	56:	ext_tsk() -> noreturn
+ *	50:	dis_ter()
+ *	51:	wai_sem(SEM3) -> E_RASTER			... (K-3)
  *	== TASK1（続き）==
- *	57: rel_wai(TASK2)						... (H)
+ *	52:	ras_ter(TASK3)
+ *	53:	tslp_tsk(TEST_TIME_CP) -> E_TMOUT ... TASK1が実行再開するまで
+ *	== TASK3（続き）==
+ *	54:	ena_ter() -> noreturn
+ *	== TASK1（続き）==
+ *	55:	rel_wai(TASK2)						... (H)
  *	== TASK2（続き）==
- *	58:	wai_sem(SEM1) -> E_DLT
+ *	56:	wai_sem(SEM1) -> E_DLT
  *	== TASK1（続き）==
- *	59: ini_sem(SEM1)						... (I)
+ *	57:	ini_sem(SEM1)						... (I)
  *	== TASK2（続き）==
- *	60: ext_tsk() -> noreturn
+ *	58:	ext_tsk() -> noreturn
  *	== TASK1（続き）==
- *	61: END
+ *	59:	END
  */
 
 #include <kernel.h>
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_sem1.h"
+#include "test_common.h"
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
-	check_point(9);
+	check_point(10);
 	ercd = wai_sem(SEM1);
 	check_ercd(ercd, E_CTX);
 
-	check_point(10);
 	ercd = wup_tsk(TASK1);
 	check_ercd(ercd, E_OK);
 
 	check_point(11);
 	return;
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RSEM	rsem;
@@ -298,6 +329,7 @@ task1(intptr_t exinf)
 	ercd = unl_cpu();
 	check_ercd(ercd, E_OK);
 
+	check_point(3);
 	ercd = dis_dsp();
 	check_ercd(ercd, E_OK);
 
@@ -307,6 +339,7 @@ task1(intptr_t exinf)
 	ercd = ena_dsp();
 	check_ercd(ercd, E_OK);
 
+	check_point(4);
 	ercd = chg_ipm(TMAX_INTPRI);
 	check_ercd(ercd, E_OK);
 
@@ -328,11 +361,11 @@ task1(intptr_t exinf)
 	ercd = wai_sem(TNUM_SEMID+1);
 	check_ercd(ercd, E_ID);
 
-	check_point(3);
+	check_point(5);
 	ercd = act_tsk(TASK3);
 	check_ercd(ercd, E_OK);
 
-	check_point(4);
+	check_point(6);
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
 
@@ -352,17 +385,30 @@ task1(intptr_t exinf)
 	ercd = sig_sem(SEM1);
 	check_ercd(ercd, E_OK);
 
+	ercd = ref_sem(SEM1, &rsem);
+	check_ercd(ercd, E_OK);
+
+	check_assert(rsem.wtskid == TASK2);
+
+	check_assert(rsem.semcnt == 0);
+
 	check_point(16);
 	ercd = sig_sem(SEM1);
 	check_ercd(ercd, E_OK);
 
-	check_point(18);
+	check_point(19);
 	ercd = dis_dsp();
 	check_ercd(ercd, E_OK);
 
-	check_point(19);
 	ercd = sig_sem(SEM1);
 	check_ercd(ercd, E_OK);
+
+	ercd = ref_sem(SEM1, &rsem);
+	check_ercd(ercd, E_OK);
+
+	check_assert(rsem.wtskid == TSK_NONE);
+
+	check_assert(rsem.semcnt == 0);
 
 	check_point(20);
 	ercd = ena_dsp();
@@ -372,19 +418,23 @@ task1(intptr_t exinf)
 	ercd = sus_tsk(TASK2);
 	check_ercd(ercd, E_OK);
 
+	ercd = sig_sem(SEM1);
+	check_ercd(ercd, E_OK);
+
+	ercd = ref_sem(SEM1, &rsem);
+	check_ercd(ercd, E_OK);
+
+	check_assert(rsem.wtskid == TSK_NONE);
+
+	check_assert(rsem.semcnt == 0);
+
 	check_point(23);
 	ercd = sig_sem(SEM1);
 	check_ercd(ercd, E_OK);
 
-	check_point(24);
-	ercd = sig_sem(SEM1);
-	check_ercd(ercd, E_OK);
-
-	check_point(25);
 	ercd = sig_sem(SEM1);
 	check_ercd(ercd, E_QOVR);
 
-	check_point(26);
 	ercd = ref_sem(SEM1, &rsem);
 	check_ercd(ercd, E_OK);
 
@@ -392,23 +442,21 @@ task1(intptr_t exinf)
 
 	check_assert(rsem.semcnt == 1);
 
-	check_point(27);
+	check_point(24);
 	ercd = rsm_tsk(TASK2);
 	check_ercd(ercd, E_OK);
 
-	check_point(32);
+	check_point(27);
 	ercd = sig_sem(SEM2);
 	check_ercd(ercd, E_OK);
 
-	check_point(34);
+	check_point(29);
 	ercd = sig_sem(SEM2);
 	check_ercd(ercd, E_OK);
 
-	check_point(35);
 	ercd = sig_sem(SEM2);
 	check_ercd(ercd, E_OK);
 
-	check_point(36);
 	ercd = ref_sem(SEM2, &rsem);
 	check_ercd(ercd, E_OK);
 
@@ -416,11 +464,10 @@ task1(intptr_t exinf)
 
 	check_assert(rsem.semcnt == 2);
 
-	check_point(37);
+	check_point(30);
 	ercd = sig_sem(SEM2);
 	check_ercd(ercd, E_QOVR);
 
-	check_point(38);
 	ercd = ref_sem(SEM2, &rsem);
 	check_ercd(ercd, E_OK);
 
@@ -428,27 +475,48 @@ task1(intptr_t exinf)
 
 	check_assert(rsem.semcnt == 2);
 
-	check_point(39);
+	check_point(31);
 	ercd = tslp_tsk(TEST_TIME_CP);
 	check_ercd(ercd, E_TMOUT);
 
-	check_point(41);
+	check_point(33);
 	ercd = act_tsk(TASK4);
 	check_ercd(ercd, E_OK);
 
-	check_point(42);
 	ercd = act_tsk(TASK5);
 	check_ercd(ercd, E_OK);
 
-	check_point(43);
+	check_point(34);
 	ercd = rot_rdq(TPRI_SELF);
 	check_ercd(ercd, E_OK);
 
-	check_point(46);
+	check_point(38);
 	ercd = sig_sem(SEM3);
 	check_ercd(ercd, E_OK);
 
+	check_point(41);
+	ercd = sig_sem(SEM3);
+	check_ercd(ercd, E_OK);
+
+	ercd = ras_ter(TASK4);
+	check_ercd(ercd, E_OK);
+
+	check_point(42);
+	ercd = tslp_tsk(TEST_TIME_CP);
+	check_ercd(ercd, E_TMOUT);
+
+	check_point(45);
+	ercd = sig_sem(SEM3);
+	check_ercd(ercd, E_OK);
+
+	check_point(46);
+	ercd = tslp_tsk(TEST_TIME_CP);
+	check_ercd(ercd, E_TMOUT);
+
 	check_point(48);
+	ercd = ras_ter(TASK5);
+	check_ercd(ercd, E_OK);
+
 	ercd = sig_sem(SEM3);
 	check_ercd(ercd, E_OK);
 
@@ -456,36 +524,28 @@ task1(intptr_t exinf)
 	ercd = tslp_tsk(TEST_TIME_CP);
 	check_ercd(ercd, E_TMOUT);
 
-	check_point(51);
-	ercd = sig_sem(SEM3);
+	check_point(52);
+	ercd = ras_ter(TASK3);
 	check_ercd(ercd, E_OK);
 
-	check_point(52);
+	check_point(53);
 	ercd = tslp_tsk(TEST_TIME_CP);
 	check_ercd(ercd, E_TMOUT);
-
-	check_point(54);
-	ercd = sig_sem(SEM3);
-	check_ercd(ercd, E_OK);
 
 	check_point(55);
-	ercd = tslp_tsk(TEST_TIME_CP);
-	check_ercd(ercd, E_TMOUT);
-
-	check_point(57);
 	ercd = rel_wai(TASK2);
 	check_ercd(ercd, E_OK);
 
-	check_point(59);
+	check_point(57);
 	ercd = ini_sem(SEM1);
 	check_ercd(ercd, E_OK);
 
-	check_finish(61);
-	check_point(0);
+	check_finish(59);
+	check_assert(false);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RSEM	rsem;
@@ -495,65 +555,6 @@ task2(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_point(17);
-	ercd = wai_sem(SEM1);
-	check_ercd(ercd, E_OK);
-
-	check_point(21);
-	ercd = wai_sem(SEM1);
-	check_ercd(ercd, E_OK);
-
-	check_point(28);
-	ercd = wai_sem(SEM2);
-	check_ercd(ercd, E_OK);
-
-	check_point(29);
-	ercd = ref_sem(SEM2, &rsem);
-	check_ercd(ercd, E_OK);
-
-	check_assert(rsem.wtskid == TSK_NONE);
-
-	check_assert(rsem.semcnt == 1);
-
-	check_point(30);
-	ercd = wai_sem(SEM2);
-	check_ercd(ercd, E_OK);
-
-	check_point(31);
-	ercd = wai_sem(SEM2);
-	check_ercd(ercd, E_OK);
-
-	check_point(33);
-	ercd = wai_sem(SEM3);
-	check_ercd(ercd, E_OK);
-
-	check_point(47);
-	ercd = wai_sem(SEM1);
-	check_ercd(ercd, E_OK);
-
-	ercd = wai_sem(SEM1);
-	check_ercd(ercd, E_RLWAI);
-
-	check_point(58);
-	ercd = wai_sem(SEM1);
-	check_ercd(ercd, E_DLT);
-
-	check_point(60);
-	ercd = ext_tsk();
-
-	check_point(0);
-}
-
-void
-task3(intptr_t exinf)
-{
-	ER_UINT	ercd;
-	T_RSEM	rsem;
-
-	check_point(5);
-	ercd = wai_sem(SEM1);
-	check_ercd(ercd, E_OK);
-
-	check_point(6);
 	ercd = ref_sem(SEM1, &rsem);
 	check_ercd(ercd, E_OK);
 
@@ -561,50 +562,131 @@ task3(intptr_t exinf)
 
 	check_assert(rsem.semcnt == 0);
 
-	check_point(7);
-	ercd = sta_alm(ALM1, TEST_TIME_CP);
+	check_point(18);
+	ercd = wai_sem(SEM1);
 	check_ercd(ercd, E_OK);
 
-	check_point(8);
+	check_point(21);
+	ercd = wai_sem(SEM1);
+	check_ercd(ercd, E_OK);
+
+	check_point(25);
+	ercd = wai_sem(SEM2);
+	check_ercd(ercd, E_OK);
+
+	ercd = ref_sem(SEM2, &rsem);
+	check_ercd(ercd, E_OK);
+
+	check_assert(rsem.wtskid == TSK_NONE);
+
+	check_assert(rsem.semcnt == 1);
+
+	ercd = wai_sem(SEM2);
+	check_ercd(ercd, E_OK);
+
+	check_point(26);
+	ercd = wai_sem(SEM2);
+	check_ercd(ercd, E_OK);
+
+	check_point(28);
+	ercd = wai_sem(SEM3);
+	check_ercd(ercd, E_OK);
+
+	check_point(39);
 	ercd = wai_sem(SEM1);
 	check_ercd(ercd, E_OK);
 
 	check_point(40);
-	ercd = wai_sem(SEM3);
-	check_ercd(ercd, E_OK);
+	ercd = wai_sem(SEM1);
+	check_ercd(ercd, E_RLWAI);
 
 	check_point(56);
+	ercd = wai_sem(SEM1);
+	check_ercd(ercd, E_DLT);
+
+	check_point(58);
 	ercd = ext_tsk();
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task4(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
+	T_RSEM	rsem;
 
-	check_point(44);
+	check_point(7);
+	ercd = wai_sem(SEM1);
+	check_ercd(ercd, E_OK);
+
+	ercd = ref_sem(SEM1, &rsem);
+	check_ercd(ercd, E_OK);
+
+	check_assert(rsem.wtskid == TSK_NONE);
+
+	check_assert(rsem.semcnt == 0);
+
+	check_point(8);
+	ercd = sta_alm(ALM1, TEST_TIME_CP);
+	check_ercd(ercd, E_OK);
+
+	check_point(9);
+	ercd = wai_sem(SEM1);
+	check_ercd(ercd, E_OK);
+
+	check_point(32);
 	ercd = wai_sem(SEM3);
 	check_ercd(ercd, E_OK);
 
 	check_point(50);
-	ercd = ext_tsk();
+	ercd = dis_ter();
+	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_point(51);
+	ercd = wai_sem(SEM3);
+	check_ercd(ercd, E_RASTER);
+
+	check_point(54);
+	ercd = ena_ter();
+
+	check_assert(false);
 }
 
 void
-task5(intptr_t exinf)
+task4(EXINF exinf)
 {
 	ER_UINT	ercd;
 
-	check_point(45);
+	check_point(35);
+	ercd = dis_ter();
+	check_ercd(ercd, E_OK);
+
+	check_point(36);
 	ercd = wai_sem(SEM3);
 	check_ercd(ercd, E_OK);
 
-	check_point(53);
-	ercd = ext_tsk();
+	check_point(43);
+	ercd = wai_sem(SEM1);
+	check_ercd(ercd, E_RASTER);
 
-	check_point(0);
+	check_point(44);
+	ercd = ena_ter();
+
+	check_assert(false);
+}
+
+void
+task5(EXINF exinf)
+{
+	ER_UINT	ercd;
+
+	check_point(37);
+	ercd = wai_sem(SEM3);
+	check_ercd(ercd, E_OK);
+
+	check_point(47);
+	ercd = wai_sem(SEM3);
+
+	check_assert(false);
 }

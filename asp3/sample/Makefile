@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2022 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: Makefile 1270 2019-10-03 14:04:50Z ertl-hiro $
+#  $Id: Makefile 1660 2022-09-27 13:51:46Z ertl-hiro $
 # 
 
 #
@@ -55,12 +55,12 @@ TARGET = @(TARGET)
 #
 SRCLANG = @(SRCLANG)
 ifeq ($(SRCLANG),c)
-	LIBS = -lc
+	LIBS := $(LIBS) -lc
 endif
 ifeq ($(SRCLANG),c++)
 	USE_CXX = true
-	CXXLIBS = -lstdc++ -lm -lc
-	CXXRTS = cxxrt.o newlibrt.o
+	CXXLIBS := $(CXXLIBS) -lstdc++ -lm -lc
+	CXXRTS := $(CXXRTS) cxxrt.o newlibrt.o
 endif
 
 #
@@ -123,6 +123,13 @@ else
 endif
 
 #
+#  ダンプファイルの拡張子
+#
+ifndef DUMP
+	DUMP = srec
+endif
+
+#
 #  中間オブジェクトファイルと依存関係ファイルを置くディレクトリの定義
 #
 OBJDIR = @(OBJDIR)
@@ -156,6 +163,16 @@ ifndef OMIT_TECS
 endif
 
 #
+#  コンパイルオプションに関する定義
+#
+ifndef OMIT_WARNING_ALL
+	OMIT_WARNING_ALL = @(OMIT_WARNING_ALL)
+endif
+ifndef OMIT_OPTIMIZATION
+	OMIT_OPTIMIZATION = @(OMIT_OPTIMIZATION)
+endif
+
+#
 #  共通コンパイルオプションの定義
 #
 COPTS := -g @(COPTS) $(COPTS)
@@ -171,7 +188,7 @@ endif
 CDEFS := $(CDEFS) @(CDEFS)
 INCLUDES := -I. -I$(SRCDIR)/include $(INCLUDES) -I$(SRCDIR)
 LDFLAGS := $(LDFLAGS) @(LDFLAGS)
-LIBS := @(LIBS) $(LIBS) $(CXXLIBS)
+LIBS := @(LIBS) $(CXXLIBS) $(LIBS)
 CFLAGS = $(COPTS) $(CDEFS) $(INCLUDES)
 
 #
@@ -191,7 +208,7 @@ else
 	APPL_COBJS := @(APPLOBJS)
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o
-APPL_CFLAGS := $(APPL_CFLAGS)
+APPL_CFLAGS := $(APPL_CFLAGS) @(APPL_CFLAGS)
 ifdef APPLDIRS
 	INCLUDES := $(INCLUDES) $(foreach dir,$(APPLDIRS),-I$(dir))
 endif
@@ -223,11 +240,11 @@ ifndef OMIT_TECS
 all: tecs
 	@$(MAKE) check
 #	@$(MAKE) check $(OBJNAME).bin
-#	@$(MAKE) check $(OBJNAME).srec
+#	@$(MAKE) check $(OBJNAME).$(DUMP)
 else
 all: check
 #all: check $(OBJNAME).bin
-#all: check $(OBJNAME).srec
+#all: check $(OBJNAME).$(DUMP)
 endif
 
 ##### 以下は編集しないこと #####
@@ -290,6 +307,7 @@ endif
 #  ソースファイルのあるディレクトリに関する定義
 #
 vpath %.c $(KERNEL_DIRS) $(SYSSVC_DIRS) $(APPL_DIRS)
+vpath %.cpp $(APPL_DIRS)
 vpath %.S $(KERNEL_DIRS) $(SYSSVC_DIRS) $(APPL_DIRS)
 vpath %.cfg $(APPL_DIRS)
 vpath %.cdl $(APPL_DIRS)
@@ -362,23 +380,17 @@ $(CFG1_OUT): $(START_OBJS) $(OBJDIR)/cfg1_out.o $(END_OBJS) $(HIDDEN_OBJS)
 	$(LINK) $(CFLAGS) $(LDFLAGS) $(CFG1_OUT_LDFLAGS) -o $(CFG1_OUT) \
 						$(START_OBJS) $(OBJDIR)/cfg1_out.o $(LIBS) $(END_OBJS)
 
-cfg1_out.syms: $(CFG1_OUT)
-	$(NM) -n $(CFG1_OUT) > cfg1_out.syms
-
-cfg1_out.srec: $(CFG1_OUT)
-	$(OBJCOPY) -O srec -S $(CFG1_OUT) cfg1_out.srec
-
 $(CFG2_OUT_SRCS) cfg2_out.db: kernel_cfg.timestamp ;
-kernel_cfg.timestamp: cfg1_out.db cfg1_out.syms cfg1_out.srec
+kernel_cfg.timestamp: cfg1_out.db cfg1_out.syms cfg1_out.$(DUMP)
 	$(CFG) --pass 2 $(CFG_KERNEL) $(INCLUDES) -T $(TARGET_KERNEL_TRB)
 
 #
 #  オフセットファイル（offset.h）の生成規則
 #
 $(OFFSET_H): offset.timestamp ;
-offset.timestamp: cfg1_out.db cfg1_out.syms cfg1_out.srec
+offset.timestamp: cfg1_out.db cfg1_out.syms cfg1_out.$(DUMP)
 	$(CFG) --pass 2 -O $(CFG_KERNEL) $(INCLUDES) -T $(TARGET_OFFSET_TRB) \
-				--rom-symbol cfg1_out.syms --rom-image cfg1_out.srec
+				--rom-symbol cfg1_out.syms --rom-image cfg1_out.$(DUMP)
 
 #
 #  カーネルライブラリファイルの生成
@@ -410,31 +422,13 @@ $(OBJFILE): $(ALL_OBJS) $(LIBS_DEP)
 			$(ALL_LIBS) $(END_OBJS)
 
 #
-#  シンボルファイルの生成
-#
-$(OBJNAME).syms: $(OBJFILE)
-	$(NM) -n $(OBJFILE) > $(OBJNAME).syms
-
-#
-#  バイナリファイルの生成
-#
-$(OBJNAME).bin: $(OBJFILE)
-	$(OBJCOPY) -O binary -S $(OBJFILE) $(OBJNAME).bin
-
-#
-#  Sレコードファイルの生成
-#
-$(OBJNAME).srec: $(OBJFILE)
-	$(OBJCOPY) -O srec -S $(OBJFILE) $(OBJNAME).srec
-
-#
 #  エラーチェック処理
 #
 .PHONY: check
 check: check.timestamp ;
-check.timestamp: cfg2_out.db $(OBJNAME).syms $(OBJNAME).srec
+check.timestamp: cfg2_out.db $(OBJNAME).syms $(OBJNAME).$(DUMP)
 	$(CFG) --pass 3 $(CFG_KERNEL) -O $(INCLUDES) -T $(TARGET_CHECK_TRB) \
-				--rom-symbol $(OBJNAME).syms --rom-image $(OBJNAME).srec
+				--rom-symbol $(OBJNAME).syms --rom-image $(OBJNAME).$(DUMP)
 	@echo "configuration check passed"
 
 #
@@ -443,10 +437,10 @@ check.timestamp: cfg2_out.db $(OBJNAME).syms $(OBJNAME).srec
 .PHONY: clean
 clean:
 	rm -f \#* *~ $(OBJDIR)/*.o $(DEPDIR)/*.d $(CLEAN_FILES) check.timestamp
-	rm -f $(OBJFILE) $(OBJNAME).syms $(OBJNAME).srec $(OBJNAME).bin
+	rm -f $(OBJFILE) $(OBJNAME).syms $(OBJNAME).$(DUMP) $(OBJNAME).bin
 	rm -f kernel_cfg.timestamp $(CFG2_OUT_SRCS) cfg2_out.db
 	rm -f offset.timestamp $(OFFSET_H)
-	rm -f cfg1_out.syms cfg1_out.srec $(CFG1_OUT)
+	rm -f cfg1_out.syms cfg1_out.$(DUMP) $(CFG1_OUT)
 	rm -f cfg1_out.timestamp cfg1_out.c cfg1_out.db
 	rm -rf $(TECSGENDIR)
 ifndef KERNEL_LIB
@@ -525,6 +519,21 @@ ifdef USE_CXX
 else
 	LINK = $(CC)
 endif
+
+#
+#  シンボルファイル，バイナリファイル，ダンプファイルの生成ルール
+#
+%.syms: %
+	$(NM) -n $< > $@
+
+%.bin: %
+	$(OBJCOPY) -O binary -S $< $@
+
+%.srec: %
+	$(OBJCOPY) -O srec -S $< $@
+
+%.dump: %
+	$(OBJDUMP) -s $(DUMPOPTS) $< > $@
 
 #
 #  コンパイルルールの定義

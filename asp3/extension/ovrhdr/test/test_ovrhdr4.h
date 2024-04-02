@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2018-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,12 +34,14 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_ovrhdr4.h 1117 2018-12-10 07:23:11Z ertl-hiro $
+ *  $Id: test_ovrhdr4.h 1442 2020-05-26 00:11:05Z ertl-hiro $
  */
 
 /* 
  *		オーバランハンドラ機能のテスト(4)
  */
+
+#include <kernel.h>
 
 /*
  *  ターゲット依存の定義
@@ -78,6 +80,6 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
+extern void	task1(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: interrupt.h 613 2016-02-08 04:29:27Z ertl-hiro $
+ *  $Id: interrupt.h 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -55,7 +55,7 @@
  */
 typedef struct isr_initialization_block {
 	ATR			isratr;			/* 割込みサービスルーチン属性 */
-	intptr_t	exinf;			/* 割込みサービスルーチンの拡張情報 */
+	EXINF		exinf;			/* 割込みサービスルーチンの拡張情報 */
 	QUEUE		*p_isr_queue;	/* 登録先割込みサービスルーチン呼出しキュー */
 	ISR			isr;			/* 割込みサービスルーチンの先頭番地 */
 	PRI			isrpri;			/* 割込みサービスルーチン優先度 */

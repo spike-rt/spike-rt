@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf1.c 964 2018-05-02 07:53:57Z ertl-hiro $
+ *  $Id: perf1.c 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /*
@@ -59,7 +59,7 @@
 /*
  *  計測タスク1（高優先度）
  */
-void task1(intptr_t exinf)
+void task1(EXINF exinf)
 {
 	uint_t	i;
 	ER		ercd;
@@ -90,7 +90,7 @@ void task1(intptr_t exinf)
 /*
  *  計測タスク2（中優先度）
  */
-void task2(intptr_t exinf)
+void task2(EXINF exinf)
 {
 	uint_t	i;
 	ER		ercd;
@@ -111,7 +111,7 @@ void task2(intptr_t exinf)
 /*
  *  メインタスク（低優先度）
  */
-void main_task(intptr_t exinf)
+void main_task(EXINF exinf)
 {
 	ER		ercd;
 

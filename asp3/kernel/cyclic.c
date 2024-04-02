@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: cyclic.c 1019 2018-10-24 02:51:36Z ertl-hiro $
+ *  $Id: cyclic.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -205,7 +205,7 @@ ref_cyc(ID cycid, T_RCYC *pk_rcyc)
 {
 	CYCCB	*p_cyccb;
 	ER		ercd;
-    
+
 	LOG_REF_CYC_ENTER(cycid, pk_rcyc);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_CYCID(cycid));

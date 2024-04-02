@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2001-2011 by Industrial Technology Institute,
  *                              Miyagi Prefectural Government, JAPAN
- *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: scif.h 1095 2018-11-28 00:57:28Z ertl-hiro $
+ *  $Id: scif.h 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -279,7 +279,7 @@ extern void		scif_isr_tx(ID siopid);
 /*
  *  SIOポートのオープン
  */
-extern SIOPCB	*scif_opn_por(ID siopid, intptr_t exinf);
+extern SIOPCB	*scif_opn_por(ID siopid, EXINF exinf);
 
 /*
  *  SIOポートのクローズ
@@ -309,12 +309,12 @@ extern void		scif_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
 /*
  *  SIOポートからの送信可能コールバック
  */
-extern void		scif_irdy_snd(intptr_t exinf);
+extern void		scif_irdy_snd(EXINF exinf);
 
 /*
  *  SIOポートからの受信通知コールバック
  */
-extern void		scif_irdy_rcv(intptr_t exinf);
+extern void		scif_irdy_rcv(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */
 #endif /* TOPPERS_OMIT_TECS */

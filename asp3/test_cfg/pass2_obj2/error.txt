@@ -1,0 +1,6 @@
+../../test_cfg/pass2_obj2.cfg:12: error: E_RSATR: illegal excatr `0x10' in DEF_EXC of excno `CPUEXC1'
+../../test_cfg/pass2_obj2.cfg:15: error: E_PAR: illegal excno `INVALID_CPUEXC' in DEF_EXC
+../../test_cfg/pass2_obj2.cfg:21: error: E_OBJ: DEF_ICS is duplicated
+../../test_cfg/pass2_obj2.cfg:24: error: E_RSATR: illegal iniatr `0x10' in ATT_INI of inirtn `initialize1_routine'
+../../test_cfg/pass2_obj2.cfg:27: error: E_RSATR: illegal teratr `0x10' in ATT_TER of terrtn `terminate1_routine'
+make: *** [kernel_cfg.timestamp] Error 1

@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id: core_asm.inc 301 2015-01-07 04:57:01Z ertl-ishikawa $
+ *  @(#) $Id: core_asm.inc 1800 2023-04-01 00:54:09Z ertl-komori $
  */
 
 #ifndef TOPPERS_CORE_ASM_INC
@@ -63,8 +63,8 @@
 #define ALONG          .long
 #define ALABEL(label)  label:
 #define AOR            |
-#define ATHUMB(name)        __athumb name
-
+#define ATHUMB(name)   __athumb name
+#define AWEAK(name)    .weak name
 
 /*
  *  セクション情報

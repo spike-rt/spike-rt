@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2007-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.c 1234 2019-07-09 10:25:40Z ertl-hiro $
+ *  $Id: target_kernel_impl.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -69,6 +69,7 @@
 /*
  *  MMUの設定情報（メモリエリアの情報）
  */
+__attribute__((weak))
 const ARM_MMU_CONFIG arm_memory_area[] = {
 	{ SPI_ADDR, SPI_ADDR, SPI_SIZE, MMU_ATTR_RAM },
 	{ SRAM_ADDR, SRAM_ADDR, SRAM_SIZE, MMU_ATTR_RAM },
@@ -79,6 +80,7 @@ const ARM_MMU_CONFIG arm_memory_area[] = {
 /*
  *  MMUの設定情報の数（メモリエリアの数）
  */
+__attribute__((weak))
 const uint_t arm_tnum_memory_area
 					= sizeof(arm_memory_area) / sizeof(ARM_MMU_CONFIG);
 
@@ -212,7 +214,7 @@ extern void	tPutLogSIOPort_initialize(void);
 
 #else /* TOPPERS_OMIT_TECS */
 
-extern void	sio_initialize(intptr_t exinf);
+extern void	sio_initialize(EXINF exinf);
 extern void	target_fput_initialize(void);
 
 #endif /* TOPPERS_OMIT_TECS */
@@ -267,22 +269,23 @@ target_initialize(void)
 }
 
 /*
+ *  デフォルトのsoftware_term_hook（weak定義）
+ */
+__attribute__((weak))
+void software_term_hook(void)
+{
+}
+
+/*
  *  ターゲット依存の終了処理
  */
 void
 target_exit(void)
 {
-	extern void	software_term_hook(void);
-	void (*volatile fp)(void) = software_term_hook;
-
 	/*
-	 *  software_term_hookへのポインタを，一旦volatile指定のあるfpに代
-	 *  入してから使うのは，0との比較が最適化で削除されないようにするた
-	 *  めである．
+	 *  software_term_hookの呼出し
 	 */
-	if (fp != 0) {
-		(*fp)();
-	}
+	software_term_hook();
 
 	/*
 	 *  チップ依存の終了処理
@@ -337,7 +340,9 @@ gr_peach_uart_fput(char c)
 	/*
 	 *  送信できるまでポーリング
 	 */
-	while (!(sio_snd_chr(p_siopcb_target_fput, c))) ;
+	while (!(sio_snd_chr(p_siopcb_target_fput, c))) {
+		sil_dly_nse(100);
+	}
 }
 
 /*

@@ -1,0 +1,20 @@
+../../test_cfg/pass2_int1.cfg:12: error: E_PAR: illegal intno `INVALID_INTNO' in CFG_INT
+../../test_cfg/pass2_int1.cfg:15: error: E_RSATR: illegal intatr `0x10U' in CFG_INT of intno `INTNO1'
+../../test_cfg/pass2_int1.cfg:18: error: E_PAR: illegal intpri `TIPM_ENAALL' in CFG_INT of intno `INTNO2'
+../../test_cfg/pass2_int1.cfg:19: error: E_PAR: illegal intpri `TMIN_INTPRI - 2' in CFG_INT of intno `INTNO5'
+../../test_cfg/pass2_int1.cfg:23: error: E_OBJ: intno `INTNO_NONKERNEL' must have higher priority than TMIN_INTPRI in CFG_INT
+../../test_cfg/pass2_int1.cfg:27: error: E_OBJ: intno `INTNO_KERNEL' must have lower or equal priority to TMIN_INTPRI in CFG_INT
+../../test_cfg/pass2_int1.cfg:30: error: E_PAR: illegal inhno `INVALID_INHNO' in DEF_INH
+../../test_cfg/pass2_int1.cfg:33: error: E_RSATR: illegal inhatr `0x10U' in DEF_INH of inhno `INHNO1'
+../../test_cfg/pass2_int1.cfg:36: error: E_OBJ: intno `6' corresponding to inhno `INHNO3' in DEF_INH is not configured with CFG_INT
+../../test_cfg/pass2_int1.cfg:40: error: E_RSATR: inhno `INHNO_NONKERNEL' must be non-kernel interrupt in DEF_INH
+../../test_cfg/pass2_int1.cfg:44: error: E_RSATR: inhno `INHNO_KERNEL' must not be non-kernel interrupt in DEF_INH
+../../test_cfg/pass2_int1.cfg:49: error: E_OBJ: TA_NONKERNEL must be set for non-kernel interrupt handler in DEF_INH of inhno `INHNO6'
+../../test_cfg/pass2_int1.cfg:54: error: E_OBJ: TA_NONKERNEL must not be set for kernel interrupt handler in DEF_INH of inhno `INHNO7'
+../../test_cfg/pass2_int1.cfg:58: error: E_RSATR: illegal isratr `0x10U' in CRE_ISR
+../../test_cfg/pass2_int1.cfg:58: error: E_OBJ: intno `INTNO1' in CRE_ISR is duplicated with inhno INHNO1
+../../test_cfg/pass2_int1.cfg:61: error: E_PAR: illegal intno `INVALID_INTNO' in CRE_ISR
+../../test_cfg/pass2_int1.cfg:64: error: E_PAR: illegal isrpri `0' in CRE_ISR
+../../test_cfg/pass2_int1.cfg:67: error: E_OBJ: intno `INTNO4' in CRE_ISR is not configured with CFG_INT
+../../test_cfg/pass2_int1.cfg:71: error: E_OBJ: interrupt service routine cannot handle non-kernel interrupt in CRE_ISR of ISR5
+make: *** [kernel_cfg.timestamp] Error 1

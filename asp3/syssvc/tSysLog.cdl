@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: tSysLog.cdl 837 2017-10-17 00:34:30Z ertl-hiro $
+ *  $Id: tSysLog.cdl 1504 2021-09-27 06:08:10Z ertl-hiro $
  */
 
 /*
@@ -75,7 +75,7 @@ signature sSysLog {
 	ER		mask([in] uint_t logMask, [in] uint_t lowMask);
 
 	/*
-	 *  低レベル出力によるすべてのログ情報の出力
+	 *  ログバッファの状態参照
 	 */
 	ER		refer([out] T_SYSLOG_RLOG *pk_rlog);
 

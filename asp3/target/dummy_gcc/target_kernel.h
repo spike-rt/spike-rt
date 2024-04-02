@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2013-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel.h 1105 2018-12-02 09:22:47Z ertl-hiro $
+ *  $Id: target_kernel.h 1325 2019-11-29 13:21:38Z ertl-hiro $
  */
 
 /*
@@ -58,6 +58,13 @@
 #define TOPPERS_TARGET_SUPPORT_CLR_INT		/* clr_int */
 #define TOPPERS_TARGET_SUPPORT_RAS_INT		/* ras_int */
 #define TOPPERS_TARGET_SUPPORT_PRB_INT		/* prb_int */
+
+/*
+ *  ターゲット定義の割込みハンドラ属性
+ *
+ *  DEF_INHでカーネル管理外の割込みを定義できるようにする．
+ */
+#define TARGET_INHATR		(TA_NONKERNEL)
 
 /*
  *  高分解能タイマのタイマ周期

@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: pridataq.c 1030 2018-11-01 12:40:36Z ertl-hiro $
+ *  $Id: pridataq.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -561,7 +561,7 @@ ini_pdq(ID pdqid)
 {
 	PDQCB	*p_pdqcb;
 	ER		ercd;
-    
+
 	LOG_INI_PDQ_ENTER(pdqid);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_PDQID(pdqid));
@@ -597,7 +597,7 @@ ref_pdq(ID pdqid, T_RPDQ *pk_rpdq)
 {
 	PDQCB	*p_pdqcb;
 	ER		ercd;
-    
+
 	LOG_REF_PDQ_ENTER(pdqid, pk_rpdq);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_PDQID(pdqid));

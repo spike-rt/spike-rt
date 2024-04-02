@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  @(#) $Id: start.S 301 2015-01-07 04:57:01Z ertl-ishikawa $
+ *  @(#) $Id: start.S 1799 2023-04-01 00:50:30Z ertl-komori $
  */
 
 /*
@@ -72,9 +72,9 @@ ALABEL(_kernel_start)
 	/*
 	 * MSPの設定
 	 */
-	mov   r0, #CONTROL_MSP  /* MSPを有効に  */
-	msr   control, r0
-	isb                     /* control の操作後に必要 */
+	mov  r0, #CONTROL_MSP  /* MSPを有効に  */
+	msr  control, r0
+	isb                    /* control の操作後に必要 */
 	ldr  r0,=_kernel_istkpt
 	ldr  r1,[r0]
 	msr  msp, r1
@@ -86,14 +86,7 @@ ALABEL(_kernel_start)
 	 * ターゲットハードウェアに依存して必要な初期化処理がある場合
 	 * は，hardware_init_hook という関数を用意する
 	 */
-	ldr  r0, =hardware_init_hook
-#if __TARGET_ARCH_THUMB == 3
-	cmp  r0, #0
-	beq  start_1
-#else
-	cbz  r0, start_1
-#endif /* __TARGET_ARCH_THUMB == 3 */
-	blx  r0
+	bl   hardware_init_hook
 
 ALABEL(start_1)
 #ifndef OMIT_BSS_INIT
@@ -142,17 +135,28 @@ ALABEL(start_4)
 	 *  よい．
 	 */
 ALABEL(start_5)
-	ldr  r0, =software_init_hook
-#if __TARGET_ARCH_THUMB == 3
-	cmp  r0, #0
-	beq  start_6
-#else
-	cbz  r0, start_6
-#endif /* __TARGET_ARCH_THUMB == 3 */
-	blx  r0
+	bl   software_init_hook
 
 ALABEL(start_6)
 	bl   sta_ker
 
 ALABEL(l_end)
-	b   l_end
+	b    l_end
+
+/*
+ *  デフォルトのhardware_init_hook（weak定義）
+ */
+	ATEXT
+	AALIGN(2)
+	AWEAK(hardware_init_hook)
+ALABEL(hardware_init_hook)
+	bx   lr
+
+/*
+ *  デフォルトのsoftware_init_hook（weak定義）
+ */
+	ATEXT
+	AALIGN(2)
+	AWEAK(software_init_hook)
+ALABEL(software_init_hook)
+	bx   lr

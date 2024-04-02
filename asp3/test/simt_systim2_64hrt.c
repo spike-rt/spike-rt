@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_systim2_64hrt.c 1235 2019-07-09 21:03:43Z ertl-hiro $
+ *  $Id: simt_systim2_64hrt.c 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /* 
@@ -377,7 +377,7 @@ hook_hrt_raise_event(void)
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 	SYSTIM	systim;
@@ -423,7 +423,7 @@ alarm1_handler(intptr_t exinf)
 static uint_t	alarm2_count = 0;
 
 void
-alarm2_handler(intptr_t exinf)
+alarm2_handler(EXINF exinf)
 {
 
 	switch (++alarm2_count) {
@@ -442,7 +442,7 @@ alarm2_handler(intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	SYSTIM	systim;

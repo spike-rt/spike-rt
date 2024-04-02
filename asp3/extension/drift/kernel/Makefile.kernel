@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2005-2022 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: Makefile.kernel 1021 2018-10-26 05:47:40Z ertl-hiro $
+#  $Id: Makefile.kernel 1633 2022-09-23 09:27:28Z ertl-hiro $
 # 
 
 #
@@ -93,7 +93,7 @@ pridataq = pdqini.o pdqenq.o pdqdeq.o pdqsnd.o pdqrcv.o \
 		snd_pdq.o psnd_pdq.o tsnd_pdq.o \
 		rcv_pdq.o prcv_pdq.o trcv_pdq.o ini_pdq.o ref_pdq.o
 
-mutex = mtxini.o mtxchk.o mtxscan.o mtxdrop.o mtxacq.o mtxrel.o mtxrela.o \
+mutex = mtxini.o mtxchk.o mtxacq.o mtxrel.o mtxrela.o \
 		loc_mtx.o ploc_mtx.o tloc_mtx.o unl_mtx.o ini_mtx.o ref_mtx.o
 
 mempfix = mpfini.o mpfget.o get_mpf.o pget_mpf.o tget_mpf.o \

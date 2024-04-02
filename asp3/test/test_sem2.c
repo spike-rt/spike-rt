@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_sem2.c 1139 2019-01-04 16:27:31Z ertl-hiro $
+ *  $Id: test_sem2.c 1785 2023-01-15 11:44:24Z ertl-hiro $
  */
 
 /* 
@@ -180,7 +180,7 @@
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_sem2.h"
+#include "test_common.h"
 
 static volatile bool_t	flagvar;
 
@@ -202,7 +202,7 @@ signal_var(void)
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -231,7 +231,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(13);
@@ -242,7 +242,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 3:
 		check_point(16);
@@ -253,7 +253,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 4:
 		check_point(20);
@@ -264,7 +264,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 5:
 		check_point(27);
@@ -275,7 +275,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 6:
 		check_point(31);
@@ -284,16 +284,16 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -398,11 +398,11 @@ task1(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_finish(35);
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -419,11 +419,11 @@ task2(intptr_t exinf)
 	check_point(28);
 	ercd = ext_tsk();
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -462,5 +462,5 @@ task3(intptr_t exinf)
 	check_point(25);
 	ercd = ext_tsk();
 
-	check_point(0);
+	check_assert(false);
 }

@@ -3,7 +3,7 @@
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2022 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: pass1.rb 188 2020-06-14 09:52:45Z ertl-hiro $
+#  $Id: pass1.rb 200 2022-12-05 14:42:41Z ertl-hiro $
 #
 
 #
@@ -178,7 +178,7 @@ def ReadSymvalTable
     end
 
     symvalCsv = CSV.open(symvalTableFileName,
-						{ skip_blanks: true, skip_lines: /^#/ })
+						 skip_blanks: true, skip_lines: /^#/)
     symvalCsv.each do |record|
       symbol = {}
 
@@ -303,8 +303,9 @@ end
 #
 class CfgParser
   @@lastApiIndex = 0
+  @@lastClassIndex = 0
   @@currentDomain = nil
-  @@currentClass = nil
+  @@currentClassIndex = nil
   @@nestDC = []
 
   def initialize
@@ -671,12 +672,18 @@ class CfgParser
           if !$supportClass
             parse_warning(cfgFile, "`CLASS' is not supported")
           end
-          if !@@currentClass.nil?
+          if !@@currentClassIndex.nil?
             parse_error(cfgFile, "`CLASS' must not be nested")
           end
-          @@currentClass = parseParam(cfgFile).sub(/^\((.+)\)$/m, "\\1").strip
-          @@classFile = cfgFile.getFileName
-          @@classLine = cfgFile.getLineNo
+          @@currentClassIndex = (@@lastClassIndex += 1)
+
+          classid = {}
+          classid[:CLSSTR] = parseParam(cfgFile).sub(/^\((.+)\)$/m, "\\1").strip
+          classid[:CLSIDX] = @@currentClassIndex
+          classid[:_FILE_] = cfgFile.getFileName
+          classid[:_LINE_] = cfgFile.getLineNo
+          $cfgFileInfo.push(classid)
+
           parseOpenBrace(cfgFile, apiName)
           @@nestDC.push("class")
         else
@@ -703,10 +710,8 @@ class CfgParser
               if !@@currentDomain.nil?
                 staticApi[:DOMAIN] = @@currentDomain
               end
-              if !@@currentClass.nil?
-                staticApi[:CLASS] = @@currentClass
-                staticApi[:CLASS_FILE_] = @@classFile
-                staticApi[:CLASS_LINE_] = @@classLine
+              if !@@currentClassIndex.nil?
+                staticApi[:CLSIDX] = @@currentClassIndex
               end
               staticApi[:INDEX] = (@@lastApiIndex += 1)
               $cfgFileInfo.push(staticApi)
@@ -730,7 +735,7 @@ class CfgParser
           when "domain"
             @@currentDomain = nil
           when "class"
-            @@currentClass = nil
+            @@currentClassIndex = nil
           end
         else
           parse_error_fatal(cfgFile, "unexpected `}'")
@@ -753,13 +758,6 @@ module Cfg1OutC
   #
   def self.OutLineNumber(cfgInfo)
     @cfg1Out.add("#line #{cfgInfo[:_LINE_]} \"#{cfgInfo[:_FILE_]}\"")
-  end
-
-  #
-  #  クラス記述のファイル名と行番号の出力
-  #
-  def self.OutClassLineNumber(cfgInfo)
-    @cfg1Out.add("#line #{cfgInfo[:CLASS_LINE_]} \"#{cfgInfo[:CLASS_FILE_]}\"")
   end
 
   #
@@ -857,6 +855,11 @@ EOS
           OutLineNumber(cfgInfo)
           @cfg1Out.add2(cfgInfo[:DIRECTIVE])
         end
+      elsif cfgInfo.has_key?(:CLSSTR)
+        # クラスIDを出力
+        OutLineNumber(cfgInfo)
+        @cfg1Out.add2("const signed_t #{CFG1_PREFIX}clsid_#{cfgInfo[:CLSIDX]}" \
+										" = (signed_t)(#{cfgInfo[:CLSSTR]});")
       else
         apiDef = $apiDefinition[cfgInfo[:APINAME]]
         apiIndex = cfgInfo[:INDEX]
@@ -876,12 +879,6 @@ EOS
           else
             OutParamDef(paramData, "#{apiIndex}", apiParam, cfgInfo)
           end
-        end
-        if cfgInfo.has_key?(:CLASS)
-          # クラスIDの取得のための処理
-          OutClassLineNumber(cfgInfo)
-          @cfg1Out.add("const signed_t #{CFG1_PREFIX}valueof_CLASS_" \
-                      "#{apiIndex} = (signed_t)(#{cfgInfo[:CLASS]});")
         end
         @cfg1Out.add
       end
@@ -937,6 +934,27 @@ def Pass1
   end
 
   #
+  #  オブジェクト識別名の重複のチェック
+  #
+  objectNames = $domainId.keys
+  $cfgFileInfo.each do |cfgInfo|
+    if cfgInfo.has_key?(:APINAME)
+      apiDef = $apiDefinition[cfgInfo[:APINAME]]
+      apiDef[:PARAM].each do |apiParam|
+        if apiParam.has_key?(:ID_DEF)
+          if objectNames.include?(cfgInfo[apiParam[:NAME]])
+            # keyParam = params[apiDef[:KEYPAR].to_sym]
+            error("E_OBJ: #{apiDef[:KEYPAR]} `#{cfgInfo[apiParam[:NAME]]}' " \
+								"is duplicated in #{cfgInfo[:APINAME]}",
+								"#{cfgInfo[:_FILE_]}:#{cfgInfo[:_LINE_]}:")
+          end
+          objectNames.push(cfgInfo[apiParam[:NAME]])
+        end
+      end
+    end
+  end
+
+  #
   #  cfg1_out.cの生成
   #
   Cfg1OutC::Generate()
@@ -967,15 +985,23 @@ def Pass1
   end
 
   #
+  #  パス2以降に引き渡す情報の定義
+  #
+  $globalVars = [ "globalVars",
+                  "apiDefinition",
+                  "symbolValueTable",
+                  "cfgFileInfo",
+                  "domainId" ]
+
+  #
   #  パス2に引き渡す情報をファイルに生成
   #
   if !$omitOutputDb
     db = PStore.new(CFG1_OUT_DB)
     db.transaction do
-      db[:apiDefinition] = $apiDefinition
-      db[:symbolValueTable] = $symbolValueTable
-      db[:cfgFileInfo] = $cfgFileInfo
-      db[:domainId] = $domainId
+      $globalVars.each do |var|
+        eval("db[:#{var}] = $#{var}")
+      end
     end
   end
 end

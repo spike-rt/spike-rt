@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: interrupt.c 1169 2019-02-22 07:43:03Z ertl-hiro $
+ *  $Id: interrupt.c 1751 2022-12-17 03:47:12Z ertl-hiro $
  */
 
 /*
@@ -591,7 +591,7 @@ prb_int(INTNO intno)
 		lock_cpu();
 	}
 	if (check_intno_cfg(intno)) {
-		ercd = (ER_BOOL) probe_int(intno);		/*［NGKI3948］*/
+		ercd = (ER_BOOL) probe_int(intno);		/*［NGKI5214］［NGKI5215］*/
 	}
 	else {
 		ercd = E_OBJ;							/*［NGKI3947］*/

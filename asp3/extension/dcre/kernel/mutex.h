@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2005-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: mutex.h 244 2014-09-30 18:08:03Z ertl-hiro $
+ *  $Id: mutex.h 1633 2022-09-23 09:27:28Z ertl-hiro $
  */
 
 /*
@@ -128,22 +128,6 @@ extern void	initialize_mutex(void);
  *  bpriorityよりも低いものがあればfalseを，そうでなければtrueを返す．
  */
 extern bool_t	mutex_check_ceilpri(TCB *p_tcb, uint_t bpriority);
-
-/* 
- *  優先度上限ミューテックスをロックしているかのチェック
- *
- *  p_tcbで指定されるタスクが優先度上限ミューテックスをロックしていれば
- *  true，そうでなければfalseを返す．
- */
-extern bool_t	mutex_scan_ceilmtx(TCB *p_tcb);
-
-/*
- *  ミューテックスをロック解除した場合の現在優先度変更処理
- *
- *  p_tcbで指定されるタスクが，p_mtxcbで指定されるミューテックスをロッ
- *  ク解除した際の現在優先度変更処理を行う．
- */
-extern void	mutex_drop_priority(TCB *p_tcb, MTXCB *p_mtxcb);
 
 /*
  *  ミューテックスのロック

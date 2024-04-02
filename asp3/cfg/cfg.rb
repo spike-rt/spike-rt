@@ -4,7 +4,7 @@
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2022 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: cfg.rb 188 2020-06-14 09:52:45Z ertl-hiro $
+#  $Id: cfg.rb 203 2023-03-14 04:25:39Z ertl-hiro $
 #
 
 if $0 == __FILE__
@@ -55,7 +55,7 @@ require "SRecord.rb"
 #  定数定義
 #
 # 共通
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 
 # cfg1_out関係
 CFG1_PREFIX         = "TOPPERS_cfg_"
@@ -66,6 +66,7 @@ CFG1_SIZEOF_CHARPTR = "TOPPERS_sizeof_char_ptr_t"
 CFG1_OUT_C          = "cfg1_out.c"
 CFG1_OUT_DB         = "cfg1_out.db"
 CFG1_OUT_SREC       = "cfg1_out.srec"
+CFG1_OUT_DUMP       = "cfg1_out.dump"
 CFG1_OUT_SYMS       = "cfg1_out.syms"
 CFG1_OUT_TIMESTAMP  = "cfg1_out.timestamp"
 CFG1_OUT_TARGET_H   = "target_cfg1_out.h"
@@ -527,10 +528,7 @@ end
 
 def BCOPY(fromAddress, toAddress, size)
   if !$romImage.nil?
-    copyData = $romImage.get_data(fromAddress, size)
-    if !copyData.nil?
-      $romImage.set_data(toAddress, copyData)
-    end
+    $romImage.copy_data(fromAddress, toAddress, size)
   end
 end
 
@@ -555,6 +553,7 @@ $kernel = nil
 $pass = nil
 $includeDirectories = []
 $trbFileNames = []
+$classFileNames = []
 $apiTableFileNames = []
 $symvalTableFileNames = []
 $romImageFileName = nil
@@ -586,13 +585,17 @@ OptionParser.new("Usage: cfg.rb [options] CONFIG-FILE", 40) do |opt|
          "generation script (trb file)") do |val|
     $trbFileNames.push(val)
   end
+  opt.on("-C TRB-FILE", "--class-file TRB-FILE",
+         "class definition (trb file)") do |val|
+    $classFileNames.push(val)
+  end
   opt.on("--api-table API-TABLE-FILE", "static API table file") do |val|
     $apiTableFileNames.push(val)
   end
   opt.on("--symval-table SYMVAL-TABLE-FILE", "symbol-value table file") do |val|
     $symvalTableFileNames.push(val)
   end
-  opt.on("--rom-image SREC-FILE", "rom image file (s-record)") do |val|
+  opt.on("--rom-image DUMP-FILE", "rom image file (s-record or dump)") do |val|
     $romImageFileName = val
   end
   opt.on("--rom-symbol SYMS-FILE", "rom symbol table file (nm)") do |val|
@@ -697,7 +700,11 @@ end
 #
 if !$romImageFileName.nil?
   if File.exist?($romImageFileName)
-    $romImage = SRecord.new($romImageFileName)
+    if $romImageFileName =~ /\.srec$/
+      $romImage = SRecord.new($romImageFileName, :srec)
+    else
+      $romImage = SRecord.new($romImageFileName, :dump)
+    end
   else
     error_exit("`#{$romImageFileName}' not found")
   end

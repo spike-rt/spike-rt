@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_cpuexc3.c 738 2016-04-05 14:19:24Z ertl-hiro $
+ *  $Id: test_cpuexc3.c 1535 2022-05-18 14:33:59Z ertl-hiro $
  */
 
 /* 
@@ -108,9 +108,9 @@
 volatile bool_t	alm1_flag = false;
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
-	check_point(0);
+	check_assert(false);
 }
 
 #ifdef PREPARE_RETURN_CPUEXC
@@ -125,7 +125,7 @@ task2(intptr_t exinf)
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 
 	check_point(3);
@@ -140,7 +140,7 @@ alarm1_handler(intptr_t exinf)
 
 	return;
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
@@ -155,11 +155,11 @@ cpuexc_handler(void *p_excinf)
 	HOOK_POINT(5);
 	return;
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -189,5 +189,5 @@ task1(intptr_t exinf)
 	check_ipm(TIPM_ENAALL);
 
 	check_finish(8);
-	check_point(0);
+	check_assert(false);
 }

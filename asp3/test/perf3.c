@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf3.c 964 2018-05-02 07:53:57Z ertl-hiro $
+ *  $Id: perf3.c 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /*
@@ -70,7 +70,7 @@ static ID task_list[20] = {
 /*
  *  計測タスク（中優先度）
  */
-void task(intptr_t exinf)
+void task(EXINF exinf)
 {
 	FLGPTN	flgptn;
 	ER		ercd;
@@ -130,7 +130,7 @@ perf_eval(uint_t n)
 /*
  *  メインタスク（高優先度）
  */
-void main_task(intptr_t exinf)
+void main_task(EXINF exinf)
 {
 	syslog_0(LOG_NOTICE, "Performance evaluation program (3)");
 

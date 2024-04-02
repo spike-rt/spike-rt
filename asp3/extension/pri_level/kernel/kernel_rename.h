@@ -34,7 +34,6 @@
  *  taskhook.c
  */
 #define mtxhook_check_ceilpri		_kernel_mtxhook_check_ceilpri
-#define mtxhook_scan_ceilmtx		_kernel_mtxhook_scan_ceilmtx
 #define mtxhook_release_all			_kernel_mtxhook_release_all
 
 /*
@@ -105,8 +104,6 @@
  */
 #define initialize_mutex			_kernel_initialize_mutex
 #define mutex_check_ceilpri			_kernel_mutex_check_ceilpri
-#define mutex_scan_ceilmtx			_kernel_mutex_scan_ceilmtx
-#define mutex_drop_priority			_kernel_mutex_drop_priority
 #define mutex_acquire				_kernel_mutex_acquire
 #define mutex_release				_kernel_mutex_release
 #define mutex_release_all			_kernel_mutex_release_all

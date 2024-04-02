@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2014-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2014-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_systim1_64hrt.c 1235 2019-07-09 21:03:43Z ertl-hiro $
+ *  $Id: simt_systim1_64hrt.c 1570 2022-06-16 03:49:06Z ertl-hiro $
  */
 
 /* 
@@ -246,7 +246,7 @@
  *	66:	DO(simtim_advance(10U))
  *		assert(fch_hrt() == 1140U)							// 時刻：1140
  *	// 高分解能タイマ割込みを強制的に入れる
- *	67:	DO(target_raise_hrt_int())
+ *	67:	DO(raise_hrt_int())
  *		RETURN
  *	68:		[hook_hrt_set_event <- 81U]
  *	== HRT_HANDLER ==					... (C-2)			// 時刻：1140
@@ -264,7 +264,7 @@
  *	74:		[hook_hrt_clear_event]
  *	== TASK1（続き）==
  *	// 高分解能タイマ割込みを強制的に入れる
- *	75:	DO(target_raise_hrt_int())
+ *	75:	DO(raise_hrt_int())
  *	== HRT_HANDLER ==					... (C-1)			// 時刻：1231
  *	// スプリアス割込み										// 時刻：1241
  *	76:		[hook_hrt_clear_event]
@@ -306,7 +306,7 @@
 #include "syssvc/test_svc.h"
 #include "arch/simtimer/sim_timer_cntl.h"
 #include "kernel_cfg.h"
-#include "simt_systim1.h"
+#include "test_common.h"
 
 #ifndef HRT_CONFIG3
 #error Compiler option "-DHRT_CONFIG3" is missing.
@@ -324,15 +324,27 @@
  */
 #include "target_timer.h"
 
-#define current_hrtcnt			_kernel_current_hrtcnt
-extern HRTCNT current_hrtcnt;
+extern HRTCNT _kernel_current_hrtcnt;
+
+void
+raise_hrt_int(void)
+{
+	if (sns_loc()) {
+		target_raise_hrt_int();
+	}
+	else {
+		loc_cpu();
+		target_raise_hrt_int();
+		unl_cpu();
+	}
+}
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -351,7 +363,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(17);
@@ -364,7 +376,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 3:
 		check_point(30);
@@ -374,7 +386,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 4:
 		check_point(40);
@@ -391,7 +403,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 5:
 		check_point(56);
@@ -403,7 +415,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 6:
 		check_point(65);
@@ -415,11 +427,11 @@ alarm1_handler(intptr_t exinf)
 		check_assert(fch_hrt() == 1140U);
 
 		check_point(67);
-		target_raise_hrt_int();
+		raise_hrt_int();
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 7:
 		check_point(82);
@@ -427,7 +439,7 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 8:
 		check_point(89);
@@ -439,18 +451,18 @@ alarm1_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	alarm2_count = 0;
 
 void
-alarm2_handler(intptr_t exinf)
+alarm2_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -463,7 +475,7 @@ alarm2_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(31);
@@ -477,7 +489,7 @@ alarm2_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 3:
 		check_point(43);
@@ -489,7 +501,7 @@ alarm2_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 4:
 		check_point(54);
@@ -497,7 +509,7 @@ alarm2_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 5:
 		check_point(72);
@@ -509,18 +521,18 @@ alarm2_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	alarm3_count = 0;
 
 void
-alarm3_handler(intptr_t exinf)
+alarm3_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -535,7 +547,7 @@ alarm3_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(44);
@@ -547,16 +559,16 @@ alarm3_handler(intptr_t exinf)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -701,7 +713,7 @@ task1(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_point(75);
-	target_raise_hrt_int();
+	raise_hrt_int();
 
 	check_point(77);
 	simtim_advance(59U);
@@ -729,7 +741,7 @@ task1(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_finish(92);
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	hook_hrt_clear_event_count = 0;
@@ -745,66 +757,66 @@ hook_hrt_clear_event(void)
 		check_point(1);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(8);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 3:
 		check_point(23);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 4:
 		check_point(33);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 5:
 		check_point(46);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 6:
 		check_point(58);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 7:
 		check_point(74);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 8:
 		check_point(76);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 9:
 		check_point(83);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 10:
 		check_point(91);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	hook_hrt_raise_event_count = 0;
@@ -818,12 +830,12 @@ hook_hrt_raise_event(void)
 		check_point(81);
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	hook_hrt_set_event_count = 0;
@@ -839,7 +851,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(11);
@@ -847,7 +859,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 3:
 		check_point(20);
@@ -855,7 +867,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 4:
 		check_point(26);
@@ -863,7 +875,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 5:
 		check_point(36);
@@ -871,7 +883,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 6:
 		check_point(49);
@@ -879,7 +891,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 7:
 		check_point(52);
@@ -887,7 +899,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 8:
 		check_point(55);
@@ -895,7 +907,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 9:
 		check_point(61);
@@ -903,7 +915,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 10:
 		check_point(68);
@@ -911,7 +923,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 11:
 		check_point(69);
@@ -919,7 +931,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 12:
 		check_point(79);
@@ -927,7 +939,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 13:
 		check_point(85);
@@ -935,7 +947,7 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	case 14:
 		check_point(87);
@@ -943,10 +955,10 @@ hook_hrt_set_event(HRTCNT hrtcnt)
 
 		return;
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }

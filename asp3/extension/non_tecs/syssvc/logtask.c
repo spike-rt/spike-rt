@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: logtask.c 1000 2018-07-27 02:36:17Z ertl-hiro $
+ *  $Id: logtask.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -139,7 +139,7 @@ logtask_flush(uint_t count)
  *  システムログタスクの本体
  */
 void
-logtask_main(intptr_t exinf)
+logtask_main(EXINF exinf)
 {
 	SYSLOG	syslog;
 	ER_UINT	rercd;
@@ -163,7 +163,7 @@ logtask_main(intptr_t exinf)
  *  システムログタスクの終了処理
  */
 void
-logtask_terminate(intptr_t exinf)
+logtask_terminate(EXINF exinf)
 {
 	char	c;
 	SYSLOG	syslog;

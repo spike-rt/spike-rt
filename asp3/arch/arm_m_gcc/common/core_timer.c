@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: chip_timer.c 358 2015-07-26 10:26:23Z ertl-hiro $
+ *  $Id: core_timer.c 1799 2023-04-01 00:50:30Z ertl-komori $
  */
 
 /*
@@ -62,7 +62,7 @@ target_hrt_initialize(intptr_t exinf)
 	uint32_t cyc;
 	uint32_t tmp;
 
-	cyc = ((CPU_CLOCK_HZ/1000000)*TSTEP_HRTCNT);
+	cyc = ((CPU_CLOCK_HZ/1000000)*TSTEP_HRTCNT) - 1;
 	/* 停止 */
 	tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
 	tmp &= ~SYSTIC_ENABLE;

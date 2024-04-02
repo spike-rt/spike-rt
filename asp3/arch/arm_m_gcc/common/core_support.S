@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id: core_support.S 1517 2021-12-10 13:07:12Z ertl-komori $
+ *  @(#) $Id: core_support.S 1799 2023-04-01 00:50:30Z ertl-komori $
  */
 
 /*
@@ -92,7 +92,7 @@ ALABEL(core_exc_entry)
 	 */
 	mrs   r1, basepri
 	mrs   r2, primask
-	orr   r1, r1, r2, lsl #8
+	orrs  r1, r1, r2, lsl #8
 	tst   lr, #EXC_RETURN_PSP
 	beq   core_exc_entry_1
 	/* タスクコンテキストで発生した CPU 例外の場合 */
@@ -148,7 +148,7 @@ ALABEL(core_exc_entry_2)
 	AGLOBAL(pendsv_handler)
 ALABEL(pendsv_handler)
 	/* カーネル管理の割り込みを禁止 */
-	mov    r0, #IIPM_LOCK
+	movs   r0, #IIPM_LOCK
 	msr    basepri, r0
 	ldr    r1, =p_runtsk
 	ldr    r0, [r1]
@@ -192,7 +192,7 @@ ALABEL(pendsv_handler_1)
 #endif /* __TARGET_ARCH_THUMB >= 5 */
 	/* 戻り先が EXC_RETURN でないなら Thread モードへ */
 	ldr    r1, [r0, #TCB_pc]
-	and    r2, r1, #EXC_RETURN_PREFIX
+	ands   r2, r1, #EXC_RETURN_PREFIX
 	cmp    r2, #EXC_RETURN_PREFIX
 	bne    return_to_thread
 	ldr    r2, [r0, #TCB_sp]
@@ -209,16 +209,16 @@ ALABEL(pendsv_handler_2)
 	 * この区間でカーネル管理の割り込みが発生しないよう faultmask をセットする．
 	 * 例外リターンにより，faultmask は自動的に解除される．
 	 */
-	mov    r0, #IIPM_ENAALL
+	movs   r0, #IIPM_ENAALL
 	cpsid  f
 	msr    basepri, r0
 	bx     r1
 ALABEL(return_to_idle)
 	mrs    r0, psp
 	ldr    r1, =idle_loop
-	ldr    r2, =#EPSR_T
+	movs   r2, #EPSR_T
 	stmfd  r0!, {r1, r2}
-	sub    r0, #(4 * 6)
+	subs   r0, #(4 * 6)
 	msr    psp, r0
 	/*
 	 * GNU AS はバージョンにより ldr pc, =#EXC_RETURN を
@@ -226,9 +226,7 @@ ALABEL(return_to_idle)
 	 * EXC_RETURN を代入して例外復帰することはできない．
 	 * そのため以下のように ldr 命令を直接記述している．
 	 */
-AALIGN(2)
-	ldr    pc, [pc]
-	.word  EXC_RETURN
+	ldr    pc, exc_return_const
 ALABEL(return_to_thread)
 	/*
 	 * この時点でのレジスタ
@@ -239,31 +237,29 @@ ALABEL(return_to_thread)
 	ldr    r2, [r0, #TCB_fpu_flag]
 	cbz    r2, return_to_thread_no_fp
 	ldr    r2, =return_to_thread_fp
-	ldr    r3, =#EPSR_T
+	movs   r3, #EPSR_T
 	ldr    r0, [r0, #TCB_sp]
 	ldmfd  r0!, {r4-r11}
 	stmfd  r0!, {r1-r3}
-	sub    r0, #(4 * 5)
+	subs   r0, #(4 * 5)
 	b      return_to_thread_0
 ALABEL(return_to_thread_no_fp)
 #endif /* TOPPERS_FPU_CONTEXT */
 	ldr    r0, [r0, #TCB_sp]
 	ldmfd  r0!, {r4-r11}
-	ldr    r2, =#EPSR_T
+	movs   r2, #EPSR_T
 	stmfd  r0!, {r1, r2}
-	sub    r0, #(4 * 6)
+	subs   r0, #(4 * 6)
 #ifdef TOPPERS_FPU_CONTEXT
 ALABEL(return_to_thread_0)
 #endif /* TOPPERS_FPU_CONTEXT */
 	msr    psp, r0
 	/* CPU ロック状態へ */
 	ldr    r0, =lock_flag
-	mov    r1, #1
+	movs   r1, #1
 	str    r1, [r0]
 	dsb /* lock_cpu_dsp() のコメント参照 */
-AALIGN(2)
-	ldr    pc, [pc] /* return_to_idle のコメント参照 */
-	.word  EXC_RETURN
+	ldr    pc, exc_return_const /* return_to_idle のコメント参照 */
 	/*
 	 * この時点でのレジスタ
 	 * lr  : p_runtsk->tskctxb.pc
@@ -274,6 +270,9 @@ ALABEL(return_to_thread_fp)
 	vpop   {s16-s31}
 	bx     lr
 #endif /* TOPPERS_FPU_CONTEXT */
+
+ALABEL(exc_return_const)
+	.word  EXC_RETURN
 
 /*
  * Thread モードから Handler モードへの復帰
@@ -286,21 +285,21 @@ ALABEL(return_to_thread_fp)
 	AGLOBAL(svc_handler)
 ALABEL(svc_handler)
 #ifdef LOG_DSP_LEAVE
-	mov    r0, r4
+	movs   r0, r4
 	bl     log_dsp_leave
 #endif /* LOG_DSP_LEAVE */
 	/* CPU ロック解除状態へ */
 	ldr    r0, =lock_flag
-	mov    r1, #0
+	movs   r1, #0
 	str    r1, [r0]
-	ldr    r0, =#IIPM_ENAALL
+	movs   r0, #IIPM_ENAALL
 	msr    basepri, r0
 #if __TARGET_ARCH_THUMB >= 5
 	ldr    r0, [r4, #TCB_stk_top]
 	msr    psplim, r0
 #endif
 	ldr    r0, [r4, #TCB_sp]
-	mov    r1, r5
+	movs   r1, r5
 	ldmfd  r0!, {r4-r11}
 #ifdef TOPPERS_FPU_CONTEXT
 	tst    r1, #EXC_RETURN_FP
@@ -339,7 +338,7 @@ ALABEL(start_dispatch)
 	/* 
 	 * スタックをIDが1のタスクのスタック領域に切り換える
 	 */
-	mov   r0, #CONTROL_PSP        /* PSPを有効に  */
+	movs  r0, #CONTROL_INIT       /* PSPを有効に  */
 	msr   control, r0
 	isb                           /* control の操作後に必要 */
 	ldr   r1, =tinib_table
@@ -359,6 +358,12 @@ ALABEL(start_dispatch)
 	ATHUMB(exit_and_dispatch)
 	AGLOBAL(exit_and_dispatch)
 ALABEL(exit_and_dispatch)
+#ifdef TOPPERS_FPU_CONTEXT
+	/* FPU コンテキストを捨てる */
+	movs  r3, #CONTROL_INIT
+	msr   control, r3 /* FPCA をクリア */
+	isb
+#endif /* TOPPERS_FPU_CONTEXT */
 	/* dispatcher_0 の引数を設定 */
 	ldr   r1, =p_schedtsk
 	ldr   r1, [r1]
@@ -377,14 +382,14 @@ ALABEL(exit_and_dispatch)
 ALABEL(do_dispatch)
 #ifdef TOPPERS_FPU_CONTEXT
 	mrs   r3, control
-	and   r3, #CONTROL_FPCA
-	cbz   r3, dispatch_1 /* FPU の使用がなければ保存をスキップ */
+	ands  r3, #CONTROL_FPCA
+	beq   dispatch_1 /* FPU の使用がなければ保存をスキップ */
 	vpush {s16-s31}
-	mov   r3, #CONTROL_PSP
+	movs  r3, #CONTROL_INIT
 	msr   control, r3 /* FPCA をクリア */
 	isb
 ALABEL(dispatch_1)
-	/* fpu_flag はゼロもしくは CONTROL_PSP と同じ値（非ゼロ） */
+	/* fpu_flag はゼロもしくは CONTROL_INIT と同じ値（非ゼロ） */
 	str   r3, [r0, #TCB_fpu_flag]
 #endif /* TOPPERS_FPU_CONTEXT */
 	push  {r4-r11}
@@ -400,12 +405,12 @@ ALABEL(dispatcher_0)
 	cbz   r1, idle_loop /* p_runtsk == NULL ならアイドル処理へ */
 	ldr   r2, [r1, #TCB_pc]
 	/* 実行再開番地が EXC_RETURN なら Handler モードへ */
-	and   r0, r2, #EXC_RETURN_PREFIX
+	ands  r0, r2, #EXC_RETURN_PREFIX
 	cmp   r0, #EXC_RETURN_PREFIX
 	bne   dispatcher_1
 	/* r1, r2 は例外ハンドラの先頭で未定義となるため退避 */
-	mov   r4, r1
-	mov   r5, r2
+	movs  r4, r1
+	movs  r5, r2
 	svc   #0
 
 /*
@@ -417,7 +422,7 @@ ALABEL(dispatcher_0)
 ALABEL(dispatcher_1)
 #ifdef LOG_DSP_LEAVE
 	push  {r1, r2}
-	mov   r0, r1
+	movs  r0, r1
 	bl    log_dsp_leave
 	pop   {r1, r2}
 #endif /* LOG_DSP_LEAVE */
@@ -426,8 +431,10 @@ ALABEL(dispatcher_1)
 	 * psplim の設定中にカーネル管理外の割り込み/例外が発生して
 	 * 例外フレームが積まれてもスタックオーバーフローとならないようにする．
 	 * ただし，本当にスタックオーバーフローした場合も検知できない．
+	 * sense_context()の動作を保証する必要はないので，一旦MSPに
+	 * 切り替えても良いが処理が多くなる．
 	 */
-	mov   r0, #0
+	movs  r0, #0
 	msr   psplim, r0
 	ldr   sp, [r1, #TCB_sp]
 	ldr   r0, [r1, #TCB_stk_top]
@@ -450,12 +457,12 @@ ALABEL(idle_loop)
 	toppers_asm_custom_idle
 #else
 	/* CPU ロック解除状態へ */
-	ldr r0, =lock_flag
-	mov r1, #0
-	str r1, [r0]
-	dsb /* unlock_cpu_dsp() のコメント参照 */
-	ldr r0, =#IIPM_ENAALL
-	msr basepri, r0
+	ldr  r0, =lock_flag
+	movs r1, #0
+	str  r1, [r0]
+	dsb  /* unlock_cpu_dsp() のコメント参照 */
+	movs r0, #IIPM_ENAALL
+	msr  basepri, r0
 ALABEL(_idle_loop_1)
 	/*
 	 *  basepriを全割込み許可に設定してからwfiが発行されるまでに
@@ -480,18 +487,18 @@ ALABEL(start_r)
 	bl  ovrtimer_start
 #endif /* TOPPERS_SUPPORT_OVRHDR */
 	/* CPU ロック解除状態へ */
-	ldr r0, =lock_flag
-	mov r1, #0
-	str r1, [r0]
-	dsb /* unlock_cpu_dsp() のコメント参照 */
-	ldr r0, =#IIPM_ENAALL
-	msr basepri, r0
-	ldr r0, =p_runtsk
-	ldr r1, [r0]
-	ldr r2, [r1, #TCB_p_tinib]
-	ldr r0, [r2, #TINIB_exinf]
-	ldr lr, =ext_tsk
-	ldr pc, [r2, #TINIB_task]
+	ldr  r0, =lock_flag
+	movs r1, #0
+	str  r1, [r0]
+	dsb  /* unlock_cpu_dsp() のコメント参照 */
+	movs r0, #IIPM_ENAALL
+	msr  basepri, r0
+	ldr  r0, =p_runtsk
+	ldr  r1, [r0]
+	ldr  r2, [r1, #TCB_p_tinib]
+	ldr  r0, [r2, #TINIB_exinf]
+	ldr  lr, =ext_tsk
+	ldr  pc, [r2, #TINIB_task]
 
 /*
  *  カーネルの終了処理の呼出し
@@ -502,7 +509,7 @@ ALABEL(start_r)
 	ATHUMB(call_exit_kernel)
 	AGLOBAL(call_exit_kernel)
 ALABEL(call_exit_kernel)
-	mov   r1, #CONTROL_MSP
+	movs  r1, #CONTROL_MSP
 	msr   control, r1  /* MSPを有効に  */
 	isb                /* control の操作後に必要 */
 	b     exit_kernel  /* カーネルの終了処理を呼ぶ */
@@ -515,12 +522,12 @@ ALABEL(call_exit_kernel)
 	ATHUMB(sil_dly_nse)
 	AGLOBAL(sil_dly_nse)
 ALABEL(sil_dly_nse)
-	sub   r0, r0, #SIL_DLY_TIM1
+	sub   r0, #SIL_DLY_TIM1
 	cmp   r0, #0
 	bgt   sil_dly_nse1
 	bx    lr
 ALABEL(sil_dly_nse1)
-	sub   r0, r0, #SIL_DLY_TIM2
+	sub   r0, #SIL_DLY_TIM2
 	cmp   r0, #0
 	bgt   sil_dly_nse1
 	bx    lr

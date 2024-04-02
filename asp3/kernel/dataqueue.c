@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: dataqueue.c 1030 2018-11-01 12:40:36Z ertl-hiro $
+ *  $Id: dataqueue.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -441,7 +441,7 @@ tsnd_dtq(ID dtqid, intptr_t data, TMO tmout)
 ER
 fsnd_dtq(ID dtqid, intptr_t data)
 {
-	DTQCB	*p_dtqcb;	
+	DTQCB	*p_dtqcb;
 	ER		ercd;
 
 	LOG_FSND_DTQ_ENTER(dtqid, data);
@@ -614,7 +614,7 @@ ini_dtq(ID dtqid)
 {
 	DTQCB	*p_dtqcb;
 	ER		ercd;
-    
+
 	LOG_INI_DTQ_ENTER(dtqid);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_DTQID(dtqid));
@@ -649,7 +649,7 @@ ref_dtq(ID dtqid, T_RDTQ *pk_rdtq)
 {
 	DTQCB	*p_dtqcb;
 	ER		ercd;
-    
+
 	LOG_REF_DTQ_ENTER(dtqid, pk_rdtq);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_DTQID(dtqid));

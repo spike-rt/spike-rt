@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf4.h 964 2018-05-02 07:53:57Z ertl-hiro $
+ *  $Id: perf4.h 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /*
@@ -71,9 +71,9 @@
 /*
  *  関数のプロトタイプ宣言
  */
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
-extern void	task3(intptr_t exinf);
-extern void	task4(intptr_t exinf);
-extern void	cyclic_handler(intptr_t exinf);
-extern void	main_task(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
+extern void	task3(EXINF exinf);
+extern void	task4(EXINF exinf);
+extern void	cyclic_handler(EXINF exinf);
+extern void	main_task(EXINF exinf);

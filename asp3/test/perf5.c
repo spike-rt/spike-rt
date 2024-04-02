@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf5.c 964 2018-05-02 07:53:57Z ertl-hiro $
+ *  $Id: perf5.c 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /*
@@ -59,7 +59,7 @@
 /*
  *  アラームハンドラ
  */
-void alarm_handler(intptr_t exinf)
+void alarm_handler(EXINF exinf)
 {
 	/*
 	 *  アラームハンドラは実行されないはず
@@ -91,7 +91,7 @@ static ID alarm3_list[30] = {
 /*
  *  メインタスク
  */
-void main_task(intptr_t exinf)
+void main_task(EXINF exinf)
 {
 	uint_t	i, j;
 	ER		ercd;

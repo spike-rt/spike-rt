@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2014-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,12 +34,14 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_drift1.h 1109 2018-12-02 09:32:16Z ertl-hiro $
+ *  $Id: simt_drift1.h 1442 2020-05-26 00:11:05Z ertl-hiro $
  */
 
 /* 
  *		ドリフト調整機能のテスト(1)
  */
+
+#include <kernel.h>
 
 /*
  *  ターゲット依存の定義
@@ -65,7 +67,7 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	alarm1_handler(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	alarm1_handler(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

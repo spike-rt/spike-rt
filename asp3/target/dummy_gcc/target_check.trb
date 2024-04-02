@@ -2,10 +2,46 @@
 #
 #		パス3の生成スクリプトのターゲット依存部（ダミーターゲット用）
 #
-#   $Id: target_check.trb 572 2016-02-01 14:40:09Z ertl-hiro $
+#   $Id: target_check.trb 1468 2020-08-07 21:51:30Z ertl-hiro $
 # 
 
 #
 #  ターゲット非依存部のインクルード
 #
 IncludeTrb("kernel/kernel_check.trb")
+
+#
+#  割込みハンドラテーブルに関するチェック
+#
+inhinib = SYMBOL("_kernel_inhinib_table")
+$cfgData[:DEF_INH].each do |_, params|
+  # inthdrがプログラムの先頭番地として正しくない場合（E_PAR）［NGKI3056］
+  inthdr = PEEK(inhinib + $offsetof_INHINIB_int_entry, $sizeof_FP)
+
+  if (inthdr & ($CHECK_FUNC_ALIGN - 1)) != 0
+    error_wrong_id("E_PAR", params, :inthdr, :inhno, "not aligned")
+  end
+  if $CHECK_FUNC_NONNULL && inthdr == 0
+    error_wrong_id("E_PAR", params, :inthdr, :inhno, "null")
+  end
+
+  inhinib += $sizeof_INHINIB
+end
+
+#
+#  CPU例外ハンドラテーブルに関するチェック
+#
+excinib = SYMBOL("_kernel_excinib_table")
+$cfgData[:DEF_EXC].each do |_, params|
+  # exchdrがプログラムの先頭番地として正しくない場合（E_PAR）［NGKI3135］
+  exchdr = PEEK(excinib + $offsetof_EXCINIB_exc_entry, $sizeof_FP)
+
+  if (exchdr & ($CHECK_FUNC_ALIGN - 1)) != 0
+    error_wrong_id("E_PAR", params, :exchdr, :excno, "not aligned")
+  end
+  if $CHECK_FUNC_NONNULL && exchdr == 0
+    error_wrong_id("E_PAR", params, :exchdr, :excno, "null")
+  end
+
+  excinib += $sizeof_EXCINIB
+end

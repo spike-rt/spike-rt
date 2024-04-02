@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2015 by Ushio Laboratory
  *              Graduate School of Engineering Science, Osaka Univ., JAPAN
- *  Copyright (C) 2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: tTask.c 509 2016-01-12 06:06:14Z ertl-hiro $
+ *  $Id: tTask.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 #include "tTask_tecsgen.h"
@@ -46,7 +46,7 @@
  *  タスク本体の呼出し
  */
 void
-tTask_start(intptr_t exinf)
+tTask_start(EXINF exinf)
 {
 	CELLCB	*p_cellcb = (CELLCB *) exinf;
 
