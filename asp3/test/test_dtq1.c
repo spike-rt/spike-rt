@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2015-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2023 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_dtq1.c 1137 2019-01-04 01:42:50Z ertl-hiro $
+ *  $Id: test_dtq1.c 1784 2023-01-13 12:12:37Z ertl-hiro $
  */
 
 /* 
@@ -58,7 +58,7 @@
  * 【テスト項目】
  *
  *	(A) snd_dtqのエラー検出
- *		(A-1) 非タスクコンテキストからの呼出し［NGKI1722］
+ *		(A-1) 非タスクコンテキストからの呼出し［NGKI1725］
  *		(A-2) CPUロック状態からの呼出し［NGKI1724］
  *		(A-3) ディスパッチ保留状態からの呼出し［NGKI1725］
  *			(A-3-1) ディスパッチ禁止状態
@@ -270,12 +270,22 @@
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_dtq1.h"
+#include "test_common.h"
+
+/*
+ *  送受信するデータの定義
+ */
+#define	DATA0		((intptr_t) 0)
+#define	DATA1		((intptr_t) 1)
+#define	DATA2		((intptr_t) 2)
+#define	DATA3		((intptr_t) 3)
+#define	DATA4		((intptr_t) 4)
+#define	DATA5		((intptr_t) 5)
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 	intptr_t	data;
@@ -297,7 +307,7 @@ alarm1_handler(intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RDTQ	rdtq;
@@ -452,7 +462,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	intptr_t	data;
@@ -504,7 +514,7 @@ task2(intptr_t exinf)
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 	intptr_t	data;

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task.c 1028 2018-10-31 09:53:31Z ertl-hiro $
+ *  $Id: task.c 1633 2022-09-23 09:27:28Z ertl-hiro $
  */
 
 /*
@@ -328,6 +328,7 @@ make_dormant(TCB *p_tcb)
 	p_tcb->wupque = false;
 	p_tcb->raster = false;
 	p_tcb->enater = true;
+	p_tcb->boosted = false;
 	LOG_TSKSTAT(p_tcb);
 }
 

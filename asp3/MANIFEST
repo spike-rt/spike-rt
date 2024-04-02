@@ -1,5 +1,5 @@
 PACKAGE asp3
-VERSION 3.5.0
+VERSION 3.7.0
 
 configure.rb
 MANIFEST
@@ -9,8 +9,11 @@ doc/asp_spec.txt
 doc/configurator.txt
 doc/design.txt
 doc/extension.txt
+doc/inherit_design.txt
 doc/migration.txt
+doc/mutex_design.txt
 doc/porting.txt
+doc/simtimer.txt
 doc/user.txt
 doc/version.txt
 
@@ -169,5 +172,6 @@ sample/tSample2.h
 
 INCLUDE cfg/MANIFEST
 INCLUDE test/MANIFEST
+INCLUDE test_cfg/MANIFEST
 INCLUDE extension/MANIFEST
 INCLUDE target/dummy_gcc/MANIFEST

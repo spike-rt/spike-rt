@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2015 by Ushio Laboratory
  *              Graduate School of Engineering Science, Osaka Univ., JAPAN
- *  Copyright (C) 2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: tInitializeRoutine.c 911 2018-03-07 00:24:06Z ertl-hiro $
+ *  $Id: tInitializeRoutine.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 #include "tInitializeRoutine_tecsgen.h"
@@ -46,7 +46,7 @@
  *  初期化ルーチン本体の呼出し
  */
 void
-tInitializeRoutine_start(intptr_t exinf)
+tInitializeRoutine_start(EXINF exinf)
 {
 	CELLCB	*p_cellcb = (CELLCB *) exinf;
 

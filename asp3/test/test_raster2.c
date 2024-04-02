@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_raster2.c 1137 2019-01-04 01:42:50Z ertl-hiro $
+ *  $Id: test_raster2.c 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /* 
@@ -258,7 +258,7 @@
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -309,7 +309,7 @@ alarm1_handler(intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RTSK	rtsk;
@@ -525,7 +525,7 @@ task1(intptr_t exinf)
 static uint_t	task2_count = 0;
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -656,7 +656,7 @@ task2(intptr_t exinf)
 static uint_t	task3_count = 0;
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 

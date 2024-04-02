@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  @(#) $Id: core_kernel_impl_v6m.h 1501 2021-07-28 12:48:03Z ertl-komori $
+ *  @(#) $Id: core_kernel_impl_v6m.h 1799 2023-04-01 00:50:30Z ertl-komori $
  */
 
 /*
@@ -98,13 +98,13 @@ extern const uint32_t iipm_enable_irq_tbl[];
  */
 Inline void lock_cpu(void)
 {
+    sil_wrw_mem((void *)NVIC_CLRENA0, 0xFFFFFFFF);
+    sil_wrw_mem((void *)NVIC_SETENA0, iipm_enable_masks[IIPM_LOCK]);
     /* 
      * クリティカルセクションに入る前に全てのメモリアクセスが
      * 終了していることを保証する．
      */
     data_synchronization_barrier();
-    sil_wrw_mem((void *)NVIC_CLRENA0, 0xFFFFFFFF);
-    sil_wrw_mem((void *)NVIC_SETENA0, iipm_enable_masks[IIPM_LOCK]);
     lock_flag = 1;
     /* クリティカルセクションの前後でメモリが書き換わる可能性がある */
     ARM_MEMORY_CHANGED;

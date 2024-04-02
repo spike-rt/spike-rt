@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: kernel_impl.h 1134 2018-12-31 16:15:10Z ertl-hiro $
+ *  $Id: kernel_impl.h 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -153,7 +153,7 @@ extern void	initialize_object(void);
  */
 typedef struct initialization_routine_block {
 	INIRTN		inirtn;					/* 初期化ルーチンの先頭番地 */
-	intptr_t	exinf;					/* 初期化ルーチンの拡張情報 */
+	EXINF		exinf;					/* 初期化ルーチンの拡張情報 */
 } INIRTNB;
 
 extern const uint_t	tnum_inirtn;		/* 初期化ルーチンの数 */
@@ -165,7 +165,7 @@ extern const INIRTNB inirtnb_table[];	/* 初期化ルーチンブロックテー
  */
 typedef struct termination_routine_block {
 	TERRTN		terrtn;					/* 終了処理ルーチンの先頭番地 */
-	intptr_t	exinf;					/* 終了処理ルーチンの拡張情報 */
+	EXINF		exinf;					/* 終了処理ルーチンの拡張情報 */
 } TERRTNB;
 
 extern const uint_t	tnum_terrtn;		/* 終了処理ルーチンの数 */
@@ -199,7 +199,7 @@ extern void	exit_kernel(void);
 /*
  *  通知ハンドラの型定義
  */
-typedef void	(*NFYHDR)(intptr_t exinf);
+typedef void	(*NFYHDR)(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */
 #endif /* TOPPERS_KERNEL_IMPL_H */

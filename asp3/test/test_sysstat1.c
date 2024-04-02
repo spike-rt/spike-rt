@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2021 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_sysstat1.c 310 2015-02-08 13:46:46Z ertl-hiro $
+ *  $Id: test_sysstat1.c 1496 2021-02-19 15:58:36Z ertl-hiro $
  */
 
 /* 
@@ -201,12 +201,12 @@
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_sysstat1.h"
+#include "test_common.h"
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -462,7 +462,7 @@ task1(intptr_t exinf)
 static uint_t	task2_count = 0;
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 

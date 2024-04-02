@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2023 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: t_stddef.h 1235 2019-07-09 21:03:43Z ertl-hiro $
+ *  $Id: t_stddef.h 1779 2023-01-08 13:24:42Z ertl-hiro $
  */
 
 /*
@@ -105,6 +105,7 @@ typedef	uint_t			STAT;		/* オブジェクトの状態 */
 typedef	uint_t			MODE;		/* サービスコールの動作モード */
 typedef	int_t			PRI;		/* 優先度 */
 typedef	uint32_t		TMO;		/* タイムアウト指定 */
+typedef intptr_t		EXINF;		/* 拡張情報 */
 typedef	uint32_t		RELTIM;		/* 相対時間［NGKI0550］*/
 #ifdef UINT64_MAX
 typedef	uint64_t		SYSTIM;		/* システム時刻［NGKI0548］*/

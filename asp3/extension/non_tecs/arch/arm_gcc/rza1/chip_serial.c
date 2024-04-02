@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: chip_serial.c 1095 2018-11-28 00:57:28Z ertl-hiro $
+ *  $Id: chip_serial.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -52,7 +52,7 @@
  *  SIOドライバの初期化
  */
 void
-sio_initialize(intptr_t exinf)
+sio_initialize(EXINF exinf)
 {
 	scif_initialize();
 }
@@ -61,7 +61,7 @@ sio_initialize(intptr_t exinf)
  *  SIOドライバの終了処理
  */
 void
-sio_terminate(intptr_t exinf)
+sio_terminate(EXINF exinf)
 {
 	scif_terminate();
 }
@@ -70,7 +70,7 @@ sio_terminate(intptr_t exinf)
  *  SIOの受信割込みサービスルーチン
  */
 void
-sio_isr_rx(intptr_t exinf)
+sio_isr_rx(EXINF exinf)
 {
 	scif_isr_rx((ID) exinf);
 }
@@ -79,7 +79,7 @@ sio_isr_rx(intptr_t exinf)
  *  SIOの送信割込みサービスルーチン
  */
 void
-sio_isr_tx(intptr_t exinf)
+sio_isr_tx(EXINF exinf)
 {
 	scif_isr_tx((ID) exinf);
 }
@@ -88,7 +88,7 @@ sio_isr_tx(intptr_t exinf)
  *  SIOポートのオープン
  */
 SIOPCB *
-sio_opn_por(ID siopid, intptr_t exinf)
+sio_opn_por(ID siopid, EXINF exinf)
 {
 	SIOPCB		*p_siopcb;
 
@@ -163,7 +163,7 @@ sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
  *  SIOポートからの送信可能コールバック
  */
 void
-scif_irdy_snd(intptr_t exinf)
+scif_irdy_snd(EXINF exinf)
 {
 	sio_irdy_snd(exinf);
 }
@@ -172,7 +172,7 @@ scif_irdy_snd(intptr_t exinf)
  *  SIOポートからの受信通知コールバック
  */
 void
-scif_irdy_rcv(intptr_t exinf)
+scif_irdy_rcv(EXINF exinf)
 {
 	sio_irdy_rcv(exinf);
 }

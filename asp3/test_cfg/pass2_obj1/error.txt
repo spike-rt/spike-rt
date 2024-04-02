@@ -1,0 +1,29 @@
+error: no task is registered
+../../test_cfg/pass2_obj1.cfg:12: error: E_RSATR: illegal sematr `0x10U' in CRE_SEM of SEM1
+../../test_cfg/pass2_obj1.cfg:15: error: E_PAR: illegal maxsem `0' in CRE_SEM of SEM2
+../../test_cfg/pass2_obj1.cfg:18: error: E_PAR: isemcnt `2' is too large in CRE_SEM of SEM3
+../../test_cfg/pass2_obj1.cfg:21: error: E_RSATR: illegal flgatr `0x10U' in CRE_FLG of FLG1
+../../test_cfg/pass2_obj1.cfg:24: error: E_PAR: iflgptn `0x100000000U' is too large in CRE_FLG of FLG2
+../../test_cfg/pass2_obj1.cfg:27: error: E_RSATR: illegal dtqatr `0x10U' in CRE_DTQ of DTQ1
+../../test_cfg/pass2_obj1.cfg:30: error: E_NOSPT: illegal dtqmb `dtqmb_DTQ2' in CRE_DTQ of DTQ2
+../../test_cfg/pass2_obj1.cfg:33: error: E_RSATR: illegal pdqatr `0x10U' in CRE_PDQ of PDQ1
+../../test_cfg/pass2_obj1.cfg:36: error: E_PAR: illegal maxdpri `0' in CRE_PDQ of PDQ2
+../../test_cfg/pass2_obj1.cfg:37: error: E_PAR: illegal maxdpri `17' in CRE_PDQ of PDQ3
+../../test_cfg/pass2_obj1.cfg:40: error: E_NOSPT: illegal pdqmb `pdqmb_PDQ4' in CRE_PDQ of PDQ4
+../../test_cfg/pass2_obj1.cfg:43: error: E_RSATR: illegal mtxatr `0x10U' in CRE_MTX of MTX1
+../../test_cfg/pass2_obj1.cfg:46: error: E_PAR: illegal ceilpri `17' in CRE_MTX of MTX2
+../../test_cfg/pass2_obj1.cfg:49: error: E_RSATR: illegal mpfatr `0x10U' in CRE_MPF of MPF1
+../../test_cfg/pass2_obj1.cfg:52: error: E_PAR: illegal blkcnt `0' in CRE_MPF of MPF2
+../../test_cfg/pass2_obj1.cfg:55: error: E_PAR: illegal blksz `0' in CRE_MPF of MPF3
+../../test_cfg/pass2_obj1.cfg:58: error: E_NOSPT: illegal mpfmb `mpfmb_MPF4' in CRE_MPF of MPF4
+../../test_cfg/pass2_obj1.cfg:61: error: E_RSATR: illegal cycatr `0x10U' in CRE_CYC of CYC1
+../../test_cfg/pass2_obj1.cfg:64: error: E_PAR: illegal cyctim `0' in CRE_CYC of CYC2
+../../test_cfg/pass2_obj1.cfg:65: error: E_PAR: illegal cyctim `TMAX_RELTIM + 1' in CRE_CYC of CYC3
+../../test_cfg/pass2_obj1.cfg:69: error: E_PAR: illegal cycphs `TMAX_RELTIM + 1' in CRE_CYC of CYC4
+../../test_cfg/pass2_obj1.cfg:73: error: E_PAR: illegal nfymode `0x08U' in CRE_CYC of CYC5
+../../test_cfg/pass2_obj1.cfg:74: error: E_PAR: illegal nfymode `TNFY_HANDLER|TENFY_SETVAR' in CRE_CYC of CYC6
+../../test_cfg/pass2_obj1.cfg:78: error: E_RSATR: illegal almatr `0x10U' in CRE_ALM of ALM1
+../../test_cfg/pass2_obj1.cfg:81: error: E_PAR: illegal nfymode `0x08U' in CRE_ALM of ALM2
+../../test_cfg/pass2_obj1.cfg:82: error: E_PAR: illegal nfymode `TNFY_HANDLER|TENFY_SETVAR' in CRE_ALM of ALM3
+../../test_cfg/pass2_obj1.cfg:85: error: E_PAR: istksz `0' is too small in DEF_ICS
+make: *** [kernel_cfg.timestamp] Error 1

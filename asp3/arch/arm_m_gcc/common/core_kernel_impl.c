@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id: core_kernel_impl.c 1500 2021-07-28 12:35:13Z ertl-komori $
+ *  @(#) $Id: core_kernel_impl.c 1799 2023-04-01 00:50:30Z ertl-komori $
  */
 
 /*
@@ -77,7 +77,7 @@ extern const FP vector_table[];
 /*
  *  割り込みハンドラテーブル(kernel_cfg.c)
  */
-extern const void (*exc_tbl[])(void);
+extern void (* const exc_tbl[])(void);
 
 /*
  *  システム例外・割込みの（例外番号 4〜15）

@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: scif.c 1095 2018-11-28 00:57:28Z ertl-hiro $
+ *  $Id: scif.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -62,7 +62,7 @@ typedef struct sio_port_initialization_block {
  */
 struct sio_port_control_block {
 	const SIOPINIB *p_siopinib;		/* SIOポート初期化ブロック */
-	intptr_t	exinf;				/* 拡張情報 */
+	EXINF		exinf;				/* 拡張情報 */
 	bool_t		opened;				/* オープン済み */
 };
 
@@ -122,7 +122,7 @@ scif_terminate(void)
  *  SIOポートのオープン
  */
 SIOPCB *
-scif_opn_por(ID siopid, intptr_t exinf)
+scif_opn_por(ID siopid, EXINF exinf)
 {
 	SIOPCB		*p_siopcb;
 	uint_t		brr;

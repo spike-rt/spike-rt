@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_task1.h 750 2016-05-14 14:58:16Z ertl-hiro $
+ *  $Id: test_task1.h 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /* 
@@ -75,12 +75,12 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
-extern void	task3(intptr_t exinf);
-extern void	task4(intptr_t exinf);
-extern void	task5(intptr_t exinf);
-extern void	task6(intptr_t exinf);
-extern void	alarm1_handler(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
+extern void	task3(EXINF exinf);
+extern void	task4(EXINF exinf);
+extern void	task5(EXINF exinf);
+extern void	task6(EXINF exinf);
+extern void	alarm1_handler(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

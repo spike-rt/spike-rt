@@ -1,0 +1,1043 @@
+
+		TOPPERS/ASP3カーネル
+		優先度継承ミューテックス機能の設計
+
+		対応バージョン: Release 3.7.0
+		最終更新: 2022年9月25日
+
+このドキュメントは，TOPPERS/ASP3カーネルの優先度継承拡張パッケージにお
+けるミューテックス機能の設計メモである。ミューテックス機能を持たない
+ASP3カーネルに対して，優先度上限ミューテックスと優先度継承ミューテック
+スを追加するという立場で記述してあり，「ミューテックス機能の設計」
+（mutex_design.txt）の内容を包含している。
+
+○目次
+
+・実装に向けた仕様分析
+	- 優先度制御規則
+	- 優先度制御の必要箇所
+・データ構造と下請け関数の設計と実装
+	- タスク管理ブロックとミューテックス管理ブロック
+	- 現在優先度の計算処理
+	- 現在優先度の変更処理
+	- ミューテックスの操作に伴う現在優先度の制御処理
+・優先度制御が必要な処理の設計と実装
+	- chg_priの実装
+	- loc_mtx，ploc_mtx，tloc_mtx
+	- unl_mtx
+	- ini_mtx
+	- タスクの待ち解除（wait_dequeue_wobj）
+	- タスクの終了処理（task_terminate）
+	- 推移的な優先度継承
+・ミューテックス機能をリンクしない工夫
+
+○実装に向けた仕様分析
+
+●優先度制御規則
+
+タスクの現在優先度は，常に，以下の優先度の最高値に一致するように設定す
+る［NGKI2014］。
+
+(1) そのタスクのベース優先度
+
+(2) そのタスクがロックしている優先度上限ミューテックスの優先度上限
+
+(3) そのタスクがロックしている優先度継承ミューテックスに対してロック待
+	ち状態となっているタスクの現在優先度
+
+ここで(3)において，優先度継承ミューテックスの待ちキューはタスクの優先
+度順であるため，最も高い現在優先度を持つタスクは，待ちキューの先頭のタ
+スクである。そのため，(3)を以下のように言い換えることができる。
+
+(3) そのタスクがロックしている優先度継承ミューテックスに対する待ちキュー
+	の先頭のタスクの現在優先度
+
+タスクの現在優先度を決定する要素となるこれらの優先度を，「要素優先度」
+と呼ぶことにする。
+
+現在優先度を制御する最も簡単な方法は，要素優先度が変化（または増減）す
+るたびに，要素優先度をすべてスキャンして，その中の最高値を求める方法で
+ある。しかしこの方法は，効率が悪い。これを最適化する余地は数多くあるが，
+あまり細かく最適化すると，コードが複雑になり，テスト工数も増えてしまう。
+
+どこまでの最適化を行うかは悩ましいところであるが，少なくとも要素優先度
+が上がる（または増える）場合には，上がった後の要素優先度とタスクの現在
+優先度を比較するだけで，現在優先度の変更の必要性が判断でき，すべての要
+素優先度をスキャンする必要はない。
+
+また，要素優先度が下がる（または減る）場合にも，下がる前の要素優先度が
+タスクの現在優先度と一致していなかった場合（言い換えると，その要素優先
+度がタスクの現在優先度を決定していなかった場合）には，タスクの現在優先
+度が変化しないことは明らかである。一方，下がる前の要素優先度がタスクの
+現在優先度と一致していた場合には，すべての要素優先度をスキャンしてタス
+クの現在優先度を計算することが必要である。
+
+言うまでもなく，要素優先度が変化しない場合には，タスクの現在優先度は変
+化しない。
+
+以上より，現在優先度を決定するための要素優先度が上がる（または増える）
+場合と，下がる（または減る）場合は，上記のような最適化が有効と考えられ
+るため，この粒度の最適化は行うこととする。
+
+●優先度制御の必要箇所
+
+前述の(1)〜(3)の要素優先度が変化（または増減）する場合に，タスクの現在
+優先度の変更処理が必要になる。そこで，(1)〜(3)の要素優先度のそれぞれに
+ついて，どのような場合に変化（または増減）するかをリストアップする。こ
+れを元に，プログラム中のどの箇所で現在優先度の変更処理を行うべきか洗い
+出す。
+
+(1)「そのタスクのベース優先度」が変化するのは，chg_priによってタスクの
+	ベース優先度を変更した場合のみである。この時は，要素優先度が上がる
+	場合も下がる場合もある。
+
+(2)「そのタスクがロックしている優先度上限ミューテックスの優先度上限」
+	が変化するのは，以下のいずれかの状況である。
+
+(2-1) そのタスクが優先度上限ミューテックスをロックした時。この時は，要
+	  素優先度が増える。
+
+(2-2) そのタスクが優先度上限ミューテックスをロック解除した時。この時は，
+	  要素優先度が減る。
+
+(3)「そのタスクがロックしている優先度継承ミューテックスに対してロック
+	待ち状態となっているタスクの現在優先度」が変化するのは，以下のいず
+	れかの状況である。
+
+(3-1) そのタスクが優先度継承ミューテックスをロックした時。この時は，要
+	  素優先度が増える。
+
+(3-2) そのタスクが優先度継承ミューテックスをロック解除した時。この時は，
+	  要素優先度が減る。
+
+(3-3) そのタスクがロックしている優先度継承ミューテックスに対して，他の
+	  タスクがロック待ち状態に入る時。この時は，要素優先度が増える。
+
+(3-4) そのタスクがロックしている優先度継承ミューテックスに対して，他の
+	  タスクがロック待ち状態から抜ける時。この時は，要素優先度が減る。
+
+(3-5) そのタスクがロックしている優先度継承ミューテックスに対してロック
+	  待ち状態となっているタスクの現在優先度が変更された時。これは，推
+	  移的な優先度継承であり，要素優先度が上がる場合も下がる場合もある。
+
+これらの中で(3-1)については，次の理由によりタスクの現在優先度は変化し
+ない。優先度継承ミューテックスの待ちキューは，優先度順になっている。そ
+のため，タスクがミューテックスをロックした場合には，それより後ろで待っ
+ているタスクの現在優先度は，ミューテックスをロックしたタスクの現在優先
+度と同じかそれより低いことになる。そのため，その優先度を継承して優先度
+が上がる可能性はなく，現在優先度の変更は起こらない。ただし，後ろで待っ
+ているタスクの現在優先度が，ミューテックスをロックしたタスクの現在優先
+度と同じ場合には，優先度上昇状態になる可能性はある。
+
+○データ構造と下請け関数の設計と実装
+
+●タスク管理ブロックとミューテックス管理ブロック
+
+ミューテックスを管理するデータ構造として，ミューテックスの待ちキューに
+加えて，タスクに対してそれがロックしているミューテックスのリストと，
+ミューテックスに対してそれを保持しているタスクを管理する必要がある。
+
+タスクがロックしているミューテックスのリストは，ミューテックスのロック
+解除はロックの逆順で行うことから，ロックの逆順のシングルリンクキューで
+実現する。具体的には，TCBには，最後にロックしたミューテックスの管理ブ
+ロックへのポインタを追加し，ミューテックス管理ブロックには，そのミュー
+テックスをロックしたタスクがこの前にロックしたミューテックスの管理ブロッ
+クへのポインタを格納する。
+
+また，TCBには，現在優先度に加えて，ベース優先度を保持するbpriorityフィー
+ルドを追加する。bpriorityフィールドは，タスクが休止状態以外で有効なフィー
+ルドとする。
+
+----------------------------------------
+typedef struct task_control_block {
+	...
+	BIT_FIELD_UINT	bpriority : TBIT_TCB_PRIORITY;
+									/* ベース優先度（内部表現）*/
+	BIT_FIELD_UINT	priority : TBIT_TCB_PRIORITY;
+									/* 現在優先度（内部表現）*/
+	...
+	BIT_FIELD_BOOL	boosted : 1;	/* 優先度上昇状態 */
+	...
+	MTXCB			*p_lastmtx;		/* 最後にロックしたミューテックス */
+	...
+} TCB;
+----------------------------------------
+
+boostedフィールドは，当初，サブ優先度をサポートする場合に，タスクが優
+先度上昇状態かどうかを効率的に判定するために追加したが，サブ優先度をサ
+ポートしない場合にも有益であることがわかったため，ベースパッケージにも
+導入することとした。boostedフィールドは，タスクが休止状態以外で有効な
+フィールドとし，make_dormantにおいて初期化する。
+
+p_lastmtxは，休止状態以外で有効な変数であるが，休止状態に遷移する際に
+必ず空にするので，（make_dormantではなく）initialize_taskにおいて初期
+化すればよい。
+
+ミューテックス管理ブロックには，ミューテックス待ちキューに加えて，ミュー
+テックスをロックしているタスクのTCBへのポインタと，このミューテックス
+をロックしたタスクがこの前にロックしたミューテックスの管理ブロックへの
+ポインタを格納する。
+
+----------------------------------------
+typedef struct mutex_initialization_block {
+	ATR			mtxatr;			/* ミューテックス属性 */
+	uint_t		ceilpri;		/* ミューテックスの上限優先度（内部表現）*/
+} MTXINIB;
+----------------------------------------
+typedef struct mutex_control_block {
+	QUEUE		wait_queue;		/* ミューテックス待ちキュー */
+	const MTXINIB *p_mtxinib;	/* 初期化ブロックへのポインタ */
+	TCB			*p_loctsk;		/* ミューテックスをロックしているタスク */
+	MTXCB		*p_prevmtx;		/* この前にロックしたミューテックス */
+} MTXCB;
+----------------------------------------
+
+ミューテックスがロックされていないことは，p_loctskをNULLに設定すること
+で表す。ミューテックスがロックされていない時には，p_prevmtxは無効であ
+る。
+
+●現在優先度の計算処理
+
+すべての要素優先度をスキャンし，タスクの現在優先度を計算する関数を実装
+する。この関数を呼ぶことにより，タスクの現在優先度に設定すべき値を計算
+することができる。この関数は，以下のデータ構造を参照するため，これらが
+更新された後に呼び出さなければならない。
+
+　・TCB中のベース優先度
+　・タスクがロックしているミューテックスのリスト（TCBとミューテックス
+	管理ブロック中で管理）
+　・ミューテックス待ちキュー（ミューテックス管理ブロックとTCBで管理）
+　・ミューテックスを待っているタスクのTCB中の現在優先度
+
+また，この関数は，優先度上昇状態であるかを判定し，p_tcb->p_boostedに返
+す。
+
+----------------------------------------
+/* 
+ *  タスクの現在優先度の計算
+ *
+ *  p_tcbで指定されるタスクの現在優先度（に設定すべき値）を計算する．
+ *  また，優先度上昇状態であるかを判定し，p_tcb->boostedに返す．
+ */
+uint_t
+mutex_calc_priority(TCB *p_tcb)
+{
+	uint_t	priority;
+	MTXCB	*p_mtxcb;
+	TCB		*p_headtsk;
+	bool_t	boosted;
+
+	priority = p_tcb->bpriority;
+	p_mtxcb = p_tcb->p_lastmtx;
+	boosted = false;
+	while (p_mtxcb != NULL) {
+		switch (MTXPROTO(p_mtxcb)) {
+		case TA_CEILING:
+			if (p_mtxcb->p_mtxinib->ceilpri < priority) {
+				priority = p_mtxcb->p_mtxinib->ceilpri;
+			}
+			boosted = true;
+			break;
+		case TA_INHERIT:
+			if (!queue_empty(&(p_mtxcb->wait_queue))) {
+				p_headtsk = (TCB *)(p_mtxcb->wait_queue.p_next);
+				if (p_headtsk->priority <= priority) {
+					/*
+					 *  priorityがp_headtsk->priorityと等しい場合は，
+					 *  priorityを更新する処理は不要であるが，boosted
+					 *  をtrueにする必要があるため，上の条件式を<=とし
+					 *  ている．
+					 */
+					priority = p_headtsk->priority;
+					boosted = true;
+				}
+			}
+			break;
+		}
+		p_mtxcb = p_mtxcb->p_prevmtx;
+	}
+	p_tcb->boosted = boosted;
+	return(priority);
+}
+----------------------------------------
+
+●現在優先度の変更処理
+
+ミューテックスの操作に伴ってタスクの現在優先度を変更する場合には，TCB
+中の現在優先度を更新することに加えて，次の処理を行う必要がある。
+
+----------------------------------------
+ミューテックス機能によりタスクの現在優先度が変化する場合と，サブ優先度
+が使われる状況（サブ優先度機能をサポートするカーネルで，タスクの現在優
+先度がサブ優先度を使用すると設定されている場合）で優先度上昇状態である
+か否かが変化する場合には，以下の処理が行われる．
+
+現在優先度を変化させるサービスコールの前後とも，当該タスクが実行できる
+状態である場合には，優先度が同じタスク（サブ優先度が使われる状況では，
+サブ優先度も同じタスク）の中で優先順位が最も高くなる【NGKI2015】．その
+サービスコールにより，当該タスクが実行できる状態に遷移する場合には，優
+先度が同じタスク（サブ優先度が使われる状況では，サブ優先度も同じタスク）
+の中で優先順位が最も低くなる【NGKI2016】．
+
+そのサービスコールの後で，当該タスクが待ち状態で，タスクの優先度順の待
+ち行列につながれている場合には，当該タスクの変更後の現在優先度に従って，
+その待ち行列中での順序が変更される【NGKI2017】．待ち行列中に同じ現在優
+先度のタスクがある場合には，当該タスクの順序はそれらの中で最後になる
+【NGKI2018】．
+----------------------------------------
+
+一般に，タスクが新たに実行できる状態になった場合は，そのタスクをレディ
+キュー中の同優先度タスクの最後に入れるため，NGKI2016に合致している。ま
+た，タスクが新たに待ち状態になった場合には，そのタスクを，待ち行列中の
+同優先度のタスク最後に入れるため，NGKI2018に合致している。そのため，こ
+れらの場合には，ミューテックス機能によりタスクの現在優先度が変化しても，
+特別な処理は必要ない。
+
+タスクの状態が変化せず，現在優先度が変化する場合の処理は，chg_priの下
+請け関数であるchange_priorityを共用する。この場合，対象タスクが実行で
+きる状態である場合には，同優先度のタスクの中で最高優先順位にする必要が
+ある。
+
+一方，chg_priによる現在優先度の変更時には，次の処理を行う必要がある。
+
+----------------------------------------
+chg_priを発行した結果，対象タスクの現在優先度が変化する場合と，対象タ
+スクが優先度上昇状態でない場合（正確な定義は「4.4.5ミューテックス」の
+節を参照すること．ミューテックス機能を使わない場合には，この条件は常に
+成り立つ）には，次の処理が行われる．
+
+対象タスクが実行できる状態の場合には，現在優先度が同じ（サブ優先度が使
+われる状況では，サブ優先度も同じ）タスクの中で，対象タスクの優先順位が
+最も低くなる【NGKI1194】．対象タスクが待ち状態で，タスクの優先度順の待
+ち行列につながれている場合には，対象タスクの変更後の現在優先度に従って，
+その待ち行列中での順序が変更される【NGKI1195】．待ち行列中に同じ現在優
+先度のタスクがある場合には，対象タスクの順序はそれらの中で最後になる
+【NGKI1196】．
+
+対象タスクが優先度上昇状態であり，対象タスクの現在優先度が変化しない場
+合には，対象タスクの優先順位や待ち行列中での順序は変更されない
+【NGKI1197】．
+----------------------------------------
+
+つまり，記述された条件を満たした場合には，同優先度のタスクの中で最低優
+先順位にする必要がある。
+
+そこで，change_priorityにmtxmodeパラメータを設けて，同優先度のタスクの
+中での優先順位を指定できるようにする。具体的には，mtxmodeがfalseの時は
+最低優先順位，mtxmodeがtrueの時は最高優先順位とする。ミューテックスの
+操作に伴って現在優先度を変更する場合にはmtxmodeをtrueに，chg_priにより
+現在優先度を変更する場合にはmtxmodeをfalseにして，change_priorityを呼
+び出す。
+
+なお，ミューテックスの操作に伴って現在優先度を変更する場合には，現在優
+先度が実際に変化する場合にのみ，change_priorityを呼び出すようにしなけ
+ればならない（現在優先度が変化しない場合に呼び出すと，仕様に反して優先
+順位や待ち行列中での順序が変更されてしまう）。
+
+さらに，change_priorityでは，現在優先度を変更したタスクが優先度継承ミュー
+テックスを待っていた場合，そのミューテックスをロックしているタスクに対
+して，推移的な優先度継承を行う必要がある。
+
+----------------------------------------
+void
+change_priority(TCB *p_tcb, uint_t newpri, bool_t mtxmode)
+{
+	uint_t	oldpri;
+	MTXCB	*p_mtxcb;
+	ATR		mtxproto;
+
+	oldpri = p_tcb->priority;
+	p_tcb->priority = newpri;
+
+	if (TSTAT_RUNNABLE(p_tcb->tstat)) {
+		/*
+		 *  タスクが実行できる状態の場合
+		 */
+		queue_delete(&(p_tcb->task_queue));
+		if (queue_empty(&(ready_queue[oldpri]))) {
+			primap_clear(oldpri);
+		}
+		if (mtxmode) {
+			queue_insert_next(&(ready_queue[newpri]), &(p_tcb->task_queue));
+		}
+		else {
+			queue_insert_prev(&(ready_queue[newpri]), &(p_tcb->task_queue));
+		}
+		primap_set(newpri);
+
+		if (dspflg) {
+			if (p_schedtsk == p_tcb) {
+				if (newpri >= oldpri) {
+					p_schedtsk = search_schedtsk();
+				}
+			}
+			else {
+				if (newpri <= p_schedtsk->priority) {
+					p_schedtsk = (TCB *)(ready_queue[newpri].p_next);
+				}
+			}
+		}
+	}
+	else {
+		if (TSTAT_WAIT_MTX(p_tcb->tstat)) {
+			/*
+			 *  タスクがミューテックス待ち状態の場合
+			 */
+			p_mtxcb = ((WINFO_MTX *)(p_tcb->p_winfo))->p_mtxcb;
+			mtxproto = MTXPROTO(p_mtxcb);
+			if (mtxproto != TA_NULL) {
+				queue_delete(&(p_tcb->task_queue));
+				queue_insert_tpri(&(p_mtxcb->wait_queue), p_tcb);
+				if (mtxproto == TA_INHERIT) {
+					/*
+					 *  ここに推移的な優先度継承の処理を入れる．
+					 */
+				}
+			}
+		}
+		else if (TSTAT_WAIT_WOBJCB(p_tcb->tstat)) {
+			/*
+			 *  タスクがその他のオブジェクト待ち状態で，同期・通信オブ
+			 *  ジェクトの管理ブロックの共通部分（WOBJCB）の待ちキュー
+			 *  につながれているの場合
+			 */
+			wobj_change_priority(((WINFO_WOBJ *)(p_tcb->p_winfo))->p_wobjcb,
+																	p_tcb);
+		}
+	}
+}
+----------------------------------------
+
+推移的な優先度継承の処理については，後で検討する。
+
+●ミューテックスの操作に伴う現在優先度の制御処理
+
+前節のchange_priorityを用いて，ミューテックスの操作に伴う現在優先度の
+制御処理を実装する。なお，これらの処理は，ミューテックスの操作によって
+タスク状態が変化しない場合に用いるものである。
+
+ミューテックスの操作に伴って要素優先度が上がる（または増える）場合の処
+理は次の通り。newpriには，上がった後の（または増えた）要素優先度を渡す。
+
+----------------------------------------
+void
+mutex_raise_priority(TCB *p_tcb, uint_t newpri)
+{
+	if (newpri <= p_tcb->priority) {
+		p_tcb->boosted = true;
+		if (newpri < p_tcb->priority) {
+			change_priority(p_tcb, newpri, true);
+		}
+	}
+}
+----------------------------------------
+＊サブ優先度をサポートする場合
+
+void
+mutex_raise_priority(TCB *p_tcb, uint_t newpri)
+{
+	if (newpri <= p_tcb->priority) {
+		if (newpri < p_tcb->priority
+				|| ((subprio_primap & PRIMAP_BIT(p_tcb->priority)) != 0U
+												&& !(p_tcb->boosted))) {
+			/*
+			 *  p_tcb->boostedは，change_priorityの中で参照するため，
+			 *  それを呼ぶ前に更新する必要がある．
+			 */
+			p_tcb->boosted = true;
+			change_priority(p_tcb, newpri, true);
+		}
+		else {
+			p_tcb->boosted = true;
+		}
+	}
+}
+----------------------------------------
+
+ミューテックスの操作に伴って要素優先度が下がる（または減る）場合の処理
+は次の通り。oldpriには，下がる前の（または減った）要素優先度を渡す。
+
+----------------------------------------
+void
+mutex_drop_priority(TCB *p_tcb, uint_t oldpri)
+{
+	uint_t	newpri;
+
+	if (oldpri == p_tcb->priority) {
+		newpri = mutex_calc_priority(p_tcb);
+		if (newpri != p_tcb->priority) {
+			change_priority(p_tcb, newpri, true);
+		}
+	}
+}
+----------------------------------------
+＊サブ優先度をサポートする場合
+
+void
+mutex_drop_priority(TCB *p_tcb, uint_t oldpri)
+{
+	uint_t	newpri;
+	bool_t	old_boosted;
+
+	if (oldpri == p_tcb->priority) {
+		old_boosted = p_tcb->boosted;
+		newpri = mutex_calc_priority(p_tcb);
+		if (newpri != p_tcb->priority
+				|| ((subprio_primap & PRIMAP_BIT(p_tcb->priority)) != 0U
+									&& p_tcb->boosted != old_boosted)) {
+			change_priority(p_tcb, newpri, true);
+		}
+	}
+}
+----------------------------------------
+
+○優先度制御が必要な処理の設計と実装
+
+優先度制御が必要な処理の設計と実装について，それぞれ検討する。
+
+●chg_pri
+
+chg_priは，優先度制御の必要箇所の(1)に該当する。要素優先度が上がる場合
+も下がる場合もあるため，mutex_calc_priorityを用いて新しい現在優先度を
+計算した後，「対象タスクの現在優先度が変化する場合と，対象タスクが優先
+度上昇状態でない場合」の条件を満たす場合には，change_priorityを呼び出
+す。優先度上昇状態であるかは，mutex_calc_priorityで判定する。
+
+----------------------------------------
+	bool_t	boosted;
+
+	lock_cpu();
+	if (TSTAT_DORMANT(p_tcb->tstat)) {
+		ercd = E_OBJ;							/*［NGKI1191］*/
+	}
+	else if ((p_tcb->boosted || TSTAT_WAIT_MTX(p_tcb->tstat))
+						&& !((*mtxhook_check_ceilpri)(p_tcb, newbpri))) {
+		ercd = E_ILUSE;							/*［NGKI1201］*/
+	}
+	else {
+		p_tcb->bpriority = newbpri;				/*［NGKI1192］*/
+		newpri = mutex_calc_priority(p_tcb, &boosted);
+		if (p_tcb->priority != newpri || !(p_tcb->boosted)) {
+			change_priority(p_tcb, newbpri, false);		/*［NGKI1193］*/
+			if (p_runtsk != p_schedtsk) {
+				dispatch();
+			}									/*［NGKI1197］*/
+		}
+		ercd = E_OK;
+	}
+	unlock_cpu();
+----------------------------------------
+
+E_ILUSEエラーを返す処理は，以下のエラーチェックのためのコードである。
+
+----------------------------------------
+対象タスクが優先度上限ミューテックスをロックしているかロックを待ってい
+る場合，tskpriは，それらのミューテックスの上限優先度と同じかそれより低
+くなければならない．そうでない場合には，E_ILUSEエラーとなる【NGKI1201】．
+----------------------------------------
+
+mutex_check_ceilpriの実装は次の通り。この関数は，エラーを検出した場合
+にfalseを，そうでない場合にtrueを返す。
+
+----------------------------------------
+bool_t
+mutex_check_ceilpri(TCB *p_tcb, uint_t bpriority)
+{
+	MTXCB	*p_mtxcb;
+
+	/*
+	 *  タスクがロックしている優先度上限ミューテックスの中で，上限優先
+	 *  度がbpriorityよりも低いものがあれば，falseを返す．
+	 */
+	p_mtxcb = p_tcb->p_lastmtx;
+	while (p_mtxcb != NULL) {
+		if (MTX_CEILING(p_mtxcb) && bpriority < p_mtxcb->p_mtxinib->ceilpri) {
+			return(false);
+		}
+		p_mtxcb = p_mtxcb->p_prevmtx;
+	}
+
+	/*
+	 *  タスクが優先度上限ミューテックスのロックを待っている場合に，そ
+	 *  の上限優先度がbpriorityよりも低くければ，falseを返す．
+	 */
+	if (TSTAT_WAIT_MTX(p_tcb->tstat)) {
+		p_mtxcb = ((WINFO_MTX *)(p_tcb->p_winfo))->p_mtxcb;
+		if (MTX_CEILING(p_mtxcb) && bpriority < p_mtxcb->p_mtxinib->ceilpri) {
+			return(false);
+		}
+	}
+
+	/*
+	 *  いずれの条件にも当てはまらなければtrueを返す．
+	 */
+	return(true);
+}
+----------------------------------------
+
+●loc_mtx，ploc_mtx，tloc_mtx
+
+loc_mtx（ploc_mtx，tloc_mtxも同様。以下同じ）は，対象ミューテックスが
+ロック解除されていれば，ミューテックスをロックし，そうでない場合には，
+ミューテックスのロック待ちに入る。
+
+loc_mtxでミューテックスをロックする時は，優先度制御の必要箇所の(2-1)に
+該当する。タスクはloc_mtxの呼び出し前後とも実行できる状態であるため，
+loc_mtxから呼ばれるmutex_acquireで，タスクの要素優先度が増える場合の処
+理を行う。
+
+----------------------------------------
+	if (MTX_CEILING(p_mtxcb)) {
+		mutex_raise_priority(p_tcb, p_mtxcb->p_mtxinib->ceilpri);
+	}
+----------------------------------------
+
+mutex_acquireが呼び出されるのは，ミューテックスがロックされていなかっ
+た場合なので，待ち行列は空になっている。そのため，タスクが優先度継承
+ミューテックスをロックした場合には，あらたに優先度上昇状態になることは
+ない。
+
+loc_mtxでミューテックスのロック待ちに入る時は，優先度制御の必要箇所の
+(3-3)に該当する。ミューテックスをロックしているタスクに対して，タスク
+の要素優先度が増える場合の処理を行う。
+
+----------------------------------------
+	if (MTX_INHERIT(p_mtxcb)) {
+		mutex_raise_priority(p_mtxcb->p_loctsk, p_runtsk->priority);
+	}
+----------------------------------------
+
+●unl_mtx
+
+unl_mtxは，対象ミューテックスをロック解除し，ミューテックスのロック待
+ちのタスクがあれば，待ちキューの先頭のタスクを待ち解除し，ミューテック
+スをロックさせる。
+
+unl_mtxでミューテックスをロック解除する処理は，優先度制御の必要箇所の
+(2-2)と(3-2)に該当する。タスクはunl_mtxの呼び出し前後とも実行できる状
+態であるため，unl_mtxでは，タスクの要素優先度が減る場合の処理を行う。
+減る要素優先度は，優先度上限ミューテックスをロック解除する場合はその
+ミューテックスの優先度上限，優先度継承ミューテックスをロック解除する場
+合はそのミューテックスに対する待ちキューの先頭のタスクの現在優先度であ
+る。優先度継承ミューテックスを待っているタスクがない場合には，要素優先
+度が減る場合の処理を行う必要はない。
+
+----------------------------------------
+	switch (MTXPROTO(p_mtxcb)) {
+	case TA_CEILING:
+		mutex_drop_priority(p_runtsk, p_mtxcb->p_mtxinib->ceilpri);
+		break;
+	case TA_INHERIT:
+		if (!queue_empty(&(p_mtxcb->wait_queue))) {
+			p_headtsk = (TCB *)(p_mtxcb->wait_queue.p_next);
+			mutex_drop_priority(p_runtsk, p_headtsk->priority);
+		}
+		break;
+	}
+----------------------------------------
+
+unl_mtxで待ちキューの先頭のタスクにミューテックスをロックさせる処理は，
+優先度制御の必要箇所の(2-1)に該当するが，タスクは待ち状態から実行でき
+る状態に遷移するため，待ち解除されたタスクは，必要な優先度の変更を行なっ
+た後に，通常通り実行可能状態に遷移させれば良い。なお，この処理は，
+unl_mtxから呼ばれるmutex_releaseで行う。
+
+----------------------------------------
+	switch (MTXPROTO(p_mtxcb)) {
+	case TA_CEILING:
+		if (p_mtxcb->p_mtxinib->ceilpri < p_tcb->priority) {
+			p_tcb->priority = p_mtxcb->p_mtxinib->ceilpri;
+		}
+		p_tcb->boosted = true;
+		break;
+	case TA_INHERIT:
+		if (!queue_empty(&(p_mtxcb->wait_queue))) {
+			p_headtsk = (TCB *)(p_mtxcb->wait_queue.p_next);
+			if (p_headtsk->priority <= p_tcb->priority) {
+				p_tcb->boosted = true;
+			}
+		}
+		break;
+	}
+----------------------------------------
+
+●ini_mtx
+
+ini_mtxは，対象ミューテックスをロックしているタスクにロック解除させ，
+ミューテックスのロック待ちタスクをすべて待ち解除する。
+
+ini_mtxでミューテックスをロック解除させる処理は，優先度制御の必要箇所
+の(2-2)と(3-2)に該当する。ロックを解除させられるタスクの状態は，
+ini_mtxの前後で変化しないため，ini_mtxでは，タスクの要素優先度が減る場
+合の処理を行う。減る要素優先度は，優先度上限ミューテックスをロック解除
+する場合はそのミューテックスの優先度上限，優先度継承ミューテックスをロッ
+ク解除する場合はそのミューテックスに対する待ちキューの先頭のタスクの現
+在優先度である。優先度継承ミューテックスを待っているタスクがない場合に
+は，要素優先度が減る場合の処理を行う必要はない。
+
+----------------------------------------
+	lock_cpu();
+	p_loctsk = p_mtxcb->p_loctsk;
+	if (p_loctsk != NULL) {
+		p_mtxcb->p_loctsk = NULL;
+		(void) remove_mutex(p_loctsk, p_mtxcb);
+		switch (MTXPROTO(p_mtxcb)) {
+		case TA_CEILING:
+			mutex_drop_priority(p_loctsk, p_mtxcb->p_mtxinib->ceilpri);
+			break;
+		case TA_INHERIT:
+			if (!queue_empty(&(p_mtxcb->wait_queue))) {
+				p_headtsk = (TCB *) p_mtxcb->wait_queue.p_next;
+				mutex_drop_priority(p_loctsk, p_headtsk->priority);
+			}
+			break;
+		}
+	}
+	init_wait_queue(&(p_mtxcb->wait_queue));
+	if (p_runtsk != p_schedtsk) {
+		dispatch();
+	}
+	ercd = E_OK;
+	unlock_cpu();
+----------------------------------------
+
+他の同期・通信オブジェクトの再初期化と異なり，init_wait_queueを後に実
+施しているが，これは，init_wait_queueを先に実行すると，待ち行列が空に
+なってしまい，優先度継承ミューテックスに対する現在優先度の変更処理が正
+しく動作しないためである。
+
+ini_mtxでミューテックスのロック待ちタスクを待ち解除する処理は，優先度
+制御の必要箇所の(3-4)に該当するが，次の理由で追加の処理は必要ない。タ
+スクが優先度継承ミューテックスのロック待ちから抜ける場合，そのミューテッ
+クスをロックしていたタスクの優先度に影響する可能性があるが，ini_mtxで
+はミューテックスをロックしていたタスクはロック解除させられるため，ロッ
+ク解除させられたタスクに対して(3-2)による優先度変更のみを行えばよい。
+
+●タスクの待ち解除（wait_dequeue_wobj）
+
+wait_dequeue_wobjは，ミューテックスのロック待ち状態のタスクが，ミュー
+テックスをロックできた以外の理由で待ち解除される時に呼び出される。
+wait_dequeue_wobjは，rel_wai，ras_ter，task_terminate，wait_tmoutから
+呼び出される。
+
+wait_dequeue_wobjでロック待ちタスクを待ち解除する処理は，優先度制御の
+必要箇所の(3-4)に該当する。wait.hに含まれるwait_dequeue_wobjにミューテッ
+クスを操作させるのは適当でないため，まず，wait_dequeue_wobjを，待ち解
+除するタスクがミューテックスのロック待ちであった場合に，
+mutex_dequeue_wobjを呼ぶように修正する。mutex_dequeue_wobjでは，当該
+ミューテックスが優先度継承ミューテックスであった場合に，タスクの要素優
+先度が減る場合の処理を行う。
+
+----------------------------------------
+Inline void
+wait_dequeue_wobj(TCB *p_tcb)
+{
+	if (TSTAT_WAIT_WOBJ(p_tcb->tstat)) {
+		queue_delete(&(p_tcb->task_queue));
+		if (TSTAT_WAIT_MTX(p_tcb->tstat)) {
+			mutex_dequeue_wobj(p_tcb);
+		}
+	}
+}
+----------------------------------------
+void
+mutex_dequeue_wobj(TCB *p_tcb)
+{
+	MTXCB	*p_mtxcb;
+
+	p_mtxcb = ((WINFO_MTX *)(p_tcb->p_winfo))->p_mtxcb;
+	if (MTX_INHERIT(p_mtxcb)) {
+		assert(p_mtxcb->p_loctsk != NULL);
+		mutex_drop_priority(p_mtxcb->p_loctsk, p_tcb->priority);
+	}
+}
+----------------------------------------
+
+●タスクの終了処理（task_terminate）
+
+ASP3カーネルでは，タスクの終了処理は，task_terminateで行われる。
+task_terminateは，ext_tsk，ras_ter，ena_ter，ter_tsk，ena_dsp，chg_ipm
+から呼び出される。
+
+teminate_taskは，次の処理を行う。
+
+　・対象タスクがミューテックスのロック待ち状態であれば待ち解除する。
+　・対象タスクがロックしていたミューテックスをロック解除する。
+　・ロック解除したミューテックスにロック待ちのタスクがあれば，待ちキュー
+	の先頭のタスクを待ち解除し，ミューテックスをロックさせる。
+
+この内1つめの処理は，wait_dequeue_wobjを呼び出して行うため，前節で対応
+済みである。
+
+対象タスクがロックしていたミューテックスをロック解除する処理は，優先度
+制御の必要箇所の(2-2)と(3-2)に該当するが，次の理由により省略することが
+できる。(2-2)と(3-2)で行うべき処理は，ミューテックスのロック解除により
+対象タスクの現在優先度／優先順位を変更するものであるが，対象タスクは終
+了するため，現在優先度／優先順位を更新する必要はない。
+
+ロック解除したミューテックスにロック待ちのタスクがあった場合に，待ち
+キューの先頭のタスクを待ち解除し，ミューテックスをロックさせる処理は，
+優先度制御の必要箇所の(2-1)に該当する。この処理は，unl_mtxで待ちキュー
+の先頭のタスクにミューテックスをロックさせる処理と共通であり，
+teminate_taskから，mutex_release_allを経由してmutex_releaseを呼び出す
+ことで行う。
+
+----------------------------------------
+void
+task_terminate(TCB *p_tcb)
+{
+	...
+	mutex_release_all(p_tcb);
+	...
+}
+----------------------------------------
+void
+mutex_release_all(TCB *p_tcb)
+{
+	MTXCB	*p_mtxcb;
+
+	while ((p_mtxcb = p_tcb->p_lastmtx) != NULL) {
+		p_tcb->p_lastmtx = p_mtxcb->p_prevmtx;
+		mutex_release(p_mtxcb);
+	}
+}
+----------------------------------------
+
+●推移的な優先度継承
+
+優先度継承ミューテックスに対するロック待ち状態のタスクの現在優先度が変
+更された場合は，優先度制御の必要箇所の(3-5)に該当推移的な優先度継承が
+必要になる。ロック待ち状態のタスクの現在優先度を変更する場合には，
+change_priorityが呼び出されるため，この処理は，change_priorityで行うこ
+とになる。
+
+change_priority中での推移的な優先度継承処理は，要素優先度が上がるか下
+がるかわからないため，両者のケースに場合分けして，次のように記述できる。
+
+----------------------------------------
+				if (mtxproto == TA_INHERIT) {
+					/*
+					 *  推移的な優先度継承の処理
+					 */
+					TCB		*p_tcb;
+
+					p_tcb = p_mtxcb->p_loctsk;
+					if (newpri < oldpri) {
+						mutex_raise_priority(p_tcb, newpri);
+					}
+					else if (newpri > oldpri) {
+						mutex_drop_priority(p_tcb, oldpri);
+					}
+				}
+----------------------------------------
+
+newpriとoldpriが等しい場合は，ミューテックス機能によりタスクの現在優先
+度が変化しなかった場合であるため，特別な処理は必要ない。
+
+なお，chg_priにおいても，ベース優先度が上がる場合と下がる場合に場合分
+けする方法も考えられるが，この方法はサブ優先度をサポートする場合に問題
+が生じる。なぜなら，ベース優先度が上がっても，優先度上昇状態になるとは
+限らないため，mutex_raise_priorityでp_tcb->boostedをtrueにするのが不適
+切であるためである。
+
+mutex_raise_priorityとmutex_drop_priorityは，内部でchange_priorityを呼
+ぶため，このコードは相互再帰呼出しになっている。再帰呼出しによる実装は，
+スタックサイズの上限が抑えられなくなるため，最終的なコードでは，再帰を
+展開した形とする。そのため，まず，mutex_raise_priorityと
+mutex_drop_priorityの内容を展開する。
+
+----------------------------------------
+				if (mtxproto == TA_INHERIT) {
+					/*
+					 *  推移的な優先度継承の処理
+					 */
+					TCB		*p_tcb;
+
+					p_tcb = p_mtxcb->p_loctsk;
+					if (newpri < oldpri) {
+						if (newpri <= p_tcb->priority) {
+							p_tcb->boosted = true;
+							if (newpri < p_tcb->priority) {
+								change_priority(p_tcb, newpri, true);
+							}
+						}
+					}
+					else if (newpri > oldpri) {
+						if (oldpri == p_tcb->priority) {
+							uint_t	newpri2;
+
+							newpri2 = mutex_calc_priority(p_tcb, NULL);
+							if (newpri2 != p_tcb->priority) {
+								change_priority(p_tcb, newpri2, true);
+							}
+						}
+					}
+				}
+----------------------------------------
+
+最後に，change_priorityの呼出しを，末尾の再帰を展開した形とする。また，
+ミューテックス関連のコードを分離しやすくするために，change_priorityの
+中のミューテックス関連部分をmutex_change_priorityとして分離する。
+mutex_change_priorityは，推移的な優先度継承が必要な場合には優先度を継
+承すべきタスクのTCBへのポインタを，そうでない場合にはNULLを返す。
+
+----------------------------------------
+TCB *
+mutex_change_priority(TCB *p_tcb, uint_t oldpri, uint_t *p_newpri)
+{
+	MTXCB	*p_mtxcb;
+	ATR		mtxproto;
+
+	p_mtxcb = ((WINFO_MTX *)(p_tcb->p_winfo))->p_mtxcb;
+	mtxproto = MTXPROTO(p_mtxcb);
+	if (mtxproto != TA_NULL) {
+		queue_delete(&(p_tcb->task_queue));
+		queue_insert_tpri(&(p_mtxcb->wait_queue), p_tcb);
+		if (mtxproto == TA_INHERIT) {
+			/*
+			 *  推移的な優先度継承の処理
+			 */
+			p_tcb = p_mtxcb->p_loctsk;
+			if (*p_newpri < oldpri) {
+				/*
+				 *  現在優先度が上がった場合
+				 */
+				if (*p_newpri <= p_tcb->priority) {
+					p_tcb->boosted = true;
+					if (*p_newpri < p_tcb->priority) {
+						return(p_tcb);
+					}
+				}
+			}
+			else if (*p_newpri > oldpri) {
+				/*
+				 *  現在優先度が下がった場合
+				 */
+				if (oldpri == p_tcb->priority) {
+					*p_newpri = mutex_calc_priority(p_tcb);
+					if (*p_newpri != p_tcb->priority) {
+						return(p_tcb);
+					}
+				}
+			}
+		}
+	}
+	return(NULL);
+}
+----------------------------------------
+void
+change_priority(TCB *p_tcb, uint_t newpri, bool_t mtxmode)
+{
+	uint_t	oldpri;
+
+  transitive_inheritance:
+	oldpri = p_tcb->priority;
+	p_tcb->priority = newpri;
+
+	if (TSTAT_RUNNABLE(p_tcb->tstat)) {
+		/*
+		 *  タスクが実行できる状態の場合
+		 */
+		queue_delete(&(p_tcb->task_queue));
+		if (queue_empty(&(ready_queue[oldpri]))) {
+			primap_clear(oldpri);
+		}
+		if (mtxmode) {
+			queue_insert_next(&(ready_queue[newpri]), &(p_tcb->task_queue));
+		}
+		else {
+			queue_insert_prev(&(ready_queue[newpri]), &(p_tcb->task_queue));
+		}
+		primap_set(newpri);
+
+		if (dspflg) {
+			if (p_schedtsk == p_tcb) {
+				if (newpri >= oldpri) {
+					p_schedtsk = search_schedtsk();
+				}
+			}
+			else {
+				if (newpri <= p_schedtsk->priority) {
+					p_schedtsk = (TCB *)(ready_queue[newpri].p_next);
+				}
+			}
+		}
+	}
+	else {
+		if (TSTAT_WAIT_MTX(p_tcb->tstat)) {
+			/*
+			 *  タスクがミューテックス待ち状態の場合
+			 *
+			 *  再帰呼出しを使えばきれいに書けるが，スタックサイズの上
+			 *  限が抑えられなくなるため，末尾の再帰を展開した形で記述
+			 *  している．
+			 */
+			p_tcb = mutex_change_priority(p_tcb, oldpri, &newpri);
+			if (p_tcb != NULL) {
+				goto transitive_inheritance;
+			}
+		}
+		else if (TSTAT_WAIT_WOBJCB(p_tcb->tstat)) {
+			/*
+			 *  タスクがその他のオブジェクト待ち状態で，同期・通信オブ
+			 *  ジェクトの管理ブロックの共通部分（WOBJCB）の待ちキュー
+			 *  につながれているの場合
+			 */
+			wobj_change_priority(((WINFO_WOBJ *)(p_tcb->p_winfo))->p_wobjcb,
+																	p_tcb);
+		}
+	}
+}
+----------------------------------------
+
+◯ミューテックス機能をリンクしない工夫
+
+最後に，ミューテックス機能を使用しない場合に，ミューテックス関連のコー
+ドをリンクしない工夫を行う。
+
+ミューテックスモジュールの外から呼び出すミューテックスモジュールの内部
+関数は次の通り。
+
+	mutex_check_ceilpri（chg_priより）
+	mutex_calc_priority（chg_priより）
+	mutex_change_priority（change_priorityより）
+	mutex_release_all（task_terminateより）
+	mutex_dequeue_wobj（wait_dequeue_wobjより）
+
+これらの関数はフックルーチンであるものとし，呼び出す際には，変数参照を
+はさむことにする。例えば，「mutex_release_all(p_tcb)」に代えて，
+「(*mtxhook_release_all)(p_tcb)」と記述する。
+
+mtxhook_release_allには，initialize_mutexにおいて，mutex_release_allへ
+のポインタを格納する。initialize_mutexは，ミューテックス機能を用いる場
+合にのみ呼び出されるため，これにより，ミューテックス機能を用いない場合
+には，mutex_release_allがリンクされないことになる。
+
+ここで，ミューテックス機能を用いない場合には，mtxhook_release_allを参
+照してはならないものとする（NULLが入ることは仮定しない）。例えば，
+task_terminateからmutex_release_allを呼ぶ箇所は次のようにする。
+
+----------------------------------------
+	if (p_tcb->p_lastmtx != NULL) {
+		(*mtxhook_release_all)(p_runtsk);
+	}
+----------------------------------------
+
+TCB中のp_lastmtxがNULLでなくなるのは，タスクがミューテックスをロックし
+ている場合のみで，これはミューテックス機能を用いた場合に限られる。その
+ため，上のコードで，ミューテックス機能を用いない場合には
+mtxhook_release_allが参照されることはない。
+
+同様に，chg_priにおいて，ミューテックス機能を用いない場合には
+mtxhook_calc_priorityを参照しないように，次のようにする必要がある。
+
+----------------------------------------
+		if (!(p_tcb->boosted)) {
+			newpri = newbpri;
+		}
+		else {
+			newpri = (*mtxhook_calc_priority)(p_tcb);
+		}
+----------------------------------------
+
+以上

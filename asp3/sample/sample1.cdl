@@ -1,7 +1,7 @@
 /*
  *		サンプルプログラム(1)のコンポーネント記述ファイル
  *
- *  $Id: sample1.cdl 839 2017-10-17 02:48:52Z ertl-hiro $
+ *  $Id: sample1.cdl 1793 2023-03-05 10:30:13Z ertl-hiro $
  */
 /*
  *  カーネルオブジェクトの定義
@@ -66,7 +66,7 @@ cell tSysLog SysLog {
 	initLogMask = C_EXP("LOG_UPTO(LOG_NOTICE)");
 										/* ログバッファに記録すべき重要度 */
 	initLowMask = C_EXP("LOG_UPTO(LOG_EMERG)");
-									   	/* 低レベル出力すべき重要度 */
+										/* 低レベル出力すべき重要度 */
 	/* 低レベル出力との結合 */
 	cPutLog = PutLogTarget.ePutLog;
 };
@@ -86,24 +86,6 @@ cell tSerialPort SerialPort1 {
 	/* ターゲット依存部との結合 */
 	cSIOPort = SIOPortTarget1.eSIOPort;
 	eiSIOCBR <= SIOPortTarget1.ciSIOCBR;	/* コールバック */
-};
-
-cell tSerialAsyncPort SerialPortUSB1 {
-	receiveBufferSize = 256;			/* 受信バッファのサイズ */
-	sendBufferSize    = 256;			/* 送信バッファのサイズ */
-
-	/* ターゲット依存部との結合 */
-	cSIOPort = SIOPortPybricksUSB1.eSIOPort;
-	eSIOCBR <= SIOPortPybricksUSB1.cSIOCBR;	/* コールバック */
-};
-
-cell tSerialAsyncPort SerialPortBluetooth1 {
-	receiveBufferSize = 256;			/* 受信バッファのサイズ */
-	sendBufferSize    = 256;			/* 送信バッファのサイズ */
-
-	/* ターゲット依存部との結合 */
-	cSIOPort = SIOPortPybricksBluetooth1.eSIOPort;
-	eSIOCBR <= SIOPortPybricksBluetooth1.cSIOCBR;	/* コールバック */
 };
 
 /*

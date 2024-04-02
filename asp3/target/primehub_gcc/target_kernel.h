@@ -61,7 +61,7 @@
 /*
  *  高分解能タイマのカウント値の進み幅
  */
-#define TSTEP_HRTCNT	1000U
+#define TSTEP_HRTCNT	1U
 
 #endif /* USE_TIM_AS_HRT */
 

@@ -2,7 +2,7 @@
 #
 #  TOPPERS Configurator by Ruby
 #
-#  Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2022 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
 #
@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: SRecord.rb 161 2018-12-12 00:45:04Z ertl-hiro $
+#  $Id: SRecord.rb 198 2022-11-20 02:57:57Z ertl-hiro $
 #
 
 #
@@ -43,53 +43,29 @@
 #
 
 #
-# Sレコードファイルを変数に読み込み，要求された番地のデータを返す．
+#  モトローラSレコード形式またはobjdumpコマンドによるダンプ形式のファ
+#  イルの内容を変数に読み込み，要求された番地のデータを返す．
 #
-# @sRecDataは，先頭番地をキーとし，そこからのデータ（ヘキサダンプ形式）
-# を値とブロックが格納されたハッシュである．連続するブロックは，1つのブ
-# ロックにまとめて格納するものとする（そうしないと，データの取出しやサー
-# チが面倒になる）．
+#  @dumpDataは，先頭番地をキーとし，その番地からのデータ（16進ダンプ形
+#  式の文字列）を値とするハッシュである．連続する番地のデータは，1つに
+#  まとめて格納する．
 #
 class SRecord
-  def initialize(fileName)
-    @sRecData = {}
+  def initialize(fileName, format = :srec)
+    @dumpData = {}
     File.open(fileName) do |file|
       prevAddress = 0
       prevData = ""
       file.each do |line|
-        # データレコードにより分岐
-        case line.slice(0, 2)
-        when "S1"
-          # データ長（アドレス分[2byte]+チェックサム分1byteを減算）
-          length = line.slice(2, 2).hex - 2 - 1
-
-          # アドレス（4文字=2byte）
-          address = line.slice(4, 4).hex
-
-          # データ（この時点では文字列で取っておく）
-          data = line.slice(8, length * 2)
-        when "S2"
-          # データ長（アドレス分[3byte]+チェックサム分1byteを減算）
-          length = line.slice(2, 2).hex - 3 - 1
-
-          # アドレス（6文字=3byte）
-          address = line.slice(4, 6).hex
-
-          # データ（この時点では文字列で取っておく）
-          data = line.slice(10, length * 2)
-        when "S3"
-          # データ長（アドレス分[4byte]+チェックサム分1byteを減算）
-          length = line.slice(2, 2).hex - 4 - 1
-
-          # アドレス（8文字=4byte）
-          address = line.slice(4, 8).hex
-
-          # データ（この時点では文字列で取っておく）
-          data = line.slice(12, length * 2)
+        # ファイルからデータを読み込む
+        case format
+        when :srec
+          address, data = read_line_srec(line)
+        when :dump
+          address, data = read_line_dump(line)
         else
-          address = nil
+          error_exit("Unknown file format: #{format}")
         end
-
         if !address.nil?
           # データを格納する
           if address == prevAddress + prevData.size / 2
@@ -105,49 +81,124 @@ class SRecord
     end
   end
 
+  # 行の読み込み（モトローラSレコード形式）
+  def read_line_srec(line)
+    # データレコードにより分岐
+    case line.slice(0, 2)
+    when "S1"
+      # データ長（アドレス分[2byte]+チェックサム分1byteを減算）
+      length = line.slice(2, 2).hex - 2 - 1
+
+      # アドレス（4文字=2byte）
+      address = line.slice(4, 4).hex
+
+      # データ（この時点では文字列で取っておく）
+      data = line.slice(8, length * 2)
+    when "S2"
+      # データ長（アドレス分[3byte]+チェックサム分1byteを減算）
+      length = line.slice(2, 2).hex - 3 - 1
+
+      # アドレス（6文字=3byte）
+      address = line.slice(4, 6).hex
+
+      # データ（この時点では文字列で取っておく）
+      data = line.slice(10, length * 2)
+    when "S3"
+      # データ長（アドレス分[4byte]+チェックサム分1byteを減算）
+      length = line.slice(2, 2).hex - 4 - 1
+
+      # アドレス（8文字=4byte）
+      address = line.slice(4, 8).hex
+
+      # データ（この時点では文字列で取っておく）
+      data = line.slice(12, length * 2)
+    else
+      address = nil
+    end
+    return address, data
+  end
+
+  # 行の読み込み（objdumpコマンドによるダンプ形式）
+  def read_line_dump(line)
+    data = ""
+    if line =~ /^ ([0-9a-f]+) (.*)$/
+      address = $1.hex
+      line = $2
+      while line =~ /^([0-9a-f]+) (.*)$/
+        data << $1
+        line = $2
+      end
+    else
+      address = nil
+    end
+    return address, data
+  end
+
   # データ取得
   def get_data(address, size)
     endAddress = address + size
-    @sRecData.each do |block, blockData|
+    @dumpData.each do |block, blockData|
       if (block <= address && endAddress <= block + blockData.size / 2)
         offset = (address - block) * 2
-        return(blockData[offset, size * 2])
+        return blockData[offset, size * 2]
       end
     end
-    return(nil)
+    return nil
   end
 
   # データ書込み
   def set_data(address, data)
     endAddress = address + data.size / 2
-    @sRecData.each do |block, blockData|
-      nEndBlock = block + blockData.size / 2
+    @dumpData.each do |block, blockData|
+      endBlock = block + blockData.size / 2
 
-      if nEndBlock < address || endAddress < block
+      if endBlock < address || endAddress < block
         # 重なりがない
       elsif address < block
         # 新規データの方が先頭番地が小さい
         # ここでは endAddress >= block が成立している
         offset = (endAddress - block) * 2
         data << blockData[offset..-1]
-        @sRecData.delete(block)
+        @dumpData.delete(block)
       else
         # 登録済みデータの方が先頭番地が小さいか同じ
         offset = (address - block) * 2
         address = block
         blockData[offset, data.size] = data
         data = blockData
-        @sRecData.delete(block)
+        @dumpData.delete(block)
       end
     end
-    @sRecData[address] = data
+    @dumpData[address] = data
+  end
+
+  # データのコピー
+  def copy_data(fromAddress, toAddress, size)
+    copyDataList = {}
+    endAddress = fromAddress + size
+    @dumpData.each do |block, blockData|
+      endBlock = block + blockData.size / 2
+
+      if endBlock <= fromAddress || endAddress <= block
+        # 重なりがない
+      else
+        # 重なっている部分を抽出
+        copyFromAddress = [block, fromAddress].max
+        copyToAddress = toAddress + (copyFromAddress - fromAddress)
+        copySize = [endBlock, endAddress].min - copyFromAddress
+        copyDataList[copyToAddress] = get_data(copyFromAddress, copySize)
+      end
+    end
+    copyDataList.each do |copyToAddress, copyData|
+      set_data(copyToAddress, copyData)
+    end
   end
 
   # 値としてのデータ取得
   def get_value(address, size, signed)
     targetData = get_data(address, size)
     if targetData.nil?
-      return(nil)
+      return nil
     else
       if $endianLittle
         # リトルエンディアンの場合，バイトオーダーを逆にする
@@ -166,7 +217,7 @@ class SRecord
       if signed && (returnData & (1 << (size * 8 - 1))) != 0
         returnData -= (1 << (size * 8))
       end
-      return(returnData)
+      return returnData
     end
   end
 
@@ -179,6 +230,6 @@ class SRecord
       address += 1
       targetChar = get_data(address, 1).hex
     end
-    return(str)
+    return str
   end
 end

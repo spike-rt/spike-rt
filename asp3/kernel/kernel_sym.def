@@ -50,6 +50,7 @@ OMIT_INITIALIZE_INTERRUPT,true,bool,defined(OMIT_INITIALIZE_INTERRUPT),false
 USE_INHINIB_TABLE,true,bool,defined(USE_INHINIB_TABLE),false
 USE_INTINIB_TABLE,true,bool,defined(USE_INTINIB_TABLE),false
 OMIT_INITIALIZE_EXCEPTION,true,bool,defined(OMIT_INITIALIZE_EXCEPTION),false
+OMIT_ISTACK,true,bool,defined(OMIT_ISTACK),false
 DEFAULT_ISTK,,intptr,defined(DEFAULT_ISTK)
 TARGET_TSKATR,,,defined(TARGET_TSKATR),0
 TARGET_INTATR,,,defined(TARGET_INTATR),0
@@ -72,6 +73,7 @@ sizeof_uint_t,sizeof(uint_t)
 sizeof_size_t,sizeof(size_t)
 sizeof_intptr_t,sizeof(intptr_t)
 sizeof_ID,sizeof(ID)
+sizeof_EXINF,sizeof(EXINF)
 sizeof_FP,sizeof(FP)
 sizeof_INTNO,sizeof(INTNO)
 sizeof_INHNO,sizeof(INHNO)

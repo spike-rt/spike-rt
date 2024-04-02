@@ -57,8 +57,8 @@
 /*
  *  微少時間待ちのための定義（本来はSILのターゲット依存部）
  */
-#define SIL_DLY_TIM1    162
-#define SIL_DLY_TIM2    100
+#define SIL_DLY_TIM1    94
+#define SIL_DLY_TIM2    55
 
 #ifndef TOPPERS_MACRO_ONLY
 /*

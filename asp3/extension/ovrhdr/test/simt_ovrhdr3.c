@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2018-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_ovrhdr3.c 1122 2018-12-17 00:34:05Z ertl-hiro $
+ *  $Id: simt_ovrhdr3.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -122,7 +122,7 @@
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 
 	check_point(6);
@@ -146,7 +146,7 @@ cpuexc_handler(void *p_excinf)
 }
 
 void
-overrun_handler(ID tskid, intptr_t exinf)
+overrun_handler(ID tskid, EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -162,7 +162,7 @@ overrun_handler(ID tskid, intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;
@@ -245,7 +245,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 

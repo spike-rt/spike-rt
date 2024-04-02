@@ -5,7 +5,7 @@
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: interrupt.trb 1167 2019-02-03 17:06:17Z ertl-hiro $
+#   $Id: interrupt.trb 1437 2020-05-20 12:12:16Z ertl-hiro $
 # 
 
 #
@@ -152,6 +152,8 @@ $cfgData[:DEF_INH].each do |_, params|
     if (params[:inhatr] & $TA_NONKERNEL) == 0
       error_ercd("E_RSATR", params, "%%inhno must be " \
 								"non-kernel interrupt in %apiname")
+      # 以降のエラーの抑止
+      next
     end
   end
 
@@ -162,6 +164,8 @@ $cfgData[:DEF_INH].each do |_, params|
     if (params[:inhatr] & $TA_NONKERNEL) != 0
       error_ercd("E_RSATR", params, "%%inhno must not be " \
 								"non-kernel interrupt in %apiname")
+      # 以降のエラーの抑止
+      next
     end
   end
 
@@ -176,21 +180,21 @@ $cfgData[:DEF_INH].each do |_, params|
     else
       intnoParams = $cfgData[:CFG_INT][intnoVal]
 
-      if (params[:inhatr] & $TA_NONKERNEL) == 0
-        # inhatrにTA_NONKERNELが指定されておらず，inhnoに対応するintno
-        # に対してCFG_INTで設定された割込み優先度がTMIN_INTPRIよりも小
-        # さい場合（E_OBJ）［NGKI3065］
-        if intnoParams[:intpri] < $TMIN_INTPRI
-          error_ercd("E_OBJ", params, "intpri `#{intnoParams[:intpri]}' " \
-				"configured for %%inhno must be lower or equal to TMIN_INTPRI")
+      if intnoParams[:intpri] < $TMIN_INTPRI
+        # inhnoに対応するintnoに対してCFG_INTで設定された割込み優先度
+        # がTMIN_INTPRIよりも小さく，inhatrにTA_NONKERNELが指定されて
+        # いない場合（E_OBJ）［NGKI3065］
+        if (params[:inhatr] & $TA_NONKERNEL) == 0
+          error_ercd("E_OBJ", params, "TA_NONKERNEL must be set for " \
+						"non-kernel interrupt handler in %apiname of %%inhno")
         end
       else
-        # inhatrにTA_NONKERNELが指定されており，inhnoに対応するintnoに
-        # 対してCFG_INTで設定された割込み優先度がTMIN_INTPRI以上である
-        # 場合（E_OBJ）［NGKI3066］
-        if intnoParams[:intpri] >= $TMIN_INTPRI
-          error_ercd("E_OBJ", params, "intpri `#{intnoParams[:intpri]}' " \
-					"configured for %%inhno must be higher than TMIN_INTPRI")
+		# inhnoに対応するintnoに対してCFG_INTで設定された割込み優先度
+		# がTMIN_INTPRI以上で，inhatrにTA_NONKERNELが指定されている場
+		# 合（E_OBJ）［NGKI3066］
+        if (params[:inhatr] & $TA_NONKERNEL) != 0
+          error_ercd("E_OBJ", params, "TA_NONKERNEL must not be set for " \
+						"kernel interrupt handler in %apiname of %%inhno")
         end
       end
     end
@@ -237,13 +241,12 @@ $cfgData[:CRE_ISR].sort.each do |_, params|
   else
     intnoParams = $cfgData[:CFG_INT][params[:intno]]
 
-    # intnoでカーネル管理外の割込みを指定した場合（E_OBJ）［NGKI3014］
-    #（intnoに対してCFG_INTで設定された割込み優先度がTMIN_INTPRIよりも小
-    #  さい場合）
+    # intnoでカーネル管理外の割込み（intnoに対してCFG_INTで設定された
+    # 割込み優先度がTMIN_INTPRIよりも小さい場合）を指定した場合（E_OBJ）
+    # ［NGKI3014］
     if intnoParams[:intpri] < $TMIN_INTPRI
-      error_ercd("E_OBJ", params,
-					"intpri `#{intnoParams[:intpri]}' configured for " \
-					"%%intno with CFG_INT in higher than TMIN_INTPRI")
+      error_ercd("E_OBJ", params, "interrupt service routine cannot handle " \
+								"non-kernel interrupt in %apiname of %isrid")
     end
   end
 
@@ -324,7 +327,7 @@ class IsrObject < KernelObject
   end
 
   def generateInib(key, params)
-    return("(#{params[:isratr]}), (intptr_t)(#{params[:exinf]}), " \
+    return("(#{params[:isratr]}), (EXINF)(#{params[:exinf]}), " \
 						"(#{$isrQueueHeader[params[:intno].val]}), " \
 						"(ISR)(#{params[:isr]}), (#{params[:isrpri]})")
   end

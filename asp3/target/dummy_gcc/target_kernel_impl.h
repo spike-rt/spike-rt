@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2013-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.h 1127 2018-12-20 16:48:57Z ertl-hiro $
+ *  $Id: target_kernel_impl.h 1482 2020-10-03 06:47:56Z ertl-hiro $
  */
 
 /*
@@ -70,25 +70,6 @@
 #define CHECK_MPK_ALIGN		4	/* カーネルメモリプール領域のアライン単位 */
 #define CHECK_MPK_NONNULL		/* カーネルメモリプール領域の非NULLチェック */
 #define CHECK_MB_ALIGN		4	/* 管理領域のアライン単位 */
-
-/*
- *  トレースログマクロのデフォルト定義
- */
-#ifndef LOG_INH_ENTER
-#define LOG_INH_ENTER(inhno)
-#endif /* LOG_INH_ENTER */
-
-#ifndef LOG_INH_LEAVE
-#define LOG_INH_LEAVE(inhno)
-#endif /* LOG_INH_LEAVE */
-
-#ifndef LOG_EXC_ENTER
-#define LOG_EXC_ENTER(excno)
-#endif /* LOG_EXC_ENTER */
-
-#ifndef LOG_EXC_LEAVE
-#define LOG_EXC_LEAVE(excno)
-#endif /* LOG_EXC_LEAVE */
 
 /*
  *  非タスクコンテキスト用スタックのデフォルトのサイズ

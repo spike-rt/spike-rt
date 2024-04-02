@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_flg1.c 738 2016-04-05 14:19:24Z ertl-hiro $
+ *  $Id: test_flg1.c 1785 2023-01-15 11:44:24Z ertl-hiro $
  */
 
 /* 
@@ -242,23 +242,23 @@
  *	== TASK2（続き）==
  *	27:	wai_flg(FLG3, 0x02, TWF_ORW, &flgptn)						... (H-1)
  *	== TASK3（続き）==
- *	28: set_flg(FLG3, 0x02)											... (H-3)
+ *	28:	set_flg(FLG3, 0x02)											... (H-3)
  *	== TASK2（続き）==
  *	29:	wai_flg(FLG3, 0x02, TWF_ORW, &flgptn)
  *	== TASK3（続き）==
- *	30: set_flg(FLG3, 0x03)											... (H-2)
+ *	30:	set_flg(FLG3, 0x03)											... (H-2)
  *	== TASK1（続き）==
  *	31:	wai_flg(FLG4, 0x01, TWF_ORW, &flgptn)
  *	== TASK3（優先度：低）==
- *	32: set_flg(FLG3, 0x03)
+ *	32:	set_flg(FLG3, 0x03)
  *	== TASK2（続き）==
  *	33:	wai_flg(FLG4, 0x02, TWF_ORW, &flgptn)						... (I-1)
  *	== TASK3（続き）==
- *	34: set_flg(FLG4, 0x03)											... (I-2)
+ *	34:	set_flg(FLG4, 0x03)											... (I-2)
  *	== TASK2（続き）==
  *	35:	wai_flg(FLG4, 0x02, TWF_ORW, &flgptn)
  *	== TASK3（続き）==
- *	36: set_flg(FLG4, 0x01)											... (I-3)
+ *	36:	set_flg(FLG4, 0x01)											... (I-3)
  *	== TASK1（続き）==
  *	37:	clr_flg(FLG3, 0)
  *		sta_alm(ALM1, 2 * TEST_TIME_CP) ... ALM1が実行開始するまで
@@ -280,12 +280,12 @@
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_flg1.h"
+#include "test_common.h"
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 	FLGPTN	flgptn;
@@ -300,11 +300,11 @@ alarm1_handler(intptr_t exinf)
 	check_point(41);
 	return;
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RFLG	rflg;
@@ -535,11 +535,11 @@ task1(intptr_t exinf)
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	FLGPTN	flgptn;
@@ -654,11 +654,11 @@ task2(intptr_t exinf)
 	ercd = wai_flg(FLG4, 0x02, TWF_ORW, &flgptn);
 	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 	FLGPTN	flgptn;
@@ -692,5 +692,5 @@ task3(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_finish(44);
-	check_point(0);
+	check_assert(false);
 }

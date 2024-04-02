@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2007-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_cpuexc6.c 310 2015-02-08 13:46:46Z ertl-hiro $
+ *  $Id: test_cpuexc6.c 1535 2022-05-18 14:33:59Z ertl-hiro $
  */
 
 /* 
@@ -101,9 +101,9 @@
 #include "test_cpuexc.h"
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
-	check_point(0);
+	check_assert(false);
 }
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
@@ -127,13 +127,13 @@ cpuexc_handler(void *p_excinf)
 
 	return;
 
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	task1_count = 0;
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 
 	switch (++task1_count) {
@@ -147,7 +147,7 @@ task1(intptr_t exinf)
 
 		RAISE_CPU_EXCEPTION;
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(8);
@@ -156,16 +156,16 @@ task1(intptr_t exinf)
 		check_ipm(TIPM_ENAALL);
 
 		check_finish(9);
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -186,5 +186,5 @@ task2(intptr_t exinf)
 	ercd = ext_tsk();
 	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_assert(false);
 }

@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: tTraceLog.c 1248 2019-07-21 18:08:49Z ertl-hiro $
+ *  $Id: tTraceLog.c 1484 2020-10-28 01:30:39Z ertl-hiro $
  */
 
 /*
@@ -157,42 +157,82 @@ eTraceLog_read(TRACE* p_trace)
  *  アセンブリ言語で記述されるコードからトレースログを出力するための関
  *  数
  */
+#ifdef LOG_DSP_ENTER
 
 void
 log_dsp_enter(TCB *p_tcb)
 {
-	trace_1(LOG_TYPE_DSP|LOG_ENTER, p_tcb);
+	LOG_DSP_ENTER(p_tcb);
 }
+
+#endif /* LOG_DSP_ENTER */
+#ifdef LOG_DSP_LEAVE
 
 void
 log_dsp_leave(TCB *p_tcb)
 {
-	trace_1(LOG_TYPE_DSP|LOG_LEAVE, p_tcb);
+	LOG_DSP_LEAVE(p_tcb);
 }
+
+#endif /* LOG_DSP_LEAVE */
+#ifdef LOG_INH_ENTER
 
 void
 log_inh_enter(INHNO inhno)
 {
-	trace_1(LOG_TYPE_INH|LOG_ENTER, inhno);
+	LOG_INH_ENTER(inhno);
 }
+
+#endif /* LOG_INH_ENTER */
+#ifdef LOG_INH_LEAVE
 
 void
 log_inh_leave(INHNO inhno)
 {
-	trace_1(LOG_TYPE_INH|LOG_LEAVE, inhno);
+	LOG_INH_LEAVE(inhno);
 }
+
+#endif /* LOG_INH_LEAVE */
+#ifdef LOG_EXC_ENTER
 
 void
 log_exc_enter(EXCNO excno)
 {
-	trace_1(LOG_TYPE_EXC|LOG_ENTER, excno);
+	LOG_EXC_ENTER(excno);
 }
+
+#endif /* LOG_EXC_ENTER */
+#ifdef LOG_EXC_LEAVE
 
 void
 log_exc_leave(EXCNO excno)
 {
-	trace_1(LOG_TYPE_EXC|LOG_LEAVE, excno);
+	LOG_EXC_LEAVE(excno);
 }
+
+#endif /* LOG_EXC_LEAVE */
+
+#ifdef TOPPERS_SUPPORT_PROTECT
+#ifdef LOG_EXTSVC_ENTER
+
+void
+log_extsvc_enter(FN fncd, intptr_t par1, intptr_t par2, intptr_t par3,
+								intptr_t par4, intptr_t par5, ID cdmid)
+{
+	LOG_EXTSVC_ENTER(fncd, par1, par2, par3, par4, par5, cdmid);
+}
+
+#endif /* LOG_EXTSVC_ENTER */
+#ifdef LOG_EXTSVC_LEAVE
+
+void
+log_extsvc_leave(FN fncd, ER ercd)
+{
+	LOG_EXTSVC_LEAVE(fncd, ercd);
+}
+
+#endif /* LOG_EXTSVC_LEAVE */
+#endif /* TOPPERS_SUPPORT_PROTECT */
 
 /* 
  *  カーネル情報の取出し
@@ -347,7 +387,7 @@ low_putchar(char c)
  *  トレースログのダンプ（受け口関数）
  */
 void
-eDump_main(uintptr_t exinf)
+eDump_main(EXINF exinf)
 {
 	TRACE	trace;
 

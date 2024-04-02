@@ -1,0 +1,11 @@
+../../test_cfg/pass1_cfg1.cfg:11: error: E_OBJ: tskid `TASK1' is duplicated in CRE_TSK
+../../test_cfg/pass1_cfg1.cfg:15: error: E_OBJ: semid `SEM1' is duplicated in CRE_SEM
+../../test_cfg/pass1_cfg1.cfg:19: error: E_OBJ: flgid `FLG1' is duplicated in CRE_FLG
+../../test_cfg/pass1_cfg1.cfg:23: error: E_OBJ: dtqid `DTQ1' is duplicated in CRE_DTQ
+../../test_cfg/pass1_cfg1.cfg:27: error: E_OBJ: pdqid `PDQ1' is duplicated in CRE_PDQ
+../../test_cfg/pass1_cfg1.cfg:31: error: E_OBJ: mtxid `MTX1' is duplicated in CRE_MTX
+../../test_cfg/pass1_cfg1.cfg:35: error: E_OBJ: mpfid `MPF1' is duplicated in CRE_MPF
+../../test_cfg/pass1_cfg1.cfg:39: error: E_OBJ: cycid `CYC1' is duplicated in CRE_CYC
+../../test_cfg/pass1_cfg1.cfg:43: error: E_OBJ: almid `ALM1' is duplicated in CRE_ALM
+../../test_cfg/pass1_cfg1.cfg:47: error: E_OBJ: isrid `ISR1' is duplicated in CRE_ISR
+make: *** [cfg1_out.timestamp] Error 1

@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: log_output.c 973 2018-05-02 12:39:38Z ertl-hiro $
+ *  $Id: log_output.c 1695 2022-10-16 06:25:10Z ertl-hiro $
  */
 
 /*
@@ -90,16 +90,18 @@ static const char radhex[] = "0123456789abcdef";
 static const char radHEX[] = "0123456789ABCDEF";
 
 void
-syslog_printf(const char *format, const LOGPAR *p_args, void (*putc)(char))
+syslog_printf(const char *format, const LOGPAR args[], void (*putc)(char))
 {
 	char		c;
 	uint_t		width;
 	bool_t		padzero;
-	LOGPAR	val;
+	LOGPAR		val;
 	const char	*str;
+	uint_t		i;
 
+	i = 0U;
 	while ((c = *format++) != '\0') {
-		if (c != '%') {
+		if (c != '%' || i >= TNUM_LOGPAR - 1) {
 			(*putc)(c);
 			continue;
 		}
@@ -119,34 +121,34 @@ syslog_printf(const char *format, const LOGPAR *p_args, void (*putc)(char))
 		}
 		switch (c) {
 		case 'd':
-			val = (LOGPAR)(*p_args++);
+			val = args[i++];
 			if (val >= 0) {
 				convert((ULOGPAR) val, 10U, raddec,
-											width, false, padzero, putc);
+										width, false, padzero, putc);
 			}
 			else {
 				convert((ULOGPAR)(-val), 10U, raddec,
-											width, true, padzero, putc);
+										width, true, padzero, putc);
 			}
 			break;
 		case 'u':
-			val = (LOGPAR)(*p_args++);
-			convert((ULOGPAR) val, 10U, raddec, width, false, padzero, putc);
+			convert((ULOGPAR) args[i++], 10U, raddec,
+										width, false, padzero, putc);
 			break;
 		case 'x':
 		case 'p':
-			val = (LOGPAR)(*p_args++);
-			convert((ULOGPAR) val, 16U, radhex, width, false, padzero, putc);
+			convert((ULOGPAR) args[i++], 16U, radhex,
+										width, false, padzero, putc);
 			break;
 		case 'X':
-			val = (LOGPAR)(*p_args++);
-			convert((ULOGPAR) val, 16U, radHEX, width, false, padzero, putc);
+			convert((ULOGPAR) args[i++], 16U, radHEX,
+										width, false, padzero, putc);
 			break;
 		case 'c':
-			(*putc)((char)(LOGPAR)(*p_args++));
+			(*putc)((char) args[i++]);
 			break;
 		case 's':
-			str = (const char *)(*p_args++);
+			str = (const char *)(args[i++]);
 			while ((c = *str++) != '\0') {
 				(*putc)(c);
 			}
@@ -176,7 +178,7 @@ syslog_print(const SYSLOG *p_syslog, void (*putc)(char))
 		(*putc)('\n');
 		break;
 	case LOG_TYPE_ASSERT:
-		syslog_printf("%s:%u: Assertion `%s' failed.",
+		syslog_printf("%s:%u: Assertion `%s' failed.\007",
 								&(p_syslog->logpar[0]), putc);
 		(*putc)('\n');
 		break;

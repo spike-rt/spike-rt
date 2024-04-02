@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: semaphore.c 1030 2018-11-01 12:40:36Z ertl-hiro $
+ *  $Id: semaphore.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -136,7 +136,7 @@
  */
 QUEUE	free_semcb;
 
-/* 
+/*
  *  セマフォ機能の初期化
  */
 void
@@ -165,7 +165,7 @@ initialize_semaphore(void)
 #endif /* TOPPERS_semini */
 
 /*
- *  セマフォの生成
+ *  セマフォの生成［NGKI1453］
  */
 #ifdef TOPPERS_acre_sem
 
@@ -179,28 +179,28 @@ acre_sem(const T_CSEM *pk_csem)
 	ER		ercd;
 
 	LOG_ACRE_SEM_ENTER(pk_csem);
-	CHECK_TSKCTX_UNL();
+	CHECK_TSKCTX_UNL();							/*［NGKI1454］［NGKI1455］*/
 
 	sematr = pk_csem->sematr;
 	isemcnt = pk_csem->isemcnt;
 	maxsem = pk_csem->maxsem;
 
-	CHECK_VALIDATR(sematr, TA_TPRI);
-	CHECK_PAR(0 <= isemcnt && isemcnt <= maxsem);
-	CHECK_PAR(1 <= maxsem && maxsem <= TMAX_MAXSEM);
+	CHECK_VALIDATR(sematr, TA_TPRI);			/*［NGKI1456］*/
+	CHECK_PAR(0 <= isemcnt && isemcnt <= maxsem);	/*［NGKI1466］*/
+	CHECK_PAR(1 <= maxsem && maxsem <= TMAX_MAXSEM);	/*［NGKI1468］*/
 
 	lock_cpu();
 	if (tnum_sem == 0 || queue_empty(&free_semcb)) {
-		ercd = E_NOID;
+		ercd = E_NOID;							/*［NGKI1462］*/
 	}
-	else {
+	else {										/*［NGKI5189］*/
 		p_semcb = ((SEMCB *) queue_delete_next(&free_semcb));
 		p_seminib = (SEMINIB *)(p_semcb->p_seminib);
 		p_seminib->sematr = sematr;
 		p_seminib->isemcnt = isemcnt;
 		p_seminib->maxsem = maxsem;
 
-		queue_initialize(&(p_semcb->wait_queue));
+		queue_initialize(&(p_semcb->wait_queue));	/*［NGKI1464］*/
 		p_semcb->semcnt = p_semcb->p_seminib->isemcnt;
 		ercd = SEMID(p_semcb);
 	}
@@ -214,7 +214,7 @@ acre_sem(const T_CSEM *pk_csem)
 #endif /* TOPPERS_acre_sem */
 
 /*
- *  セマフォの削除
+ *  セマフォの削除［NGKI1487］
  */
 #ifdef TOPPERS_del_sem
 
@@ -226,22 +226,22 @@ del_sem(ID semid)
 	ER		ercd;
 
 	LOG_DEL_SEM_ENTER(semid);
-	CHECK_TSKCTX_UNL();
-	CHECK_ID(VALID_SEMID(semid));
+	CHECK_TSKCTX_UNL();							/*［NGKI1488］［NGKI1489］*/
+	CHECK_ID(VALID_SEMID(semid));				/*［NGKI1490］*/
 	p_semcb = get_semcb(semid);
 
 	lock_cpu();
 	if (p_semcb->p_seminib->sematr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1491］*/
 	}
 	else if (semid <= tmax_ssemid) {
-		ercd = E_OBJ;
+		ercd = E_OBJ;							/*［NGKI1493］*/
 	}
 	else {
-		init_wait_queue(&(p_semcb->wait_queue));
+		init_wait_queue(&(p_semcb->wait_queue));	/*［NGKI1495］［NGKI1496］*/
 		p_seminib = (SEMINIB *)(p_semcb->p_seminib);
 		p_seminib->sematr = TA_NOEXS;
-		queue_insert_prev(&free_semcb, &(p_semcb->wait_queue));
+		queue_insert_prev(&free_semcb, &(p_semcb->wait_queue));	/*［NGKI1494］*/
 		if (p_runtsk != p_schedtsk) {
 			dispatch();
 		}
@@ -257,7 +257,7 @@ del_sem(ID semid)
 #endif /* TOPPERS_del_sem */
 
 /*
- *  セマフォ資源の返却
+ *  セマフォ資源の返却［NGKI3533］
  */
 #ifdef TOPPERS_sig_sem
 
@@ -267,19 +267,19 @@ sig_sem(ID semid)
 	SEMCB	*p_semcb;
 	TCB		*p_tcb;
 	ER		ercd;
-    
+
 	LOG_SIG_SEM_ENTER(semid);
-	CHECK_UNL();
-	CHECK_ID(VALID_SEMID(semid));
+	CHECK_UNL();								/*［NGKI1501］*/
+	CHECK_ID(VALID_SEMID(semid));				/*［NGKI1502］*/
 	p_semcb = get_semcb(semid);
 
 	lock_cpu();
 	if (p_semcb->p_seminib->sematr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1503］*/
 	}
 	else if (!queue_empty(&(p_semcb->wait_queue))) {
 		p_tcb = (TCB *) queue_delete_next(&(p_semcb->wait_queue));
-		wait_complete(p_tcb);
+		wait_complete(p_tcb);			/*［NGKI1505］［NGKI1506］［NGKI1507］*/
 		if (p_runtsk != p_schedtsk) {
 			if (!sense_context()) {
 				dispatch();
@@ -291,11 +291,11 @@ sig_sem(ID semid)
 		ercd = E_OK;
 	}
 	else if (p_semcb->semcnt < p_semcb->p_seminib->maxsem) {
-		p_semcb->semcnt += 1;
+		p_semcb->semcnt += 1;					/*［NGKI1508］*/
 		ercd = E_OK;
 	}
 	else {
-		ercd = E_QOVR;
+		ercd = E_QOVR;							/*［NGKI1509］*/
 	}
 	unlock_cpu();
 
@@ -307,7 +307,7 @@ sig_sem(ID semid)
 #endif /* TOPPERS_sig_sem */
 
 /*
- *  セマフォ資源の獲得
+ *  セマフォ資源の獲得［NGKI1510］
  */
 #ifdef TOPPERS_wai_sem
 
@@ -319,22 +319,22 @@ wai_sem(ID semid)
 	ER			ercd;
 
 	LOG_WAI_SEM_ENTER(semid);
-	CHECK_DISPATCH();
-	CHECK_ID(VALID_SEMID(semid));
+	CHECK_DISPATCH();							/*［NGKI1515］*/
+	CHECK_ID(VALID_SEMID(semid));				/*［NGKI1517］*/
 	p_semcb = get_semcb(semid);
 
 	lock_cpu_dsp();
 	if (p_semcb->p_seminib->sematr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1519］*/
 	}
 	else if (p_runtsk->raster) {
-		ercd = E_RASTER;
+		ercd = E_RASTER;						/*［NGKI3457］*/
 	}
 	else if (p_semcb->semcnt >= 1) {
-		p_semcb->semcnt -= 1;
+		p_semcb->semcnt -= 1;					/*［NGKI1524］*/
 		ercd = E_OK;
 	}
-	else {
+	else {										/*［NGKI1525］*/
 		wobj_make_wait((WOBJCB *) p_semcb, TS_WAITING_SEM,
 				 							(WINFO_WOBJ *) &winfo_sem);
 		dispatch();
@@ -350,7 +350,7 @@ wai_sem(ID semid)
 #endif /* TOPPERS_wai_sem */
 
 /*
- *  セマフォ資源の獲得（ポーリング）
+ *  セマフォ資源の獲得（ポーリング）［NGKI1511］
  */
 #ifdef TOPPERS_pol_sem
 
@@ -361,20 +361,20 @@ pol_sem(ID semid)
 	ER		ercd;
 
 	LOG_POL_SEM_ENTER(semid);
-	CHECK_TSKCTX_UNL();
-	CHECK_ID(VALID_SEMID(semid));
+	CHECK_TSKCTX_UNL();							/*［NGKI1513］［NGKI1514］*/
+	CHECK_ID(VALID_SEMID(semid));				/*［NGKI1517］*/
 	p_semcb = get_semcb(semid);
 
 	lock_cpu();
 	if (p_semcb->p_seminib->sematr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1519］*/
 	}
 	else if (p_semcb->semcnt >= 1) {
-		p_semcb->semcnt -= 1;
+		p_semcb->semcnt -= 1;					/*［NGKI1524］*/
 		ercd = E_OK;
 	}
 	else {
-		ercd = E_TMOUT;
+		ercd = E_TMOUT;							/*［NGKI1521］*/
 	}
 	unlock_cpu();
 
@@ -386,7 +386,7 @@ pol_sem(ID semid)
 #endif /* TOPPERS_pol_sem */
 
 /*
- *  セマフォ資源の獲得（タイムアウトあり）
+ *  セマフォ資源の獲得（タイムアウトあり）［NGKI1512］
  */
 #ifdef TOPPERS_twai_sem
 
@@ -399,26 +399,26 @@ twai_sem(ID semid, TMO tmout)
 	ER			ercd;
 
 	LOG_TWAI_SEM_ENTER(semid, tmout);
-	CHECK_DISPATCH();
-	CHECK_ID(VALID_SEMID(semid));
-	CHECK_PAR(VALID_TMOUT(tmout));
+	CHECK_DISPATCH();							/*［NGKI1515］*/
+	CHECK_ID(VALID_SEMID(semid));				/*［NGKI1517］*/
+	CHECK_PAR(VALID_TMOUT(tmout));				/*［NGKI1518］*/
 	p_semcb = get_semcb(semid);
 
 	lock_cpu_dsp();
 	if (p_semcb->p_seminib->sematr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1519］*/
 	}
 	else if (p_runtsk->raster) {
-		ercd = E_RASTER;
+		ercd = E_RASTER;						/*［NGKI3457］*/
 	}
 	else if (p_semcb->semcnt >= 1) {
-		p_semcb->semcnt -= 1;
+		p_semcb->semcnt -= 1;					/*［NGKI1524］*/
 		ercd = E_OK;
 	}
 	else if (tmout == TMO_POL) {
-		ercd = E_TMOUT;
+		ercd = E_TMOUT;							/*［NGKI1521］*/
 	}
-	else {
+	else {										/*［NGKI1525］*/
 		wobj_make_wait_tmout((WOBJCB *) p_semcb, TS_WAITING_SEM,
 								(WINFO_WOBJ *) &winfo_sem, &tmevtb, tmout);
 		dispatch();
@@ -434,7 +434,7 @@ twai_sem(ID semid, TMO tmout)
 #endif /* TOPPERS_twai_sem */
 
 /*
- *  セマフォの再初期化
+ *  セマフォの再初期化［NGKI1526］
  */
 #ifdef TOPPERS_ini_sem
 
@@ -443,19 +443,19 @@ ini_sem(ID semid)
 {
 	SEMCB	*p_semcb;
 	ER		ercd;
-    
+
 	LOG_INI_SEM_ENTER(semid);
-	CHECK_TSKCTX_UNL();
-	CHECK_ID(VALID_SEMID(semid));
+	CHECK_TSKCTX_UNL();							/*［NGKI1527］［NGKI1528］*/
+	CHECK_ID(VALID_SEMID(semid));				/*［NGKI1529］*/
 	p_semcb = get_semcb(semid);
 
 	lock_cpu();
 	if (p_semcb->p_seminib->sematr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1530］*/
 	}
 	else {
-		init_wait_queue(&(p_semcb->wait_queue));
-		p_semcb->semcnt = p_semcb->p_seminib->isemcnt;
+		init_wait_queue(&(p_semcb->wait_queue));	/*［NGKI1533］［NGKI1534］*/
+		p_semcb->semcnt = p_semcb->p_seminib->isemcnt;	/*［NGKI1532］*/
 		if (p_runtsk != p_schedtsk) {
 			dispatch();
 		}
@@ -471,7 +471,7 @@ ini_sem(ID semid)
 #endif /* TOPPERS_ini_sem */
 
 /*
- *  セマフォの状態参照
+ *  セマフォの状態参照［NGKI1535］
  */
 #ifdef TOPPERS_ref_sem
 
@@ -480,19 +480,20 @@ ref_sem(ID semid, T_RSEM *pk_rsem)
 {
 	SEMCB	*p_semcb;
 	ER		ercd;
-    
+
 	LOG_REF_SEM_ENTER(semid, pk_rsem);
-	CHECK_TSKCTX_UNL();
-	CHECK_ID(VALID_SEMID(semid));
+	CHECK_TSKCTX_UNL();							/*［NGKI1536］［NGKI1537］*/
+	CHECK_ID(VALID_SEMID(semid));				/*［NGKI1538］*/
 	p_semcb = get_semcb(semid);
 
 	lock_cpu();
 	if (p_semcb->p_seminib->sematr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1539］*/
 	}
 	else {
 		pk_rsem->wtskid = wait_tskid(&(p_semcb->wait_queue));
-		pk_rsem->semcnt = p_semcb->semcnt;
+												/*［NGKI1542］［NGKI1543］*/
+		pk_rsem->semcnt = p_semcb->semcnt;		/*［NGKI1542］*/
 		ercd = E_OK;
 	}
 	unlock_cpu();

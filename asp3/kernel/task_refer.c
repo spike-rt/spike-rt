@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task_refer.c 1132 2018-12-24 09:28:51Z ertl-hiro $
+ *  $Id: task_refer.c 1497 2021-03-27 06:38:11Z ertl-hiro $
  */
 
 /*
@@ -91,13 +91,13 @@ ref_tsk(ID tskid, T_RTSK *pk_rtsk)
 	tstat = p_tcb->tstat;
 	if (TSTAT_DORMANT(tstat)) {
 		/*
- 		 *  対象タスクが休止状態の場合［NGKI1225］
+		 *  対象タスクが休止状態の場合［NGKI1225］
 		 */
 		pk_rtsk->tskstat = TTS_DMT;
 	}
 	else {
 		/*
- 		 *  タスク状態の取出し［NGKI1225］
+		 *  タスク状態の取出し［NGKI1225］
 		 */
 		if (TSTAT_SUSPENDED(tstat)) {
 			if (TSTAT_WAITING(tstat)) {
@@ -118,15 +118,15 @@ ref_tsk(ID tskid, T_RTSK *pk_rtsk)
 		}
 
 		/*
- 		 *  現在優先度とベース優先度の取出し［NGKI1227］
+		 *  現在優先度とベース優先度の取出し［NGKI1227］
 		 */
 		pk_rtsk->tskpri = EXT_TSKPRI(p_tcb->priority);
 		pk_rtsk->tskbpri = EXT_TSKPRI(p_tcb->bpriority);
 
 		if (TSTAT_WAITING(tstat)) {
 			/*
-	 		 *  待ち要因と待ち対象のオブジェクトのIDの取出し［NGKI1229］
-	 		 *  ［NGKI1231］
+			 *  待ち要因と待ち対象のオブジェクトのIDの取出し［NGKI1229］
+			 *  ［NGKI1231］
 			 */
 			switch (tstat & TS_WAITING_MASK) {
 			case TS_WAITING_SLP:
@@ -178,7 +178,7 @@ ref_tsk(ID tskid, T_RTSK *pk_rtsk)
 			}
 
 			/*
-	 		 *  タイムアウトするまでの時間の取出し
+			 *  タイムアウトするまでの時間の取出し
 			 */
 			if (p_tcb->p_winfo->p_tmevtb != NULL) {
 				pk_rtsk->lefttmo				/*［NGKI1233］［NGKI1235］*/
@@ -190,12 +190,12 @@ ref_tsk(ID tskid, T_RTSK *pk_rtsk)
 		}
 
 		/*
- 		 *  起床要求キューイング数の取出し［NGKI1239］
+		 *  起床要求キューイング数の取出し［NGKI1239］
 		 */
 		pk_rtsk->wupcnt = p_tcb->wupque ? 1U : 0U;
 
 		/*
-		 *  タスク終了要求状態の取出し［NGKI3467］
+		 *  タスク終了要求フラグの取出し［NGKI3467］
 		 */
 		pk_rtsk->raster = p_tcb->raster;
 

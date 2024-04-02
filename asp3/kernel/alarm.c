@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: alarm.c 1019 2018-10-24 02:51:36Z ertl-hiro $
+ *  $Id: alarm.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -192,7 +192,7 @@ ref_alm(ID almid, T_RALM *pk_ralm)
 {
 	ALMCB	*p_almcb;
 	ER		ercd;
-    
+
 	LOG_REF_ALM_ENTER(almid, pk_ralm);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_ALMID(almid));

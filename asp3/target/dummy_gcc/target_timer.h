@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2013-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_timer.h 1065 2018-11-20 11:09:50Z ertl-hiro $
+ *  $Id: target_timer.h 1705 2022-10-17 06:29:13Z ertl-hiro $
  */
 
 /*
@@ -59,22 +59,21 @@
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
- *  タイマ値の内部表現の型
- */
-typedef uint32_t	CLOCK;
-
-/*
  *  高分解能タイマの初期化処理
  */
-extern void	target_hrt_initialize(intptr_t exinf);
+extern void	target_hrt_initialize(EXINF exinf);
 
 /*
  *  高分解能タイマの終了処理
  */
-extern void	target_hrt_terminate(intptr_t exinf);
+extern void	target_hrt_terminate(EXINF exinf);
 
 /*
  *  高分解能タイマの現在のカウント値の読出し
+ *
+ *  この関数はシステムログへのログ情報の出力時に呼び出されるため，この
+ *  関数内でsyslogやassertを使ってはならない（無限の再帰呼出しが起こ
+ *  る）．
  */
 Inline HRTCNT
 target_hrt_get_current(void)
@@ -124,12 +123,12 @@ extern void target_hrt_handler(void);
 /*
  *  オーバランタイマの初期化処理
  */
-extern void target_ovrtimer_initialize(intptr_t exinf);
+extern void target_ovrtimer_initialize(EXINF exinf);
 
 /*
  *  オーバランタイマの終了処理
  */
-extern void target_ovrtimer_terminate(intptr_t exinf);
+extern void target_ovrtimer_terminate(EXINF exinf);
 
 /*
  *  オーバランタイマの動作開始

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf4.c 983 2018-05-25 23:06:59Z ertl-hiro $
+ *  $Id: perf4.c 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /*
@@ -76,7 +76,7 @@
 /*
  *  計測タスク1（高優先度）
  */
-void task1(intptr_t exinf)
+void task1(EXINF exinf)
 {
 	ER		ercd;
 
@@ -95,7 +95,7 @@ volatile uint_t		task2_count;
 /*
  *  計測タスク2（高優先度）
  */
-void task2(intptr_t exinf)
+void task2(EXINF exinf)
 {
 	ER		ercd;
 
@@ -110,7 +110,7 @@ void task2(intptr_t exinf)
 /*
  *  計測タスク3（低優先度）
  */
-void task3(intptr_t exinf)
+void task3(EXINF exinf)
 {
 	ER		ercd;
 
@@ -121,7 +121,7 @@ void task3(intptr_t exinf)
 /*
  *  計測タスク4（最低優先度）
  */
-void task4(intptr_t exinf)
+void task4(EXINF exinf)
 {
 	ER		ercd;
 
@@ -139,7 +139,7 @@ volatile uint_t		cyclic_handler_error_count;
 /*
  *  周期ハンドラ
  */
-void cyclic_handler(intptr_t exinf)
+void cyclic_handler(EXINF exinf)
 {
 	ER		ercd;
 
@@ -162,7 +162,7 @@ void cyclic_handler(intptr_t exinf)
 /*
  *  メインタスク（中優先度）
  */
-void main_task(intptr_t exinf)
+void main_task(EXINF exinf)
 {
 	uint_t	i;
 	ER		ercd;

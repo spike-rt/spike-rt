@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sample1.c 1238 2019-07-10 01:10:02Z ertl-hiro $
+ *  $Id: sample1.c 1728 2022-11-20 11:47:31Z ertl-hiro $
  */
 
 /* 
@@ -163,11 +163,11 @@ ulong_t	task_loop;		/* タスク内でのループ回数 */
  *  並行実行されるタスク
  */
 void
-task(intptr_t exinf)
+task(EXINF exinf)
 {
 	int_t		n = 0;
 	int_t		tskno = (int_t) exinf;
-	const char	*graph[] = { "|    ", "  +  ", "    *" };
+	char *const	graph[] = { "|", "  +", "    *" };
 	char		c;
 #ifdef TOPPERS_SUPPORT_OVRHDR
 	T_ROVR		pk_rovr;
@@ -243,7 +243,7 @@ task(intptr_t exinf)
 #ifdef INTNO1
 
 void
-intno1_isr(intptr_t exinf)
+intno1_isr(EXINF exinf)
 {
 	intno1_clear();
 	SVC_PERROR(rot_rdq(HIGH_PRIORITY));
@@ -294,7 +294,7 @@ cpuexc_handler(void *p_excinf)
  *  を回転させる．
  */
 void
-cyclic_handler(intptr_t exinf)
+cyclic_handler(EXINF exinf)
 {
 	SVC_PERROR(rot_rdq(HIGH_PRIORITY));
 	SVC_PERROR(rot_rdq(MID_PRIORITY));
@@ -308,7 +308,7 @@ cyclic_handler(intptr_t exinf)
  *  を回転させる．
  */
 void
-alarm_handler(intptr_t exinf)
+alarm_handler(EXINF exinf)
 {
 	SVC_PERROR(rot_rdq(HIGH_PRIORITY));
 	SVC_PERROR(rot_rdq(MID_PRIORITY));
@@ -319,7 +319,7 @@ alarm_handler(intptr_t exinf)
  *  例外処理タスク
  */
 void
-exc_task(intptr_t exinf)
+exc_task(EXINF exinf)
 {
 	SVC_PERROR(ras_ter(cpuexc_tskid));
 }
@@ -330,7 +330,7 @@ exc_task(intptr_t exinf)
 #ifdef TOPPERS_SUPPORT_OVRHDR
 
 void
-overrun_handler(ID tskid, intptr_t exinf)
+overrun_handler(ID tskid, EXINF exinf)
 {
 	int_t	tskno = (int_t) exinf;
 
@@ -343,7 +343,7 @@ overrun_handler(ID tskid, intptr_t exinf)
  *  メインタスク
  */
 void
-main_task(intptr_t exinf)
+main_task(EXINF exinf)
 {
 	char	c;
 	ID		tskid = TASK1;

@@ -5,6 +5,13 @@
 #undef TOPPERS_TARGET_RENAME_H
 
 /*
+ *  target_kernel_impl.h
+ */
+#undef lock_cpu
+#undef unlock_cpu
+#undef sense_lock
+
+/*
  *  target_kernel_impl.c
  */
 #undef dispatch
@@ -26,16 +33,6 @@
 #undef target_ovrtimer_initialize
 #undef target_ovrtimer_terminate
 #undef target_ovrtimer_handler
-
-/*
- *  tTraceLog.c
- */
-#undef log_dsp_enter
-#undef log_dsp_leave
-#undef log_inh_enter
-#undef log_inh_leave
-#undef log_exc_enter
-#undef log_exc_leave
 
 
 #endif /* TOPPERS_TARGET_RENAME_H */

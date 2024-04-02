@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: mutex.c 1012 2018-10-18 13:31:53Z ertl-hiro $
+ *  $Id: mutex.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -118,7 +118,7 @@
 #define MTXPROTO(p_mtxcb)		((p_mtxcb)->p_mtxinib->mtxatr & MTXPROTO_MASK)
 #define MTX_CEILING(p_mtxcb)	(MTXPROTO(p_mtxcb) == TA_CEILING)
 
-/* 
+/*
  *  ミューテックス機能の初期化
  */
 #ifdef TOPPERS_mtxini
@@ -130,7 +130,6 @@ initialize_mutex(void)
 	MTXCB	*p_mtxcb;
 
 	mtxhook_check_ceilpri = mutex_check_ceilpri;
-	mtxhook_scan_ceilmtx = mutex_scan_ceilmtx;
 	mtxhook_release_all = mutex_release_all;
 
 	for (i = 0; i < tnum_mtx; i++) {
@@ -143,7 +142,7 @@ initialize_mutex(void)
 
 #endif /* TOPPERS_mtxini */
 
-/* 
+/*
  *  上限優先度違反のチェック
  */
 #ifdef TOPPERS_mtxchk
@@ -184,70 +183,90 @@ mutex_check_ceilpri(TCB *p_tcb, uint_t bpriority)
 
 #endif /* TOPPERS_mtxchk */
 
-/* 
- *  優先度上限ミューテックスをロックしているかのチェック
- */
-#ifdef TOPPERS_mtxscan
-
-bool_t
-mutex_scan_ceilmtx(TCB *p_tcb)
-{
-	MTXCB	*p_mtxcb;
-
-	p_mtxcb = p_tcb->p_lastmtx;
-	while (p_mtxcb != NULL) {
-		if (MTX_CEILING(p_mtxcb)) {
-			return(true);
-		}
-		p_mtxcb = p_mtxcb->p_prevmtx;
-	}
-	return(false);
-}
-
-#endif /* TOPPERS_mtxscan */
-
-/* 
+/*
  *  タスクの現在優先度の計算
  *
  *  p_tcbで指定されるタスクの現在優先度（に設定すべき値）を計算する．
+ *  また，優先度上昇状態であるかを判定し，p_tcb->boostedに返す．
  */
 Inline uint_t
 mutex_calc_priority(TCB *p_tcb)
 {
 	uint_t	priority;
 	MTXCB	*p_mtxcb;
+	bool_t	boosted;
 
 	priority = p_tcb->bpriority;
 	p_mtxcb = p_tcb->p_lastmtx;
+	boosted = false;
 	while (p_mtxcb != NULL) {
-		if (MTX_CEILING(p_mtxcb) && p_mtxcb->p_mtxinib->ceilpri < priority) {
-			priority = p_mtxcb->p_mtxinib->ceilpri;
+		if (MTX_CEILING(p_mtxcb)) {
+			if (p_mtxcb->p_mtxinib->ceilpri < priority) {
+				priority = p_mtxcb->p_mtxinib->ceilpri;
+			}
+			boosted = true;
 		}
 		p_mtxcb = p_mtxcb->p_prevmtx;
 	}
+	p_tcb->boosted = boosted;
 	return(priority);
 }
 
 /*
- *  ミューテックスを解放した場合の現在優先度変更処理
+ *  ミューテックスのリストからの削除
+ *
+ *  p_tcbで指定されるタスクがロックしているミューテックスのリストから，
+ *  p_mtxcbで指定されるミューテックスを削除する．
  */
-#ifdef TOPPERS_mtxdrop
+Inline bool_t
+remove_mutex(TCB *p_tcb, MTXCB *p_mtxcb)
+{
+	MTXCB	**pp_prevmtx;
 
-void
-mutex_drop_priority(TCB *p_tcb, MTXCB *p_mtxcb)
+	pp_prevmtx = &(p_tcb->p_lastmtx);
+	while (*pp_prevmtx != NULL) {
+		if (*pp_prevmtx == p_mtxcb) {
+			*pp_prevmtx = p_mtxcb->p_prevmtx;
+			return(true);
+		}
+		pp_prevmtx = &((*pp_prevmtx)->p_prevmtx);
+	}
+	return(false);
+}
+
+/*
+ *  要素優先度が上がる（または増える）場合の現在優先度変更処理
+ *
+ *  p_tcbで指定されるタスクに対して，newpriで指定される要素優先度が上
+ *  がった（または増えた）際の現在優先度変更処理を行う．
+ */
+Inline void
+mutex_raise_priority(TCB *p_tcb, uint_t newpri)
+{
+	p_tcb->boosted = true;
+	if (newpri < p_tcb->priority) {
+		change_priority(p_tcb, newpri, true);
+	}
+}
+
+/*
+ *  要素優先度が下がる（または減る）場合の現在優先度変更処理
+ *
+ *  p_tcbで指定されるタスクに対して，oldpriで指定される要素優先度が下
+ *  がった（または減った）際の現在優先度変更処理を行う．
+ */
+Inline void
+mutex_drop_priority(TCB *p_tcb, uint_t oldpri)
 {
 	uint_t	newpri;
 
-	if (MTX_CEILING(p_mtxcb)
-					&& p_mtxcb->p_mtxinib->ceilpri == p_tcb->priority) {
+	if (oldpri == p_tcb->priority) {
 		newpri = mutex_calc_priority(p_tcb);
 		if (newpri != p_tcb->priority) {
 			change_priority(p_tcb, newpri, true);
 		}
 	}
 }
-
-#endif /* TOPPERS_mtxdrop */
 
 /*
  *  ミューテックスのロック
@@ -260,9 +279,8 @@ mutex_acquire(TCB *p_tcb, MTXCB *p_mtxcb)
 	p_mtxcb->p_loctsk = p_tcb;
 	p_mtxcb->p_prevmtx = p_tcb->p_lastmtx;
 	p_tcb->p_lastmtx = p_mtxcb;
-	if (MTX_CEILING(p_mtxcb)
-					&& p_mtxcb->p_mtxinib->ceilpri < p_tcb->priority) {
-		change_priority(p_tcb, p_mtxcb->p_mtxinib->ceilpri, true);
+	if (MTX_CEILING(p_mtxcb)) {
+		mutex_raise_priority(p_tcb, p_mtxcb->p_mtxinib->ceilpri);
 	}
 }
 
@@ -297,6 +315,7 @@ mutex_release(MTXCB *p_mtxcb)
 			if (p_mtxcb->p_mtxinib->ceilpri < p_tcb->priority) {
 				p_tcb->priority = p_mtxcb->p_mtxinib->ceilpri;
 			}
+			p_tcb->boosted = true;
 		}
 		make_non_wait(p_tcb);
 	}
@@ -486,7 +505,7 @@ unl_mtx(ID mtxid)
 {
 	MTXCB	*p_mtxcb;
 	ER		ercd;
-    
+
 	LOG_UNL_MTX_ENTER(mtxid);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_MTXID(mtxid));
@@ -498,7 +517,9 @@ unl_mtx(ID mtxid)
 	}
 	else {
 		p_runtsk->p_lastmtx = p_mtxcb->p_prevmtx;
-		mutex_drop_priority(p_runtsk, p_mtxcb);
+		if (MTX_CEILING(p_mtxcb)) {
+			mutex_drop_priority(p_runtsk, p_mtxcb->p_mtxinib->ceilpri);
+		}
 		mutex_release(p_mtxcb);
 		if (p_runtsk != p_schedtsk) {
 			dispatch();
@@ -522,10 +543,10 @@ unl_mtx(ID mtxid)
 ER
 ini_mtx(ID mtxid)
 {
-	MTXCB	*p_mtxcb, **pp_prevmtx;
+	MTXCB	*p_mtxcb;
 	TCB		*p_loctsk;
 	ER		ercd;
-    
+
 	LOG_INI_MTX_ENTER(mtxid);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_MTXID(mtxid));
@@ -536,15 +557,10 @@ ini_mtx(ID mtxid)
 	p_loctsk = p_mtxcb->p_loctsk;
 	if (p_loctsk != NULL) {
 		p_mtxcb->p_loctsk = NULL;
-		pp_prevmtx = &(p_loctsk->p_lastmtx);
-		while (*pp_prevmtx != NULL) {
-			if (*pp_prevmtx == p_mtxcb) {
-				*pp_prevmtx = p_mtxcb->p_prevmtx;
-				break;
-			}
-			pp_prevmtx = &((*pp_prevmtx)->p_prevmtx);
+		(void) remove_mutex(p_loctsk, p_mtxcb);
+		if (MTX_CEILING(p_mtxcb)) {
+			mutex_drop_priority(p_loctsk, p_mtxcb->p_mtxinib->ceilpri);
 		}
-		mutex_drop_priority(p_loctsk, p_mtxcb);
 	}
 	if (p_runtsk != p_schedtsk) {
 		dispatch();
@@ -569,7 +585,7 @@ ref_mtx(ID mtxid, T_RMTX *pk_rmtx)
 {
 	MTXCB	*p_mtxcb;
 	ER		ercd;
-    
+
 	LOG_REF_MTX_ENTER(mtxid, pk_rmtx);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_MTXID(mtxid));

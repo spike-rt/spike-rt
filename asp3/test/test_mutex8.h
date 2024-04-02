@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_mutex8.h 740 2016-04-05 15:44:39Z ertl-hiro $
+ *  $Id: test_mutex8.h 1439 2020-05-22 20:02:23Z ertl-hiro $
  */
 
 /* 
@@ -75,10 +75,10 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
-extern void	task3(intptr_t exinf);
-extern void	task4(intptr_t exinf);
-extern void	task5(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
+extern void	task3(EXINF exinf);
+extern void	task4(EXINF exinf);
+extern void	task5(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

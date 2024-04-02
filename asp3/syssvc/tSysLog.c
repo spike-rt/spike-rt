@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: tSysLog.c 1048 2018-11-19 13:46:26Z ertl-hiro $
+ *  $Id: tSysLog.c 1407 2020-05-01 13:55:20Z ertl-hiro $
  */
 
 /*
@@ -108,15 +108,12 @@ eSysLog_write(uint_t priority, const SYSLOG *p_syslog)
 	SIL_LOC_INT();
 
 	/*
-	 *  ログ時刻の設定
-	 */
-	SYSLOG_GET_LOGTIM(&(((SYSLOG *) p_syslog)->logtim));
-
-	/*
 	 *  ログバッファに記録
 	 */
 	if ((VAR_logMask & LOG_MASK(priority)) != 0U) {
 		VAR_logBuffer[VAR_tail] = *p_syslog;
+		SYSLOG_GET_LOGTIM(&(VAR_logBuffer[VAR_tail].logtim));
+
 		VAR_tail++;
 		if (VAR_tail >= ATTR_logBufferSize) {
 			VAR_tail = 0U;
@@ -134,7 +131,11 @@ eSysLog_write(uint_t priority, const SYSLOG *p_syslog)
 	 *  低レベル出力
 	 */
 	if ((VAR_lowMask & LOG_MASK(priority)) != 0U) {
-		syslog_print(p_syslog, low_putchar);
+		SYSLOG	logbuf;
+
+		logbuf = *p_syslog;
+		SYSLOG_GET_LOGTIM(&(logbuf.logtim));
+		syslog_print(&logbuf, low_putchar);
 	}
 
 	SIL_UNL_INT();

@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2018-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_ovrhdr1.c 1173 2019-03-11 04:48:06Z ertl-hiro $
+ *  $Id: test_ovrhdr1.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /* 
@@ -206,7 +206,7 @@ volatile bool_t	task2_flag5 = false;
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;
@@ -268,7 +268,7 @@ alarm1_handler(intptr_t exinf)
 static uint_t	overrun_count = 0;
 
 void
-overrun_handler(ID tskid, intptr_t exinf)
+overrun_handler(ID tskid, EXINF exinf)
 {
 
 	switch (++overrun_count) {
@@ -291,7 +291,7 @@ overrun_handler(ID tskid, intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;
@@ -337,7 +337,7 @@ task1(intptr_t exinf)
 static uint_t	task2_count = 0;
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;

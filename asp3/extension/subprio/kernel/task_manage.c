@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task_manage.c 1030 2018-11-01 12:40:36Z ertl-hiro $
+ *  $Id: task_manage.c 1635 2022-09-23 10:00:19Z ertl-hiro $
  */
 
 /*
@@ -48,7 +48,6 @@
 #include "check.h"
 #include "task.h"
 #include "taskhook.h"
-#include "wait.h"
 
 /*
  *  トレースログマクロのデフォルト定義
@@ -279,13 +278,13 @@ chg_pri(ID tskid, PRI tskpri)
 	if (TSTAT_DORMANT(p_tcb->tstat)) {
 		ercd = E_OBJ;							/*［NGKI1191］*/
 	}
-	else if ((p_tcb->p_lastmtx != NULL || TSTAT_WAIT_MTX(p_tcb->tstat))
+	else if ((p_tcb->boosted || TSTAT_WAIT_MTX(p_tcb->tstat))
 						&& !((*mtxhook_check_ceilpri)(p_tcb, newbpri))) {
 		ercd = E_ILUSE;							/*［NGKI1201］*/
 	}
 	else {
 		p_tcb->bpriority = newbpri;				/*［NGKI1192］*/
-		if (p_tcb->p_lastmtx == NULL || !((*mtxhook_scan_ceilmtx)(p_tcb))) {
+		if (!(p_tcb->boosted)) {
 			change_priority(p_tcb, newbpri, false);		/*［NGKI1193］*/
 			if (p_runtsk != p_schedtsk) {
 				dispatch();
@@ -362,9 +361,15 @@ chg_spr(ID tskid, uint_t subpri)
 	}
 
 	lock_cpu();
-	change_subprio(p_tcb, subpri);
-	if (p_runtsk != p_schedtsk) {
-		dispatch();
+	p_tcb->subpri = subpri;						/*［NGKI3672］*/
+	if (TSTAT_RUNNABLE(p_tcb->tstat)) {
+		if ((subprio_primap & PRIMAP_BIT(p_tcb->priority)) != 0U
+											&& !(p_tcb->boosted)) {
+			change_subprio(p_tcb, subpri);		/*［NGKI3673］*/
+			if (p_runtsk != p_schedtsk) {
+				dispatch();
+			}
+		}
 	}
 	ercd = E_OK;
 	unlock_cpu();
@@ -382,17 +387,15 @@ chg_spr(ID tskid, uint_t subpri)
 #ifdef TOPPERS_get_inf
 
 ER
-get_inf(intptr_t *p_exinf)
+get_inf(EXINF *p_exinf)
 {
 	ER		ercd;
 
 	LOG_GET_INF_ENTER(p_exinf);
 	CHECK_TSKCTX_UNL();							/*［NGKI1213］［NGKI1214］*/
 
-	lock_cpu();
 	*p_exinf = p_runtsk->p_tinib->exinf;		/*［NGKI1216］*/
 	ercd = E_OK;
-	unlock_cpu();
 
   error_exit:
 	LOG_GET_INF_LEAVE(ercd, p_exinf);

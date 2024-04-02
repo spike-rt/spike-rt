@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sys_manage.c 1148 2019-01-14 02:55:56Z ertl-hiro $
+ *  $Id: sys_manage.c 1593 2022-09-07 02:48:52Z ertl-hiro $
  */
 
 /*
@@ -176,7 +176,7 @@ rot_rdq(PRI tskpri)
 		pri = INT_PRIORITY(tskpri);
 	}
 	CHECK_ILUSE((subprio_primap & PRIMAP_BIT(pri)) == 0U);
-
+												/*［NGKI3663］*/
 	lock_cpu();
 	rotate_ready_queue(&(ready_queue[pri]));
 	if (p_runtsk != p_schedtsk) {

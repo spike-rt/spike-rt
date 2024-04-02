@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2007-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2022 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_cpuexc10.c 346 2015-07-18 02:12:08Z ertl-hiro $
+ *  $Id: test_cpuexc10.c 1535 2022-05-18 14:33:59Z ertl-hiro $
  */
 
 /* 
@@ -109,21 +109,21 @@ check_chg_ipm(PRI intpri)
 	ercd = chg_ipm(intpri);
 	if (ercd == E_PAR) {
 		syslog_0(LOG_NOTICE, "This test program is not necessary.");
-		ext_ker();
+		check_finish(0);
 	}
 	return(ercd);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
-	check_point(0);
+	check_assert(false);
 }
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
-	check_point(0);
+	check_assert(false);
 }
 
 #ifdef PREPARE_RETURN_CPUEXC
@@ -153,11 +153,11 @@ cpuexc_handler(void *p_excinf)
 
 	return;
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -184,5 +184,5 @@ task1(intptr_t exinf)
 	check_ipm(TMIN_INTPRI-1);
 
 	check_finish(6);
-	check_point(0);
+	check_assert(false);
 }

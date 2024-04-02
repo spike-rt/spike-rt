@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2018-2021 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_suspend1.c 1006 2018-08-17 06:56:37Z ertl-hiro $
+ *  $Id: test_suspend1.c 1498 2021-03-27 09:45:22Z ertl-hiro $
  */
 
 /* 
@@ -170,7 +170,7 @@
  *	10:	ena_ter()
  *	== ALM1 ==
  *	11:	sus_tsk(TASK1) -> E_CTX				... (A-1)
- *		sus_tsk(TASK1) -> E_CTX				... (D-1)
+ *		rsm_tsk(TASK1) -> E_CTX				... (D-1)
  *		wup_tsk(TASK1)
  *		RETURN
  *	== TASK1（続き）==
@@ -181,12 +181,12 @@
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_suspend1.h"
+#include "test_common.h"
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -194,7 +194,7 @@ alarm1_handler(intptr_t exinf)
 	ercd = sus_tsk(TASK1);
 	check_ercd(ercd, E_CTX);
 
-	ercd = sus_tsk(TASK1);
+	ercd = rsm_tsk(TASK1);
 	check_ercd(ercd, E_CTX);
 
 	ercd = wup_tsk(TASK1);
@@ -202,11 +202,11 @@ alarm1_handler(intptr_t exinf)
 
 	return;
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RTSK	rtsk;
@@ -331,11 +331,11 @@ task1(intptr_t exinf)
 	check_ercd(ercd, E_OK);
 
 	check_finish(12);
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -347,11 +347,11 @@ task2(intptr_t exinf)
 	ercd = ext_tsk();
 	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RTSK	rtsk;
@@ -416,5 +416,5 @@ task3(intptr_t exinf)
 	ercd = ena_ter();
 	check_ercd(ercd, E_OK);
 
-	check_point(0);
+	check_assert(false);
 }

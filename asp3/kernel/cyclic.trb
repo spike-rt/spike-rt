@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: cyclic.trb 1167 2019-02-03 17:06:17Z ertl-hiro $
+#   $Id: cyclic.trb 1332 2019-12-01 20:29:57Z ertl-hiro $
 # 
 
 #
@@ -69,7 +69,8 @@ class CyclicObject < KernelObject
     end
 
     # 通知情報の処理
-    params[:nfyhdr] = generateNotifyHandler(key, params, :cycid)
+    params[:nfyhdr] = "_kernel_cychdr_#{params[:cycid]}"
+    generateNotifyHandler(key, params, :cycid)
   end
 
   def generateInib(key, params)

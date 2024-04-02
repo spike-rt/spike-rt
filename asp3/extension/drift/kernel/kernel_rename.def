@@ -21,7 +21,6 @@ task_terminate
 
 # taskhook.c
 mtxhook_check_ceilpri
-mtxhook_scan_ceilmtx
 mtxhook_release_all
 
 # wait.c
@@ -82,8 +81,6 @@ receive_pridata
 # mutex.c
 initialize_mutex
 mutex_check_ceilpri
-mutex_scan_ceilmtx
-mutex_drop_priority
 mutex_acquire
 mutex_release
 mutex_release_all

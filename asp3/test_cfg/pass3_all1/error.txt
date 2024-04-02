@@ -1,0 +1,56 @@
+../../test_cfg/pass3_all1.cfg:10: error: E_PAR: task `ADD1(task1)' is not aligned in CRE_TSK of TASK1
+../../test_cfg/pass3_all1.cfg:11: error: E_PAR: task `0' is null in CRE_TSK of TASK2
+../../test_cfg/pass3_all1.cfg:14: error: E_PAR: stk `ADD1(stack_TASK3)' is not aligned in CRE_TSK of TASK3
+../../test_cfg/pass3_all1.cfg:16: error: E_PAR: stk `0' is null in CRE_TSK of TASK4
+../../test_cfg/pass3_all1.cfg:19: error: E_PAR: mpf `ADD1(mpf_MPF1)' is not aligned in CRE_MPF of MPF1
+../../test_cfg/pass3_all1.cfg:20: error: E_PAR: mpf `0' is null in CRE_MPF of MPF2
+../../test_cfg/pass3_all1.cfg:23: error: E_PAR: tmehdr `ADD1(cyclic1_handler)' is not aligned in CRE_CYC of CYC1
+../../test_cfg/pass3_all1.cfg:25: error: E_PAR: tmehdr `0' is null in CRE_CYC of CYC2
+../../test_cfg/pass3_all1.cfg:28: error: E_PAR: p_var `ADD1(&nvar1)' is not aligned in CRE_CYC of CYC3
+../../test_cfg/pass3_all1.cfg:29: error: E_PAR: p_var `0' is null in CRE_CYC of CYC4
+../../test_cfg/pass3_all1.cfg:32: error: E_PAR: p_var `ADD1(&nvar1)' is not aligned in CRE_CYC of CYC5
+../../test_cfg/pass3_all1.cfg:34: error: E_PAR: p_var `0' is null in CRE_CYC of CYC6
+../../test_cfg/pass3_all1.cfg:38: error: E_PAR: p_var `ADD1(&nvar2)' is not aligned in CRE_CYC of CYC7
+../../test_cfg/pass3_all1.cfg:39: error: E_PAR: p_var `0' is null in CRE_CYC of CYC8
+../../test_cfg/pass3_all1.cfg:42: error: E_PAR: p_var `ADD1(&nvar2)' is not aligned in CRE_CYC of CYC9
+../../test_cfg/pass3_all1.cfg:44: error: E_PAR: p_var `0' is null in CRE_CYC of CYC10
+../../test_cfg/pass3_all1.cfg:48: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_CYC of CYC11
+../../test_cfg/pass3_all1.cfg:49: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_CYC of CYC12
+../../test_cfg/pass3_all1.cfg:50: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_CYC of CYC13
+../../test_cfg/pass3_all1.cfg:52: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_CYC of CYC14
+../../test_cfg/pass3_all1.cfg:56: error: E_ID: illegal semid `SEMID_LARGE' in CRE_CYC of CYC15
+../../test_cfg/pass3_all1.cfg:57: error: E_ID: illegal semid `SEMID_LARGE' in CRE_CYC of CYC16
+../../test_cfg/pass3_all1.cfg:61: error: E_ID: illegal flgid `FLGID_LARGE' in CRE_CYC of CYC17
+../../test_cfg/pass3_all1.cfg:62: error: E_ID: illegal flgid `FLGID_LARGE' in CRE_CYC of CYC18
+../../test_cfg/pass3_all1.cfg:66: error: E_ID: illegal dtqid `DTQID_LARGE' in CRE_CYC of CYC19
+../../test_cfg/pass3_all1.cfg:68: error: E_ID: illegal dtqid `DTQID_LARGE' in CRE_CYC of CYC20
+../../test_cfg/pass3_all1.cfg:72: error: E_PAR: tmehdr `ADD1(alarm1_handler)' is not aligned in CRE_ALM of ALM1
+../../test_cfg/pass3_all1.cfg:73: error: E_PAR: tmehdr `0' is null in CRE_ALM of ALM2
+../../test_cfg/pass3_all1.cfg:76: error: E_PAR: p_var `ADD1(&nvar1)' is not aligned in CRE_ALM of ALM3
+../../test_cfg/pass3_all1.cfg:77: error: E_PAR: p_var `0' is null in CRE_ALM of ALM4
+../../test_cfg/pass3_all1.cfg:80: error: E_PAR: p_var `ADD1(&nvar1)' is not aligned in CRE_ALM of ALM5
+../../test_cfg/pass3_all1.cfg:81: error: E_PAR: p_var `0' is null in CRE_ALM of ALM6
+../../test_cfg/pass3_all1.cfg:84: error: E_PAR: p_var `ADD1(&nvar2)' is not aligned in CRE_ALM of ALM7
+../../test_cfg/pass3_all1.cfg:85: error: E_PAR: p_var `0' is null in CRE_ALM of ALM8
+../../test_cfg/pass3_all1.cfg:88: error: E_PAR: p_var `ADD1(&nvar2)' is not aligned in CRE_ALM of ALM9
+../../test_cfg/pass3_all1.cfg:89: error: E_PAR: p_var `0' is null in CRE_ALM of ALM10
+../../test_cfg/pass3_all1.cfg:92: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_ALM of ALM11
+../../test_cfg/pass3_all1.cfg:93: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_ALM of ALM12
+../../test_cfg/pass3_all1.cfg:94: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_ALM of ALM13
+../../test_cfg/pass3_all1.cfg:95: error: E_ID: illegal tskid `TSKID_LARGE' in CRE_ALM of ALM14
+../../test_cfg/pass3_all1.cfg:98: error: E_ID: illegal semid `SEMID_LARGE' in CRE_ALM of ALM15
+../../test_cfg/pass3_all1.cfg:99: error: E_ID: illegal semid `SEMID_LARGE' in CRE_ALM of ALM16
+../../test_cfg/pass3_all1.cfg:102: error: E_ID: illegal flgid `FLGID_LARGE' in CRE_ALM of ALM17
+../../test_cfg/pass3_all1.cfg:103: error: E_ID: illegal flgid `FLGID_LARGE' in CRE_ALM of ALM18
+../../test_cfg/pass3_all1.cfg:107: error: E_ID: illegal dtqid `DTQID_LARGE' in CRE_ALM of ALM19
+../../test_cfg/pass3_all1.cfg:109: error: E_ID: illegal dtqid `DTQID_LARGE' in CRE_ALM of ALM20
+../../test_cfg/pass3_all1.cfg:124: error: E_PAR: istk `ADD1(istack)' is not aligned in DEF_ICS
+../../test_cfg/pass3_all1.cfg:127: error: E_PAR: inirtn `ADD1(initialize1_routine)' is not aligned in ATT_INI
+../../test_cfg/pass3_all1.cfg:128: error: E_PAR: inirtn `0' is null in ATT_INI
+../../test_cfg/pass3_all1.cfg:132: error: E_PAR: terrtn `0' is null in ATT_TER
+../../test_cfg/pass3_all1.cfg:131: error: E_PAR: terrtn `ADD1(terminate1_routine)' is not aligned in ATT_TER
+../../test_cfg/pass3_all1.cfg:116: error: E_PAR: inthdr `ADD1(int1_handler)' is not aligned in DEF_INH of INHNO1
+../../test_cfg/pass3_all1.cfg:117: error: E_PAR: inthdr `0' is null in DEF_INH of INHNO2
+../../test_cfg/pass3_all1.cfg:120: error: E_PAR: exchdr `ADD1(cpuexc1_handler)' is not aligned in DEF_EXC of CPUEXC1
+../../test_cfg/pass3_all1.cfg:121: error: E_PAR: exchdr `0' is null in DEF_EXC of CPUEXC2
+make: *** [check.timestamp] Error 1

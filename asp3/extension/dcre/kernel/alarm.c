@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: alarm.c 1021 2018-10-26 05:47:40Z ertl-hiro $
+ *  $Id: alarm.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -193,7 +193,7 @@ acre_alm(const T_CALM *pk_calm)
 		else {
 			p_nfyinfo = &aalm_nfyinfo_table[p_alminib - aalminib_table];
 			*p_nfyinfo = pk_calm->nfyinfo;
-			p_alminib->exinf = (intptr_t) p_nfyinfo;
+			p_alminib->exinf = (EXINF) p_nfyinfo;
 			p_alminib->nfyhdr = notify_handler;
 		}
 		p_almcb->almsta = false;
@@ -338,7 +338,7 @@ ref_alm(ID almid, T_RALM *pk_ralm)
 {
 	ALMCB	*p_almcb;
 	ER		ercd;
-    
+
 	LOG_REF_ALM_ENTER(almid, pk_ralm);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_ALMID(almid));

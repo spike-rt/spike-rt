@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_serial.c 1095 2018-11-28 00:57:28Z ertl-hiro $
+ *  $Id: target_serial.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /*
@@ -53,7 +53,7 @@
  *  SIOドライバの初期化
  */
 void
-sio_initialize(intptr_t exinf)
+sio_initialize(EXINF exinf)
 {
 	uart_pl011_initialize();
 }
@@ -62,7 +62,7 @@ sio_initialize(intptr_t exinf)
  *  SIOドライバの終了処理
  */
 void
-sio_terminate(intptr_t exinf)
+sio_terminate(EXINF exinf)
 {
 	uart_pl011_terminate();
 }
@@ -71,7 +71,7 @@ sio_terminate(intptr_t exinf)
  *  SIOの割込みサービスルーチン
  */
 void
-sio_isr(intptr_t exinf)
+sio_isr(EXINF exinf)
 {
 	uart_pl011_isr((ID) exinf);
 }
@@ -80,7 +80,7 @@ sio_isr(intptr_t exinf)
  *  SIOポートのオープン
  */
 SIOPCB *
-sio_opn_por(ID siopid, intptr_t exinf)
+sio_opn_por(ID siopid, EXINF exinf)
 {
 	SIOPCB	*p_siopcb;
 
@@ -153,7 +153,7 @@ sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
  *  SIOポートからの送信可能コールバック
  */
 void
-uart_pl011_irdy_snd(intptr_t exinf)
+uart_pl011_irdy_snd(EXINF exinf)
 {
 	sio_irdy_snd(exinf);
 }
@@ -162,7 +162,7 @@ uart_pl011_irdy_snd(intptr_t exinf)
  *  SIOポートからの受信通知コールバック
  */
 void
-uart_pl011_irdy_rcv(intptr_t exinf)
+uart_pl011_irdy_rcv(EXINF exinf)
 {
 	sio_irdy_rcv(exinf);
 }

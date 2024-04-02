@@ -3,7 +3,7 @@
 		非TECS版システムサービス ユーザーズマニュアル
 
 		対応バージョン: Release 3.4.0
-		最終更新: 2018年11月20日
+		最終更新: 2020年5月20日
 
 このドキュメントは，TOPPERS/ASP3カーネルの非TECS版システムサービスを使
 用するために必要な事項を説明するものである．
@@ -150,7 +150,7 @@ syslog.hをインクルードする．
 システムログ機能は，前記のサービスコール等に加えて，初期化処理のための
 関数を持つ．
 
-(1) void syslog_initialize(intptr_t exinf)
+(1) void syslog_initialize(EXINF exinf)
 
 システムログ機能の初期化処理．exinfは無視する．ログバッファにログ情報
 が記録されている場合には，消去される．syslog.cfgによって，カーネルに初
@@ -180,7 +180,7 @@ syslog.hをインクルードする．
 チンとして登録される．また，ターゲット依存で，初期化処理，終了処理，割
 込みサービスルーチンを持つ．これらの登録処理はserial.cfgに含まれる．
 
-(1) void serial_initialize(intptr_t exinf)
+(1) void serial_initialize(EXINF exinf)
 
 シリアルインタフェースドライバの初期化処理．exinfは無視する．
 serial.cfgによって，カーネルに初期化ルーチンとして登録される．
@@ -237,11 +237,11 @@ LOGTASK_INTERVALを待ち時間（単位はマイクロ秒）にマクロ定義�
 理を持つ．メイン処理はタスクとして，終了処理は終了処理ルーチンとして登
 録する．これらの登録処理はlogtask.cfgに含まれる．
 
-(1) void logtask_main(intptr_t exinf)
+(1) void logtask_main(EXINF exinf)
 
 システムログタスクのメイン処理．exinfは無視する．
 
-(2) void logtask_terminate(intptr_t exinf)
+(2) void logtask_terminate(EXINF exinf)
 
 システムログタスクの終了処理．シリアルインタフェースドライバの送信バッ
 ファに蓄積されたデータと，ログバッファに記録されたログ情報を，低レベル
@@ -315,7 +315,7 @@ HIST_MAX_TIMEは，デフォルト値がhistgram.cの中で定義されており
 
 カーネル起動メッセージの出力は，次の関数で構成される．
 
-(1) void print_banner(intptr_t exinf)
+(1) void print_banner(EXINF exinf)
 
 システムログ機能を用いて，カーネル起動メッセージを出力する関数．exinf
 は無視する．banner.cfgによって，カーネルに初期化ルーチンとして登録され
@@ -406,19 +406,19 @@ target_serial.c等のファイルを用意する．
 マクロ．このマクロの定義は，target_syssvc.hまたはそこからインクルード
 されるファイルに含める．
 
-(3-2-1-2) void sio_initialize(intptr_t exinf)（オプション）
+(3-2-1-2) void sio_initialize(EXINF exinf)（オプション）
 
 SIOドライバの初期化処理．target_serial.cfgに，この関数を初期化ルーチン
 として登録する静的APIを含める．ただし，低レベル出力をSIOポート経由で行
 う場合には，SIOドライバの初期化を初期化ルーチンの実行前に行いたいため，
 target_initializeから呼び出す必要がある．
 
-(3-2-1-3) void sio_terminate(intptr_t exinf)（オプション）
+(3-2-1-3) void sio_terminate(EXINF exinf)（オプション）
 
 SIOドライバの終了処理．target_serial.cfgに，この関数を終了処理ルーチン
 として登録する静的APIを含める．
 
-(3-2-1-4) void sio_isr(intptr_t exinf)
+(3-2-1-4) void sio_isr(EXINF exinf)
 
 SIOの割込みサービスルーチン．target_serial.cfgに，この関数を割込みサー
 ビスルーチンとして登録する静的APIを含める．また，その静的APIに必要な
@@ -443,7 +443,7 @@ SIOポート管理ブロックのデータ型（target_serial.hには，デー�
 ンテキストのいずれで呼び出される場合もある（いずれで呼び出されても動作
 するようにしなければならない）．
 
-(3-2-2-1) SIOPCB *sio_opn_por(ID siopid, intptr_t exinf)
+(3-2-2-1) SIOPCB *sio_opn_por(ID siopid, EXINF exinf)
 
 siopidで指定されるSIOポートをオープンする関数．exinfはSIOポートに対す
 る拡張情報で，コールバックを呼ぶ時にSIOポートを区別するために渡す．
@@ -485,14 +485,14 @@ siopcbで指定されるSIOポートからの，cbrtnで指定されるコール
 た状態で，非タスクコンテキストで呼び出す．exinfには，SIOポートのオープ
 ン時に指定された拡張情報を渡す．
 
-(3-2-3-1) void sio_irdy_snd(intptr_t exinf)
+(3-2-3-1) void sio_irdy_snd(EXINF exinf)
 
 送信可能コールバックルーチン．SIOポートに対して文字が送信できる状態に
 なった場合に呼び出す．シリアルインタフェースドライバは，このコールバッ
 クルーチンの中で，sio_snd_chrを呼び出して次の文字を送信するか，送信す
 べき文字がない場合には送信可能コールバックを禁止する．
 
-(3-2-3-2) void sio_irdy_rcv(intptr_t exinf)
+(3-2-3-2) void sio_irdy_rcv(EXINF exinf)
 
 受信通知コールバックルーチン．SIOポートから文字を受信した場合に呼び出
 す．シリアルインタフェースドライバは，このコールバックルーチンの中で，

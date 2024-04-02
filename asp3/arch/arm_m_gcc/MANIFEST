@@ -1,5 +1,5 @@
 PACKAGE asp3_arch_arm_m_gcc
-VERSION 3.5.0
+VERSION 3.6.0
 
 MANIFEST
 README.txt
@@ -33,4 +33,3 @@ common/core_unrename.h
 common/core_user.txt
 common/Makefile.core
 common/start.S
-doc/ASP3-ARM-M-design.pdf

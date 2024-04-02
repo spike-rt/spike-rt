@@ -1,0 +1,4 @@
+../../test_cfg/pass2_subprio1.cfg:14: warning: tskpri `10' in ENA_SPR is same with MID_PRIORITY
+../../test_cfg/pass2_subprio1.cfg:17: error: E_PAR: illegal tskpri `TMIN_TPRI-1' in ENA_SPR
+../../test_cfg/pass2_subprio1.cfg:18: error: E_PAR: illegal tskpri `TMAX_TPRI+1' in ENA_SPR
+make: *** [kernel_cfg.timestamp] Error 1

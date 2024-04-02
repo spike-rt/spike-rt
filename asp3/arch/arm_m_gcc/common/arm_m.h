@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id: arm_m.h 1500 2021-07-28 12:35:13Z ertl-komori $
+ *  @(#) $Id: arm_m.h 1799 2023-04-01 00:50:30Z ertl-komori $
  */
 
 /*
@@ -78,6 +78,7 @@
 #define CONTROL_PSP            0x02
 #define CONTROL_MSP            0x00
 #define CONTROL_FPCA           0x04
+#define CONTROL_INIT           CONTROL_PSP
 
 /*
  *  例外番号

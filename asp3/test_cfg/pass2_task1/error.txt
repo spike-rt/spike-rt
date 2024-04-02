@@ -1,0 +1,6 @@
+../../test_cfg/pass2_task1.cfg:10: error: E_RSATR: illegal tskatr `0x10U' in CRE_TSK of TASK1
+../../test_cfg/pass2_task1.cfg:13: error: E_PAR: illegal itskpri `TMIN_TPRI-1' in CRE_TSK of TASK2
+../../test_cfg/pass2_task1.cfg:14: error: E_PAR: illegal itskpri `TMAX_TPRI+1' in CRE_TSK of TASK3
+../../test_cfg/pass2_task1.cfg:17: error: E_PAR: stksz `0' is too small in CRE_TSK of TASK4
+../../test_cfg/pass2_task1.cfg:20: error: E_PAR: stksz `1' is not aligned in CRE_TSK of TASK5
+make: *** [kernel_cfg.timestamp] Error 1

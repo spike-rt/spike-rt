@@ -1,7 +1,7 @@
 #
 #		Makefile のターゲット依存部（ダミーターゲット用）
 #
-#  $Id: Makefile.target 1053 2018-11-19 14:15:34Z ertl-hiro $
+#  $Id: Makefile.target 1587 2022-08-29 09:38:53Z ertl-hiro $
 # 
 
 #
@@ -26,6 +26,7 @@ TOOLDIR = $(SRCDIR)/arch/$(TOOL)
 #  コンパイルオプション
 #
 INCLUDES := $(INCLUDES) -I$(TARGETDIR) -I$(TOOLDIR)
+LIBS := $(LIBS) -lgcc
 
 #
 #  カーネルに関する定義

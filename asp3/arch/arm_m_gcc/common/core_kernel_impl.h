@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  @(#) $Id: core_kernel_impl.h 1500 2021-07-28 12:35:13Z ertl-komori $
+ *  @(#) $Id: core_kernel_impl.h 1799 2023-04-01 00:50:30Z ertl-komori $
  */
 
 /*
@@ -231,11 +231,6 @@ lock_cpu(void)
 {
 	uint32_t iipm;
 
-	/* 
-	 * クリティカルセクションに入る前に全てのメモリアクセスが
-	 * 終了していることを保証する．
-	 */
-	data_synchronization_barrier();
 	/*
 	 *  get_basepri()の返り値を直接saved_iipmに保存せず，一時変数iipm
 	 *  を用いているのは，get_baespri()を呼んだ直後に割込みが発生し，
@@ -246,6 +241,11 @@ lock_cpu(void)
 	set_basepri_max(IIPM_LOCK);
 	saved_iipm = iipm;
 	lock_flag = true;
+	/* 
+	 * クリティカルセクションに入る前に全てのメモリアクセスが
+	 * 終了していることを保証する．
+	 */
+	data_synchronization_barrier();
 	/* クリティカルセクションの前後でメモリが書き換わる可能性がある */
 	ARM_MEMORY_CHANGED;
 }
@@ -284,11 +284,6 @@ unlock_cpu(void)
 Inline void
 lock_cpu_dsp(void)
 {
-	/* 
-	 * クリティカルセクションに入る前に全てのメモリアクセスが
-	 * 終了していることを保証する．
-	 */
-	data_synchronization_barrier();
 	/*
 	 * この時点では必ず割込み優先度全解除状態であるため，
 	 * ・割込み優先度マスクをCPUロック状態
@@ -298,6 +293,11 @@ lock_cpu_dsp(void)
 	set_basepri(IIPM_LOCK);
 	saved_iipm = IIPM_ENAALL;
 	lock_flag = true;
+	/* 
+	 * クリティカルセクションに入る前に全てのメモリアクセスが
+	 * 終了していることを保証する．
+	 */
+	data_synchronization_barrier();
 	/* クリティカルセクションの前後でメモリが書き換わる可能性がある */
 	ARM_MEMORY_CHANGED;
 }
@@ -512,11 +512,10 @@ probe_int(INTNO intno)
 	uint32_t tmp;
 
 	if (intno == IRQNO_SYSTICK) {
-		return ((sil_rew_mem((void*)NVIC_ICSR) & NVIC_PENDSTSET) == NVIC_PENDSTSET);
+		return sil_rew_mem((void *)NVIC_ICSR) & NVIC_PENDSTSET;
 	}else {
 		tmp = intno - 16;
-		return ((sil_rew_mem((void *)NVIC_ISPR0 + (tmp >> 5)) & (1 << (tmp & 0x1f)))
-		  == (1 << (tmp & 0x1f)));
+		return sil_rew_mem((void *)((uint32_t *)NVIC_ISPR0 + (tmp >> 5))) & (1 << (tmp & 0x1f));
 	}
 }
 

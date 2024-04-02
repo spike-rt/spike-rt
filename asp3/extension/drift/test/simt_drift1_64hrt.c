@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2014-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2014-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_drift1_64hrt.c 1235 2019-07-09 21:03:43Z ertl-hiro $
+ *  $Id: simt_drift1_64hrt.c 1437 2020-05-20 12:12:16Z ertl-hiro $
  */
 
 /* 
@@ -251,7 +251,7 @@ hook_hrt_raise_event(void)
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 
 	switch (++alarm1_count) {
@@ -278,7 +278,7 @@ alarm1_handler(intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	SYSTIM	systim;

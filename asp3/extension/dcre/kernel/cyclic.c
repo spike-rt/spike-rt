@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: cyclic.c 1021 2018-10-26 05:47:40Z ertl-hiro $
+ *  $Id: cyclic.c 1782 2023-01-08 14:50:43Z ertl-hiro $
  */
 
 /*
@@ -209,7 +209,7 @@ acre_cyc(const T_CCYC *pk_ccyc)
 		else {
 			p_nfyinfo = &acyc_nfyinfo_table[p_cycinib - acycinib_table];
 			*p_nfyinfo = pk_ccyc->nfyinfo;
-			p_cycinib->exinf = (intptr_t) p_nfyinfo;
+			p_cycinib->exinf = (EXINF) p_nfyinfo;
 			p_cycinib->nfyhdr = notify_handler;
 		}
 		p_cycinib->cyctim = cyctim;
@@ -366,7 +366,7 @@ ref_cyc(ID cycid, T_RCYC *pk_rcyc)
 {
 	CYCCB	*p_cyccb;
 	ER		ercd;
-    
+
 	LOG_REF_CYC_ENTER(cycid, pk_rcyc);
 	CHECK_TSKCTX_UNL();
 	CHECK_ID(VALID_CYCID(cycid));
