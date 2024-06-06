@@ -87,6 +87,11 @@ void
 target_initialize(void)
 {
 	/*
+	 *  コア依存部の初期化
+	 */
+	core_initialize();
+
+	/*
 	 *  HALによる初期化
 	 *  HAL_Init() : stm32f4xx_hal.c の内容から必要な初期化のみ呼び出す．
 	 */
@@ -97,12 +102,7 @@ target_initialize(void)
 	/*
 	 *  クロックの初期化
 	 */
-  SystemClock_Config();
-
-	/*
-	 *  コア依存部の初期化
-	 */
-	core_initialize();
+	SystemClock_Config();
 
 	/*
 	 *  使用するペリフェラルにクロックを供給
@@ -143,9 +143,9 @@ target_abort(void)
   uint32_t psp = get_psp(); 
   syslog(LOG_EMERG, "sp %08x", get_sp());
   syslog(LOG_EMERG, "msp %08x", msp);
-  dump_sp(msp);
+  dump_sp((uint32_t *)msp);
   syslog(LOG_EMERG, "psp %08x", psp);
-  dump_sp(psp);
+  dump_sp((uint32_t *)psp);
 
 	/* チップ依存部の終了処理 */
 	core_terminate();
@@ -157,6 +157,7 @@ void
 target_exit(void)
 {
   syslog(LOG_EMERG, "Target exit.");
+
 	/* チップ依存部の終了処理 */
 	core_terminate();
 
@@ -210,4 +211,12 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 uint32_t HAL_GetTick(void)
 {
   return current_hrtcnt/1000;
+}
+
+/*
+ *  デフォルトのsoftware_term_hook（weak定義）
+ */
+__attribute__((weak))
+void software_term_hook(void)
+{
 }

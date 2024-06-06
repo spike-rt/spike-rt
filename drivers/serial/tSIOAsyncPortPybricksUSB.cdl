@@ -13,7 +13,7 @@
 celltype tSIOAsyncPortPybricksUSB {
   entry   sSIOAsyncPort eSIOPort;
   entry   sSIOAsyncCBR  eSIOCBR;
-  call    sSIOAsyncCBR  cSIOCBR;
+  [optional] call    sSIOAsyncCBR  cSIOCBR;
 };
 
 
