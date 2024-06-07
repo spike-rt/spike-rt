@@ -12,6 +12,11 @@
 /*
  * Macro definitions
  */
+#ifndef TOPPERS_USE_QEMU
+#define PYBRICKS_TASK_ATR TA_ACT
+#else
+#define PYBRICKS_TASK_ATR TA_NULL
+#endif
 
 #define PYBRICKS_PRIORITY	4		/* タスクの優先度 */
 
