@@ -82,6 +82,7 @@ static inline ID _get_sio_portid_from_fd(int fd) {
 void _exit(int status) {
   hub_system_shutdown();
   /* Never come back here */
+  while(1);
 }
 
 int _close(int fd) {

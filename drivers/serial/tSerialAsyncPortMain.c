@@ -528,7 +528,7 @@ eSIOCBR_popSend(CELLIDX idx, char *dst)
 {
   CELLCB  *p_cellcb;
   uint_t send_size = 0U;
-  ER    ercd, rercd;
+  ER    ercd;
 
   assert(VALID_IDX(idx));
   p_cellcb = GET_CELLCB(idx);
@@ -570,7 +570,7 @@ eSIOCBR_popSend(CELLIDX idx, char *dst_data, uint_t max_size)
   CELLCB  *p_cellcb;
   uint_t send_size = 0U;
   int buffer_tail_size;
-  ER    ercd, rercd;
+  ER    ercd;
 
   assert(VALID_IDX(idx));
   p_cellcb = GET_CELLCB(idx);
@@ -627,7 +627,7 @@ eSIOCBR_pushReceive(CELLIDX idx, char src)
 {
   CELLCB  *p_cellcb;
   uint_t receive_size = 0U;
-  ER    ercd, rercd;
+  ER    ercd;
 
   assert(VALID_IDX(idx));
   p_cellcb = GET_CELLCB(idx);

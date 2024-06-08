@@ -43,6 +43,11 @@ eSIOPort_close(void)
 }
 
 /*
+ *  In external/libpybricks/lib/pbio/sys/bluetooth.c
+ */
+extern void pb_bluetooth_uart_put_notify(void);
+
+/*
  *  シリアルI/Oポートへの文字送信
  */
 void
