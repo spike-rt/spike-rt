@@ -23,7 +23,7 @@ cd ../..
 ```bash
 mkdir -p build/obj-primehub_led
 cd build/obj-primehub_led
-../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../samples/ -A app -m ../../common/app.mk
+../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../sample/led -A led -m ../../common/app.mk
 ```
 
 ### ビルド
@@ -31,7 +31,6 @@ cd build/obj-primehub_led
 (cd ../obj-primehub_kernel && make libpybricks.a && make libkernel.a) && rm -rf asp asp.bin && make && make asp.bin
 ```
 
-## 組み立て
 ## 書き込み
 ```bash
 PYTHON3=../../tools/python/bin/python3 sudo ../../scripts/deploy-dfu.sh asp.bin     
