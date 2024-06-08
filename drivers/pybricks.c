@@ -14,10 +14,17 @@
 #include <kernel_cfg.h>
 
 /*
+ *  In external/libpybricks/lib/pbio/platform/prime_hub_spike-rt/platform.c:
+ */
+extern void pb_SystemInit(void);
+
+extern void main(void);
+
+/*
  * Task to run pybricks.
  */
 int pb_main_task(int argc, char **argv) {
-	  syslog(LOG_INFO, "Pybricks main task start");
+    syslog(LOG_INFO, "Pybricks main task start");
 
     // Call pybricks platform initialization function.
     pb_SystemInit();
@@ -26,13 +33,14 @@ int pb_main_task(int argc, char **argv) {
     main();
 
     // Never come back here because the shutdown procedure is handled by pybricks.
-
+    while(1);
+    
     return 0;
 }
 
 
 void slp_pybricks(void) {
-		slp_tsk();
+    slp_tsk();
 }
 
 void wup_pybricks(void) {
@@ -41,9 +49,10 @@ void wup_pybricks(void) {
 
 void __attribute__((noreturn)) __fatal_error(const char *msg) {
     TOPPERS_assert_abort();
+    while(1);
 }
 
 void __attribute__((weak)) __assert_func(const char *file, int line, const char *func, const char *expr) {
-	  syslog(LOG_EMERG, "Assertion '%s' failed, at file %s:%d\n", expr, file, line);
+    syslog(LOG_EMERG, "Assertion '%s' failed, at file %s:%d\n", expr, file, line);
     __fatal_error("Assertion failed");
 }
