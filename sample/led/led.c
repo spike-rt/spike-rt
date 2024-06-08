@@ -60,18 +60,24 @@ extern const uint8_t pb_font_5x5[95][5];
 void
 main_task(intptr_t exinf)
 {
-  pbsys_user_program_prepare(NULL); // pbsys_processをユーザプログラム実行状態に遷移させる．
+  char c = 'a';
 
-
-  pb_assert(pbio_light_matrix_clear(pbsys_hub_light_matrix));
-  pb_assert(pbio_light_matrix_set_rows(pbsys_hub_light_matrix, pb_font_5x5['a' - 32]));
-  pb_assert(pbio_color_light_on(pbsys_status_light, PBIO_COLOR_YELLOW));
+  syslog(LOG_NOTICE, "Set Up LED\n");
 
   while(1)
   {
-    slp_tsk();
+    syslog(LOG_NOTICE, "Set LED to %c", c);
+    pbio_light_matrix_clear(pbsys_hub_light_matrix);
+    pbio_light_matrix_set_rows(pbsys_hub_light_matrix, pb_font_5x5[c - 32]);
+    pbio_color_light_on(pbsys_status_light, PBIO_COLOR_YELLOW);
+
+    dly_tsk(2*1000*1000);
+    c++;
+    if (c == 'z' + 1)
+    {
+      c = 'a';
+    }
   }
 
-  pbsys_user_program_unprepare();
-	assert(0);
+  assert(0);
 }
