@@ -23,7 +23,7 @@ cd ../..
 ```bash
 mkdir -p build/obj-primehub_led
 cd build/obj-primehub_led
-../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../samples/ -A app -m ../../common/app.mk
+../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../sample/led -A led -m ../../common/app.mk
 ```
 
 ### ビルド
