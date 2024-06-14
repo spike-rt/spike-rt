@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: MIT
- * Copyright (c) 2022-2023 Embedded and Real-Time Systems Laboratory,
+ * Copyright (c) 2022-2024 Embedded and Real-Time Systems Laboratory,
  *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
@@ -11,9 +11,12 @@
 #include <serial/serial.h>
 #include <spike/hub/system.h>
 #include <spike/pup/motor.h>
-#include "app_config.h"
 #include "motor.h"
 
+/*
+ *  モータを接続するポート
+ */
+#define PBIO_PORT_ID_MOTOR PBIO_PORT_ID_A
 
 /*
  * Application Main Task
@@ -26,11 +29,6 @@ main_task(intptr_t exinf)
   
   dly_tsk(3*1000*1000);
   
-  // 以下のようにNewlib経由でシリアル入出力できる．
-  //extern FILE* serial_open_newlib_file(ID portid);
-  //FILE *fd = serial_open_newlib_file(SIO_USB_PORTID);
-  //fprintf(fd, "Set Up Motor\n");
-
   syslog(LOG_NOTICE, "Set Up Motor\n");
 
   // Get pointer to servo
@@ -44,12 +42,22 @@ main_task(intptr_t exinf)
   if(motor == NULL) {
     hub_system_shutdown();
   }
-  
-  err = pup_motor_set_speed(motor, 300);
-  if (err != PBIO_SUCCESS) {
-    hub_system_shutdown();
+
+  while(1) {
+    syslog(LOG_NOTICE, "Set Motor Speed 300.");
+    err = pup_motor_set_speed(motor, 300);
+    if (err != PBIO_SUCCESS) {
+      hub_system_shutdown();
+    }
+    dly_tsk(3*1000*1000);
+
+    syslog(LOG_NOTICE, "Set Motor Speed 0.");
+    err = pup_motor_set_speed(motor, 0);
+    if (err != PBIO_SUCCESS) {
+      hub_system_shutdown();
+    }      
+    dly_tsk(3*1000*1000);
   }
-  dly_tsk(3*1000*1000);
 
   hub_system_shutdown();
 }
