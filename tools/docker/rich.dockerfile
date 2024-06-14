@@ -1,4 +1,4 @@
-FROM ruby:2.7.6-bullseye
+FROM ubuntu:22.04
 
 ARG GCC_URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
 ARG Doxygen_URL=https://www.doxygen.nl/files/doxygen-1.9.5.linux.bin.tar.gz
@@ -8,7 +8,8 @@ ARG QEMU_URL=https://github.com/spike-rt/qemu/releases/download/v7.2.0-lego-spik
 # Install required apt packages
 RUN apt update \
     && apt install -y --no-install-recommends \
-           curl make libncurses5 python3 git \
+          curl build-essential libncurses5 python3 git \
+          ruby3.0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GNU Arm Toolchain

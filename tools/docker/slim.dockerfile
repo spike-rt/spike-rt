@@ -1,4 +1,4 @@
-FROM ruby:2.7-slim-bullseye
+FROM ruby:3.1-slim-bullseye
 
 ARG GCC_URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
 
@@ -15,5 +15,5 @@ RUN curl -L ${GCC_URL} -o gcc-arm-none-eabi.tar.bz2 \
     && rm -rf ./gcc-arm-none-eabi.tar.bz2
 ENV PATH $PATH:/usr/local/gcc-arm-none-eabi/bin
 
-# Install required gem
+# Install a required gem
 RUN gem install shell
