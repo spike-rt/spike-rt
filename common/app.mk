@@ -338,7 +338,7 @@ KERNEL_LIB_OBJS = $(KERNEL_ASMOBJS) $(KERNEL_COBJS) $(KERNEL_LCOBJS)
 CFG_OBJS = $(CFG_ASMOBJS) $(CFG_COBJS)
 ALL_OBJS = $(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) \
 											$(END_OBJS) $(HIDDEN_OBJS)
-ALL_LIBS = -lkernel $(LIBS)
+ALL_LIBS = -Wl,--start-group -lkernel $(LIBS) -Wl,--end-group
 ifdef KERNEL_LIB
 	LIBS_DEP = $(KERNEL_LIB)/libkernel.a $(filter %.a,$(LIBS))
 	OBJ_LDFLAGS := $(OBJ_LDFLAGS) -L$(KERNEL_LIB)
