@@ -48,11 +48,8 @@
 #include "kernel_cfg.h"
 #include "led.h"
 
-#include <pbsys/light.h>
-#include <pbio/light.h>
-#include <pbio/color.h>
-
-extern const uint8_t pb_font_5x5[95][5];
+#include "spike/hub/light.h"
+#include "spike/hub/display.h"
 
 /*
  *  メインタスク
@@ -60,18 +57,24 @@ extern const uint8_t pb_font_5x5[95][5];
 void
 main_task(intptr_t exinf)
 {
-  pbsys_user_program_prepare(NULL); // pbsys_processをユーザプログラム実行状態に遷移させる．
+  char c = 'a';
 
-
-  pb_assert(pbio_light_matrix_clear(pbsys_hub_light_matrix));
-  pb_assert(pbio_light_matrix_set_rows(pbsys_hub_light_matrix, pb_font_5x5['a' - 32]));
-  pb_assert(pbio_color_light_on(pbsys_status_light, PBIO_COLOR_YELLOW));
+  syslog(LOG_NOTICE, "Set Up LED\n");
 
   while(1)
   {
-    slp_tsk();
+    syslog(LOG_NOTICE, "Set LED to %c", c);
+    hub_display_off();
+    hub_display_char(c);
+    hub_light_on_color(PBIO_COLOR_YELLOW);
+
+    dly_tsk(2*1000*1000);
+    c++;
+    if (c == 'z' + 1)
+    {
+      c = 'a';
+    }
   }
 
-  pbsys_user_program_unprepare();
-	assert(0);
+  assert(0);
 }
