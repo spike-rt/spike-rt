@@ -15,13 +15,7 @@ pushd $BUILD_TOP
 mkdir -p obj-primehub_kernel
 pushd obj-primehub_kernel 
 $SR_TOP/asp3/configure.rb -T primehub_gcc -f -m $SR_TOP/common/kernel.mk
-
-# Currently, build libpybricks.a, first of all.
-# libkernel.a itself does not depend on libpybricks.a, 
-# but some codes in libkernel.a depend on header files which is cloned by `make libpybricks.a`. 
-make libpybricks.a -j $JOB_NUM 
 make libkernel.a -j $JOB_NUM
-
 popd
 
 
