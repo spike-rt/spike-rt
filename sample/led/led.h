@@ -5,9 +5,8 @@
  *            Graduate School of Information Science, Nagoya Univ., JAPAN
  */
 
-/*
- *		サンプルプログラム(1)のヘッダファイル
- */
+#ifndef __LED_H__
+#define __LED_H__
 
 #include <kernel.h>
 
@@ -37,3 +36,5 @@
 extern void	main_task(intptr_t exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */
+
+#endif /* __LED_H__ */
