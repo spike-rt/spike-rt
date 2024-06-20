@@ -32,7 +32,7 @@ do
   mkdir -p obj-primehub_$APP
   pushd obj-primehub_$APP
   $SR_TOP/asp3/configure.rb -T primehub_gcc -L $BUILD_TOP/obj-primehub_kernel -a $SR_TOP/sample/$APP -A $APP -m $SR_TOP/common/app.mk
-  make -j $JOB_NUM && make asp.bin -j $JOB_NUM
+  make -j $JOB_NUM
   popd
 done
 

@@ -28,7 +28,7 @@ popd
 mkdir -p obj-primehub_test
 pushd obj-primehub_test
 $SR_TOP/asp3/configure.rb -T primehub_gcc -L $BUILD_TOP/obj-primehub_kernel -a $SR_TOP/test -A test -m $SR_TOP/common/app.mk
-make -j $JOB_NUM && make asp.bin -j $JOB_NUM
+make -j $JOB_NUM
 popd
 
 popd

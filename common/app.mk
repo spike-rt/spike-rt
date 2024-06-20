@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2006-2023 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2024 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,8 +36,6 @@
 #  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
-# 
-#  $Id: Makefile 1270 2019-10-03 14:04:50Z ertl-hiro $
 # 
 
 #
@@ -242,8 +240,8 @@ endif
 .PHONY: all
 ifndef OMIT_TECS
 all: tecs
-	@$(MAKE) check
-#	@$(MAKE) check $(OBJNAME).bin
+	@$(MAKE) check $(OBJNAME).bin
+#	@$(MAKE) check
 #	@$(MAKE) check $(OBJNAME).srec
 else
 all: check
