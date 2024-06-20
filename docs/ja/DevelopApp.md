@@ -19,9 +19,12 @@ git submodule update --init ./external/
 コンテナ上でターゲットバイナリの生成を行う．
 使用するMakefile のテンプレートが異なるため，カーネルとアプリケーションを分割してコンフィグ及びビルドする．
 
-### コンテナの起動
+### コンテナの起動及びシェルへのアタッチ
 ```bash
-docker run --rm -it -v $(pwd):$(pwd) -w $(pwd) spike-rt-builder /bin/bash
+docker run --rm -it \
+  -v $(pwd):$(pwd) -w $(pwd) \
+  -u "$(id -u $USER):$(id -g $USER)" -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
+  ghcr.io/spike-rt/spike-rt:rich /bin/bash
 ```
 
 ### コンフィグ（初回時のみ）
@@ -51,7 +54,7 @@ cd build/obj-primehub_$appname
 ```
 以下により，
 ```bash
-(cd ../obj-primehub_kernel && make libpybricks.a && make libkernel.a) && rm -rf asp asp.bin && make && make asp.bin
+(cd ../obj-primehub_kernel && && make libkernel.a) && rm -rf asp asp.bin && make
 ```
 再ビルド・再リンクする場合もこのコマンドで良い．
 
@@ -64,13 +67,14 @@ docker run --rm -it -v $(pwd):$(pwd) -w $(pwd) spike-rt-builder /bin/bash
 mkdir -p build/obj-primehub_kernel
 cd build/obj-primehub_kernel
 ../../asp3/configure.rb -T primehub_gcc -f -m ../../common/kernel.mk
+make libkernel.a
 cd -
 
 mkdir -p build/obj-primehub_motor
 cd build/obj-primehub_motor
 ../../asp3/configure.rb -T primehub_gcc -L ../obj-primehub_kernel -a ../../sample/motor/ -A motor -m ../../common/app.mk
 
-make -j4& make asp.bin
+make
 cd -
 
 exit

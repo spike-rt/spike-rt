@@ -28,7 +28,7 @@ cd build/obj-primehub_led
 
 ### ビルド
 ```bash
-(cd ../obj-primehub_kernel && make libpybricks.a && make libkernel.a) && rm -rf asp asp.bin && make && make asp.bin
+(cd ../obj-primehub_kernel && && make libkernel.a) && rm -rf asp asp.bin && make
 ```
 
 ## 書き込み
