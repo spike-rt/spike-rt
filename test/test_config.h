@@ -15,9 +15,9 @@
 #include <pbio/port.h>
 
 // Configurations for Unity output.
-#define UNITY_OUTPUT_VIA_PutLogTarget               (1)
+#define UNITY_OUTPUT_VIA_PutLogTarget               (0)
 #define UNITY_OUTPUT_VIA_PybricksSystemUSBSerial    (0)
-#define UNITY_OUTPUT_VIA_SERIAL_ADAPTER             (0)
+#define UNITY_OUTPUT_VIA_SERIAL_ADAPTER             (1)
 
 #ifndef TOPPERS_USE_QEMU
 #define SIO_UNITY_PORTID                            SIO_USB_PORTID

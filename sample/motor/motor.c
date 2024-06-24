@@ -17,7 +17,7 @@
 /*
  *  モータを接続するポート
  */
-#define PBIO_PORT_ID_MOTOR PBIO_PORT_ID_A
+#define PBIO_PORT_ID_MOTOR PBIO_PORT_ID_F
 
 /*
  * Application Main Task

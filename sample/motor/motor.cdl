@@ -54,7 +54,7 @@ cell tSerialAdapter SerialAdapter {
   cSerialPort[0] = SerialPortUSB1.eSerialPort;
   cSerialPort[1] = SerialPortBluetooth1.eSerialPort;
   cSerialPort[2] = SerialPortTest1.eSerialPort;
-  cSerialPort[3] = SerialPortUART_F.eSerialPort;
+  //cSerialPort[3] = SerialPortUART_F.eSerialPort;
   //cSerialPort[4] = SerialPortUART_E.eSerialPort;
 };
 
@@ -85,14 +85,14 @@ cell tSysLog SysLog {
  *  スドライバを使用するため，それも外すことが必要である．また，シリア
  *  ルインタフェースドライバのアダプタも外さなければならない．
  */
-cell tSerialPort SerialPortUART_F {
-  receiveBufferSize = 256;      /* 受信バッファのサイズ */
-  sendBufferSize    = 256;      /* 送信バッファのサイズ */
-
-  /* ターゲット依存部との結合 */
-  cSIOPort = SIOPortTarget1.eSIOPort;
-  eiSIOCBR <= SIOPortTarget1.ciSIOCBR;  /* コールバック */
-};
+//cell tSerialPort SerialPortUART_F {
+//  receiveBufferSize = 256;      /* 受信バッファのサイズ */
+//  sendBufferSize    = 256;      /* 送信バッファのサイズ */
+//
+//  /* ターゲット依存部との結合 */
+//  cSIOPort = SIOPortTarget1.eSIOPort;
+//  eiSIOCBR <= SIOPortTarget1.ciSIOCBR;  /* コールバック */
+//};
 
 cell tSerialAsyncPort SerialPortUSB1 {
   receiveBufferSize = 256;      /* 受信バッファのサイズ */

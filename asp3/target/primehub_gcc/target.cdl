@@ -62,18 +62,22 @@ const char *const BannerCopyrightNotice = "";			/* 著作権表示 */
 import("tPutLogTarget.cdl");
 import("tSIOPortTarget.cdl");
 
-/*
- *  シリアルインタフェースドライバのターゲット依存部の組み上げ記述
- */
-cell tSIOPortTarget SIOPortTarget1 {
-};
+///*
+// *  シリアルインタフェースドライバのターゲット依存部の組み上げ記述
+// */
+//cell tSIOPortTarget SIOPortTarget1 {
+//};
 
 /*
  *  低レベル出力の組み上げ記述
  */
-cell tPutLogTarget PutLogTarget {
-	/* SIOドライバとの結合 */
-	cSIOPort = SIOPortTarget1.eSIOPort;
-};
+//cell tPutLogTarget PutLogTarget {
+//	/* SIOドライバとの結合 */
+//	cSIOPort = SIOPortTarget1.eSIOPort;
+//};
 
 import("drivers.cdl");
+
+cell tPutLogEmpty PutLogTarget {
+};
+

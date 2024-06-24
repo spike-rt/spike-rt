@@ -113,10 +113,10 @@ target_initialize(void)
 	 */
 	BSP_LED_Init(LED2);
 
-	/*
-	 *  バーナー出力用のシリアル初期化
-	 */
-	usart_early_init();
+	///*
+	// *  バーナー出力用のシリアル初期化
+	// */
+	//usart_early_init();
 }
 
 void
@@ -164,26 +164,26 @@ target_exit(void)
 	while(1);
 }
 
-static UART_HandleTypeDef UartHandle;
-
-void
-usart_early_init()
-{
-	usart_low_init();
-
-	UartHandle.Instance          = USART_NAME; 
-	UartHandle.Init.BaudRate     = BPS_SETTING;
-	UartHandle.Init.WordLength   = UART_WORDLENGTH_8B;
-	UartHandle.Init.StopBits     = UART_STOPBITS_1;
-	UartHandle.Init.Parity       = UART_PARITY_NONE;
-	UartHandle.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
-	UartHandle.Init.Mode         = UART_MODE_TX_RX;
-	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
-    
-	if(HAL_UART_Init(&UartHandle) != HAL_OK) {
-		Error_Handler();
-	}
-};
+//static UART_HandleTypeDef UartHandle;
+//
+//void
+//usart_early_init()
+//{
+//	usart_low_init();
+//
+//	UartHandle.Instance          = USART_NAME; 
+//	UartHandle.Init.BaudRate     = BPS_SETTING;
+//	UartHandle.Init.WordLength   = UART_WORDLENGTH_8B;
+//	UartHandle.Init.StopBits     = UART_STOPBITS_1;
+//	UartHandle.Init.Parity       = UART_PARITY_NONE;
+//	UartHandle.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
+//	UartHandle.Init.Mode         = UART_MODE_TX_RX;
+//	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+//    
+//	if(HAL_UART_Init(&UartHandle) != HAL_OK) {
+//		Error_Handler();
+//	}
+//};
 
 /*
  * エラー発生時の処理

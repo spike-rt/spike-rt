@@ -12,9 +12,11 @@
 import("serial/tSerialAsyncPort.cdl");
 import("serial/tSIOAsyncPortPybricksUSB.cdl");
 import("serial/tSIOAsyncPortPybricksBluetooth.cdl");
+import("serial/tPutLogEmpty.cdl");
 
 cell tSIOAsyncPortPybricksUSB SIOPortPybricksUSB1 {
 };
 
 cell tSIOAsyncPortPybricksBluetooth SIOPortPybricksBluetooth1 {
 };
+

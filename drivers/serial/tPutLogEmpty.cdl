@@ -1,0 +1,18 @@
+/*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright (c) 2024 Embedded and Real-Time Systems Laboratory,
+ *            Graduate School of Information Science, Nagoya Univ., JAPAN
+ */
+
+/*
+ *		システムログの低レベル出力のコンポーネント記述
+ */
+
+/*
+ *  システムログの低レベル出力のセルタイプ
+ */
+[singleton]
+celltype tPutLogEmpty {
+	entry	sPutLog		ePutLog;
+};
